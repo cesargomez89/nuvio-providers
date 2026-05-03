@@ -1,6 +1,6 @@
 /**
  * cinecalidad - Built from src/cinecalidad/
- * Generated: 2026-05-03T18:18:51.546Z
+ * Generated: 2026-05-03T18:59:08.495Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -610,9 +610,118 @@ var require_engine = __commonJS({
   }
 });
 
+// src/cinecalidad/tmdb.js
+var require_tmdb = __commonJS({
+  "src/cinecalidad/tmdb.js"(exports2, module2) {
+    var axios = require("axios");
+    var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
+    var titleCache = /* @__PURE__ */ new Map();
+    function getTmdbTitle2(tmdbId, mediaType, language = "en-US", retries = 2) {
+      return __async(this, null, function* () {
+        if (!tmdbId)
+          return null;
+        const cleanId = tmdbId.toString().split(":")[0];
+        const cacheKey = `${cleanId}_${mediaType}_${language}`;
+        if (titleCache.has(cacheKey))
+          return titleCache.get(cacheKey);
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          let url;
+          if (cleanId.startsWith("tt")) {
+            url = `https://api.themoviedb.org/3/find/${cleanId}?api_key=${TMDB_API_KEY}&external_source=imdb_id&language=${language}`;
+            const { data } = yield axios.get(url, { timeout: 6e3 });
+            const result = type === "movie" ? data.movie_results && data.movie_results[0] : data.tv_results && data.tv_results[0] || data.movie_results && data.movie_results[0];
+            const title = result ? result.name || result.title : null;
+            if (title)
+              titleCache.set(cacheKey, title);
+            return title;
+          } else {
+            url = `https://api.themoviedb.org/3/${type}/${cleanId}?api_key=${TMDB_API_KEY}&language=${language}`;
+            const { data } = yield axios.get(url, { timeout: 6e3 });
+            const title = data.name || data.title || null;
+            if (title)
+              titleCache.set(cacheKey, title);
+            return title;
+          }
+        } catch (e) {
+          if (retries > 0) {
+            console.log(`[TMDB-Rescue] Retrying ${tmdbId} (${retries} left)...`);
+            yield new Promise((r) => setTimeout(r, 1e3));
+            return getTmdbTitle2(tmdbId, mediaType, retries - 1);
+          }
+          console.log(`[TMDB-Rescue] Failed to fetch title for ${tmdbId}: ${e.message}`);
+          return null;
+        }
+      });
+    }
+    function getTmdbInfo(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        if (!tmdbId)
+          return null;
+        const cleanId = tmdbId.toString().split(":")[0];
+        const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+        try {
+          let url;
+          let result;
+          if (cleanId.startsWith("tt")) {
+            url = `https://api.themoviedb.org/3/find/${cleanId}?api_key=${TMDB_API_KEY}&external_source=imdb_id`;
+            const { data } = yield axios.get(url, { timeout: 6e3 });
+            result = type === "movie" ? data.movie_results && data.movie_results[0] : data.tv_results && data.tv_results[0] || data.movie_results && data.movie_results[0];
+          } else {
+            url = `https://api.themoviedb.org/3/${type}/${cleanId}?api_key=${TMDB_API_KEY}`;
+            const { data } = yield axios.get(url, { timeout: 6e3 });
+            result = data;
+          }
+          if (result) {
+            const title = result.name || result.title;
+            const date = result.release_date || result.first_air_date || "";
+            const year = date.split("-")[0];
+            return { title, year };
+          }
+          return null;
+        } catch (e) {
+          return null;
+        }
+      });
+    }
+    function getTmdbAliases2(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        if (!tmdbId)
+          return [];
+        const cleanId = tmdbId.toString().split(":")[0];
+        const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+        const titles = /* @__PURE__ */ new Set();
+        try {
+          const [enTitle, esTitle] = yield Promise.all([
+            getTmdbTitle2(cleanId, type, "en-US"),
+            getTmdbTitle2(cleanId, type, "es-MX")
+          ]);
+          if (enTitle)
+            titles.add(enTitle);
+          if (esTitle)
+            titles.add(esTitle);
+          const altUrl = `https://api.themoviedb.org/3/${type}/${cleanId}/alternative_titles?api_key=${TMDB_API_KEY}`;
+          const { data } = yield axios.get(altUrl, { timeout: 5e3 });
+          const altResults = data.titles || data.results || [];
+          altResults.forEach((item) => {
+            if (item.title)
+              titles.add(item.title);
+          });
+          return Array.from(titles);
+        } catch (e) {
+          console.warn(`[TMDB-Aliases] Failed for ${tmdbId}: ${e.message}`);
+          return Array.from(titles);
+        }
+      });
+    }
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getTmdbAliases: getTmdbAliases2 };
+  }
+});
+
 // src/cinecalidad/extractor.js
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
+var import_tmdb = __toESM(require_tmdb());
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId)
