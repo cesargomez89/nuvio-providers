@@ -52,7 +52,7 @@ export async function fetchHtml(url, referer) {
         return await response.text();
     } catch (error) {
         console.error(`[PelisPlusHD] fetchHtml error: ${error.message}`);
-        return "";
+        throw error;
     }
 }
 

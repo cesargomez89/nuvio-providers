@@ -1,6 +1,6 @@
 /**
  * fuegocine - Built from src/fuegocine/
- * Generated: 2026-05-03T18:18:51.605Z
+ * Generated: 2026-05-03T18:56:31.355Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -54,105 +54,25 @@ var require_ua = __commonJS({
     var UA_POOL = [
       "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     ];
-    function getRandomUA() {
+    function getRandomUA2() {
       const index = Math.floor(Math.random() * UA_POOL.length);
       return UA_POOL[index];
     }
-    module2.exports = { getRandomUA, UA_POOL };
+    module2.exports = { getRandomUA: getRandomUA2, UA_POOL };
   }
 });
 
-// src/utils/http.js
-var require_http = __commonJS({
-  "src/utils/http.js"(exports2, module2) {
-    var { getRandomUA } = require_ua();
-    var DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-    var sessionUA = null;
-    function setSessionUA(ua) {
-      sessionUA = ua;
-    }
-    function getSessionUA() {
-      return sessionUA || DEFAULT_CHROME_UA;
-    }
-    function getStealthHeaders() {
-      return {
-        "User-Agent": getSessionUA(),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
-        "Connection": "keep-alive",
-        "sec-ch-ua": '"Chromium";v="142", "Not-A.Brand";v="24", "Google Chrome";v="142", "Opera":v="126"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Android"',
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1"
-      };
-    }
-    var DEFAULT_UA = getSessionUA();
-    var MOBILE_UA = getSessionUA();
-    function request(_0) {
-      return __async(this, arguments, function* (url, options = {}) {
-        const opt = options || {};
-        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA();
-        const headers = Object.assign({
-          "User-Agent": currentUA,
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-          "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
-        }, opt.headers);
-        try {
-          const fetchOptions = Object.assign({
-            redirect: opt.redirect || "follow",
-            skipSizeCheck: true
-          }, opt, {
-            headers
-          });
-          if (opt.signal)
-            fetchOptions.signal = opt.signal;
-          const response = yield fetch(url, fetchOptions);
-          if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
-            const redirectUrl = response.headers.get("location");
-            console.log(`[HTTP] Redirecci\xF3n detectada (Manual): ${redirectUrl}`);
-            return { status: response.status, redirectUrl, ok: false };
-          }
-          if (!response.ok && !opt.ignoreErrors) {
-            console.warn("[HTTP] Error " + response.status + " en " + url);
-          }
-          return response;
-        } catch (error) {
-          console.error("[HTTP] Error en " + url + ": " + error.message);
-          throw error;
-        }
-      });
-    }
-    function fetchHtml2(url, options) {
-      return __async(this, null, function* () {
-        const res = yield request(url, options);
-        return yield res.text();
-      });
-    }
-    function fetchJson2(url, options) {
-      return __async(this, null, function* () {
-        const res = yield request(url, options);
-        return yield res.json();
-      });
-    }
-    module2.exports = {
-      request,
-      fetchHtml: fetchHtml2,
-      fetchJson: fetchJson2,
-      getSessionUA,
-      setSessionUA,
-      getStealthHeaders,
-      DEFAULT_UA,
-      MOBILE_UA
-    };
-  }
-});
+// src/fuegocine/http.js
+var import_ua = __toESM(require_ua());
+var DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+var sessionUA = null;
+function getSessionUA() {
+  return sessionUA || DEFAULT_CHROME_UA;
+}
+var DEFAULT_UA = getSessionUA();
+var MOBILE_UA = getSessionUA();
 
 // src/fuegocine/extractor.js
-var import_http = __toESM(require_http());
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId)

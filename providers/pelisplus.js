@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-05-03T18:54:47.410Z
+ * Generated: 2026-05-03T18:55:53.047Z
  */
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
