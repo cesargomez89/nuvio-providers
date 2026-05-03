@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-05-03T18:18:51.693Z
+ * Generated: 2026-05-03T19:00:30.208Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -153,6 +153,11 @@ var require_http = __commonJS({
 
 // src/tioplus/extractor.js
 var import_http = __toESM(require_http());
+
+// src/tioplus/tmdb.js
+var axios = require("axios");
+
+// src/tioplus/extractor.js
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId)
