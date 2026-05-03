@@ -1,6 +1,6 @@
 /**
  * cuevana_unbuendato - Built from src/cuevana_unbuendato/
- * Generated: 2026-05-03T18:18:51.575Z
+ * Generated: 2026-05-03T20:29:19.313Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1460,7 +1460,13 @@ var require_resolvers = __commonJS({
           return yield resolveFastream(url);
         if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh"))
           return yield resolveVimeos(url);
-        return null;
+        const headers = getDirectCdnHeaders(url);
+        return {
+          url,
+          quality: "SD",
+          verified: false,
+          headers
+        };
       });
     }
     module2.exports = { resolveEmbed: resolveEmbed2, getDirectCdnHeaders };

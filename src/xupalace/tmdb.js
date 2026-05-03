@@ -1,7 +1,7 @@
 const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
 const titleCache = new Map();
 
-export async function getTmdbTitle(tmdbId, mediaType, language = "en-US", retries = 2) {
+export async function getTmdbTitle(tmdbId, mediaType, language = "es-MX", retries = 2) {
     if (!tmdbId) return null;
     const cleanId = tmdbId.toString().split(":")[0];
     const cacheKey = `${cleanId}_${mediaType}_${language}`;
@@ -31,7 +31,6 @@ export async function getTmdbTitle(tmdbId, mediaType, language = "en-US", retrie
             await new Promise(r => setTimeout(r, 1000));
             return getTmdbTitle(tmdbId, mediaType, language, retries - 1);
         }
-        console.log(`[TMDB-Rescue] Failed to fetch title for ${tmdbId}: ${e.message}`);
         return null;
     }
 }

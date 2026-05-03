@@ -55,7 +55,16 @@ async function resolveEmbed(url, signal = null) {
     return await resolveFastream(url);
   if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh"))
     return await resolveVimeos(url);
-  return null;
+  
+  // Fallback: return URL with direct CDN headers for unmatched URLs
+  // This ensures we don't lose valid stream URLs
+  const headers = getDirectCdnHeaders(url);
+  return {
+    url,
+    quality: "SD",
+    verified: false,
+    headers
+  };
 }
 
 module.exports = { resolveEmbed, getDirectCdnHeaders };

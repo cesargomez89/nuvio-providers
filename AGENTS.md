@@ -58,7 +58,7 @@ npm start                  # Start local dev server (serves providers/ and manif
 
 ## Testing
 
-1. **Local**: Create `test.js` with `const { getStreams } = require('./providers/myprovider.js');` and run `node test.js`
+1. **Local**: Run `node test.js` to test all providers, or `node test.js <provider>` to test a specific provider
 2. **In-App**: Use Plugin Tester in debug build (requires `npm start` running and same Wi-Fi)
 
 ## Project Structure
