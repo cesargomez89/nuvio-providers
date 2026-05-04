@@ -28,12 +28,13 @@ async function testProvider(filename) {
   const providerPath = path.join(providersDir, filename);
   let movieStreams = 0;
   let tvStreams = 0;
+  let totalTime = 0;
 
   try {
     const mod = require(providerPath);
     if (!mod.getStreams) {
       console.log(`[${name}] SKIP - No getStreams export`);
-      return { name, status: 'skip', error: null, movieStreams: 0, tvStreams: 0 };
+      return { name, status: 'skip', error: null, movieStreams: 0, tvStreams: 0, time: 0 };
     }
 
     const configPromises = testConfigs.map(async (config) => {
@@ -41,6 +42,7 @@ async function testProvider(filename) {
         ? `Movie ${config.tmdbId}`
         : `TV ${config.tmdbId} S${config.season}E${config.episode}`;
       console.log(`[${name}] Testing ${label}...`);
+      const startTime = Date.now();
       try {
         const streams = await mod.getStreams(
           config.tmdbId,
@@ -48,10 +50,14 @@ async function testProvider(filename) {
           config.season || null,
           config.episode || null
         );
-        console.log(`[${name}] ${label}: ${streams.length} streams`);
+        const elapsed = Date.now() - startTime;
+        totalTime += elapsed;
+        console.log(`[${name}] ${label}: ${streams.length} streams (${elapsed}ms)`);
         return { config, streams };
       } catch (e) {
-        console.log(`[${name}] ${label} error: ${e.message}`);
+        const elapsed = Date.now() - startTime;
+        totalTime += elapsed;
+        console.log(`[${name}] ${label} error: ${e.message} (${elapsed}ms)`);
         return { config, streams: [] };
       }
     });
@@ -66,11 +72,11 @@ async function testProvider(filename) {
       }
     }
 
-    console.log(`[${name}] OK`);
-    return { name, status: 'ok', error: null, movieStreams, tvStreams };
+    console.log(`[${name}] OK (${totalTime}ms total)`);
+    return { name, status: 'ok', error: null, movieStreams, tvStreams, time: totalTime };
   } catch (e) {
     console.log(`[${name}] FAIL: ${e.message}`);
-    return { name, status: 'fail', error: e.message, movieStreams: 0, tvStreams: 0 };
+    return { name, status: 'fail', error: e.message, movieStreams: 0, tvStreams: 0, time: 0 };
   }
 }
 
@@ -101,15 +107,18 @@ async function main() {
   const sortedResults = [...results].sort((a, b) => {
     if (a.status === 'fail' && b.status !== 'fail') return -1;
     if (b.status === 'fail' && a.status !== 'fail') return 1;
-    return b.movieStreams + b.tvStreams - (a.movieStreams + a.tvStreams);
+    return b.time - a.time;
   });
 
+  console.log(`${'Provider'.padEnd(20)} Movie   TV     Total   Time(ms)`);
+  console.log('-'.repeat(60));
   sortedResults.forEach(r => {
     const streams = (r.movieStreams + r.tvStreams).toString().padStart(3);
     const movie = r.movieStreams.toString().padStart(3);
     const tv = r.tvStreams.toString().padStart(3);
+    const time = r.time.toString().padStart(7);
     const status = r.status === 'ok' ? '✓' : r.status === 'fail' ? '✗' : '-';
-    console.log(`${status} ${r.name.padEnd(20)} Movie: ${movie}  TV: ${tv}  Total: ${streams}`);
+    console.log(`${status} ${r.name.padEnd(18)} ${movie}   ${tv}    ${streams}     ${time}`);
   });
 
   console.log('-'.repeat(60));

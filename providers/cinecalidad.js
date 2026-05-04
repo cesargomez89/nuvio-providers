@@ -1,6 +1,6 @@
 /**
  * cinecalidad - Built from src/cinecalidad/
- * Generated: 2026-05-04T01:14:26.796Z
+ * Generated: 2026-05-04T02:03:04.627Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -118,7 +118,7 @@ var require_http = __commonJS({
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
           "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
         }, opt.headers);
-        const timeout = opt.timeout || 15e3;
+        const timeout = opt.timeout || 25e3;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
@@ -1632,25 +1632,28 @@ function buildSlug(title) {
 function getMovieUrl(slug, expectedYear) {
   return __async(this, null, function* () {
     const slugsToTry = [slug, `${slug}-2`, `${slug}-3`];
-    for (const s of slugsToTry) {
-      const url = `${BASE_URL}/pelicula/${s}/`;
-      try {
-        const res = yield (0, import_http.request)(url, { headers: HEADERS });
-        if (!res || !res.ok)
-          continue;
-        const html = yield res.text();
-        if (html.includes("404 Not Found") || !html.includes('id="btn_enlace"'))
-          continue;
-        const yearMatch = html.match(/<h1[^>]*>[^<]*\((\d{4})\)[^<]*<\/h1>/);
-        const year = yearMatch ? yearMatch[1] : null;
-        if (!year || !expectedYear || year === expectedYear) {
-          console.log(`[CineCalidad] \u2713 Encontrado v\xEDa slug: /pelicula/${s}/ (${year || "?"})`);
-          return url;
+    const slugResults = yield Promise.all(
+      slugsToTry.map((s) => __async(this, null, function* () {
+        const url = `${BASE_URL}/pelicula/${s}/`;
+        try {
+          const res = yield (0, import_http.request)(url, { headers: HEADERS });
+          if (!res || !res.ok)
+            return null;
+          const html = yield res.text();
+          if (html.includes("404 Not Found") || !html.includes('id="btn_enlace"'))
+            return null;
+          const yearMatch = html.match(/<h1[^>]*>[^<]*\((\d{4})\)[^<]*<\/h1>/);
+          const year = yearMatch ? yearMatch[1] : null;
+          if (!year || !expectedYear || year === expectedYear) {
+            console.log(`[CineCalidad] \u2713 Encontrado v\xEDa slug: /pelicula/${s}/ (${year || "?"})`);
+            return url;
+          }
+        } catch (e) {
         }
-      } catch (e) {
-      }
-    }
-    return null;
+        return null;
+      }))
+    );
+    return slugResults.find((r) => r !== null);
   });
 }
 function searchResults(title) {

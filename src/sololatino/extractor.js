@@ -87,7 +87,6 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         const postH = { ...HEADERS, "Referer": playerUrl, "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" };
         if (cookie) postH["cookie"] = cookie;
         await fetch(`${BASE_URL}/s.php`, { method: "POST", body: "a=click&tok=" + token, headers: postH }).catch(() => {});
-        await sleep(1000);
         const scanResponse = await fetch(`${BASE_URL}/s.php`, { method: "POST", body: `a=1&tok=${token}`, headers: postH });
         const scanData = await scanResponse.json();
         const uniqueServers = new Map();

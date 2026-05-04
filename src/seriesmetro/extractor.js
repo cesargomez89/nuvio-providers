@@ -49,21 +49,25 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const uniqueSlugs = [...new Set(slugs)].slice(0, 6);
     
     let seriesUrl = null;
-    for (const slug of uniqueSlugs) {
-        const typePrefix = mediaType === "movie" || mediaType === "movies" ? "pelicula" : "serie";
-        const testUrl = `${BASE}/${typePrefix}/${slug}`;
-        
-        try {
-            const response = await fetch(testUrl, { headers: HEADERS });
-            if (response.ok) {
-                const html = await response.text();
-                if (!html.includes("404") && !html.includes("Not Found") && html.length > 1000) {
-                    console.log(`[SeriesMetro] Found: ${testUrl}`);
-                    seriesUrl = testUrl;
-                    break;
+    const typePrefix = mediaType === "movie" || mediaType === "movies" ? "pelicula" : "serie";
+    const slugChecks = await Promise.all(
+        uniqueSlugs.map(async (slug) => {
+            const testUrl = `${BASE}/${typePrefix}/${slug}`;
+            try {
+                const response = await fetch(testUrl, { headers: HEADERS });
+                if (response.ok) {
+                    const html = await response.text();
+                    if (!html.includes("404") && !html.includes("Not Found") && html.length > 1000) {
+                        return testUrl;
+                    }
                 }
-            }
-        } catch (e) {}
+            } catch (e) {}
+            return null;
+        })
+    );
+    seriesUrl = slugChecks.find(r => r !== null);
+    if (seriesUrl) {
+        console.log(`[SeriesMetro] Found: ${seriesUrl}`);
     }
     
     if (!seriesUrl) {

@@ -1,6 +1,6 @@
 /**
  * playhubmax - Built from src/playhubmax/
- * Generated: 2026-05-04T01:14:27.016Z
+ * Generated: 2026-05-04T02:03:04.854Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -118,7 +118,7 @@ var require_http = __commonJS({
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
           "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
         }, opt.headers);
-        const timeout = opt.timeout || 15e3;
+        const timeout = opt.timeout || 25e3;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         try {

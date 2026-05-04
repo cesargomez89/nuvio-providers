@@ -38,22 +38,25 @@ function buildSlug(title) {
 
 async function getMovieUrl(slug, expectedYear) {
     const slugsToTry = [slug, `${slug}-2`, `${slug}-3`];
-    for (const s of slugsToTry) {
-        const url = `${BASE_URL}/pelicula/${s}/`;
-        try {
-            const res = await request(url, { headers: HEADERS });
-            if (!res || !res.ok) continue;
-            const html = await res.text();
-            if (html.includes("404 Not Found") || !html.includes('id="btn_enlace"')) continue;
-            const yearMatch = html.match(/<h1[^>]*>[^<]*\((\d{4})\)[^<]*<\/h1>/);
-            const year = yearMatch ? yearMatch[1] : null;
-            if (!year || !expectedYear || year === expectedYear) {
-                console.log(`[CineCalidad] ✓ Encontrado vía slug: /pelicula/${s}/ (${year || "?"})`);
-                return url;
-            }
-        } catch (e) {}
-    }
-    return null;
+    const slugResults = await Promise.all(
+        slugsToTry.map(async (s) => {
+            const url = `${BASE_URL}/pelicula/${s}/`;
+            try {
+                const res = await request(url, { headers: HEADERS });
+                if (!res || !res.ok) return null;
+                const html = await res.text();
+                if (html.includes("404 Not Found") || !html.includes('id="btn_enlace"')) return null;
+                const yearMatch = html.match(/<h1[^>]*>[^<]*\((\d{4})\)[^<]*<\/h1>/);
+                const year = yearMatch ? yearMatch[1] : null;
+                if (!year || !expectedYear || year === expectedYear) {
+                    console.log(`[CineCalidad] ✓ Encontrado vía slug: /pelicula/${s}/ (${year || "?"})`);
+                    return url;
+                }
+            } catch (e) {}
+            return null;
+        })
+    );
+    return slugResults.find(r => r !== null);
 }
 
 async function searchResults(title) {

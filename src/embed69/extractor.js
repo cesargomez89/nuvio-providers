@@ -307,20 +307,18 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             if (embeds.length === 0) continue;
 
             console.log(`[Embed69] Resolving ${embeds.length} embeds (${lang})...`);
-            const resolved = [];
-
-            for (const emb of embeds) {
-                const result = await resolveEmbedLocal(emb.url, emb.hint);
-                if (result && result.url) {
-                    resolved.push({
-                        serverName: result.serverName || "Server",
-                        audio: currentLangLabel,
-                        quality: result.quality || "HD",
-                        url: result.url,
-                        headers: result.headers || { "User-Agent": currentUA }
-                    });
-                }
-            }
+            const resolvedResults = await Promise.all(
+                embeds.map(emb => resolveEmbedLocal(emb.url, emb.hint))
+            );
+            const resolved = resolvedResults
+                .filter(result => result && result.url)
+                .map(result => ({
+                    serverName: result.serverName || "Server",
+                    audio: currentLangLabel,
+                    quality: result.quality || "HD",
+                    url: result.url,
+                    headers: result.headers || { "User-Agent": currentUA }
+                }));
 
             if (resolved.length > 0) {
                 streams.push(...resolved);

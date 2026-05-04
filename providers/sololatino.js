@@ -1,6 +1,6 @@
 /**
  * sololatino - Built from src/sololatino/
- * Generated: 2026-05-04T01:14:27.045Z
+ * Generated: 2026-05-04T02:03:04.890Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -118,7 +118,7 @@ var require_http = __commonJS({
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
           "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
         }, opt.headers);
-        const timeout = opt.timeout || 15e3;
+        const timeout = opt.timeout || 25e3;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
@@ -1495,9 +1495,6 @@ var HEADERS = {
   "X-Requested-With": "XMLHttpRequest",
   "Referer": "https://sololatino.net/"
 };
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 function getDirectStream(id, token, cookie, playerUrl) {
   return __async(this, null, function* () {
     try {
@@ -1577,7 +1574,6 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         postH["cookie"] = cookie;
       yield fetch(`${BASE_URL}/s.php`, { method: "POST", body: "a=click&tok=" + token, headers: postH }).catch(() => {
       });
-      yield sleep(1e3);
       const scanResponse = yield fetch(`${BASE_URL}/s.php`, { method: "POST", body: `a=1&tok=${token}`, headers: postH });
       const scanData = yield scanResponse.json();
       const uniqueServers = /* @__PURE__ */ new Map();

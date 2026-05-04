@@ -1,6 +1,6 @@
 /**
  * embed69 - Built from src/embed69/
- * Generated: 2026-05-04T01:14:26.874Z
+ * Generated: 2026-05-04T02:03:04.707Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -118,7 +118,7 @@ var require_http = __commonJS({
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
           "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
         }, opt.headers);
-        const timeout = opt.timeout || 15e3;
+        const timeout = opt.timeout || 25e3;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
@@ -1130,19 +1130,16 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         if (embeds.length === 0)
           continue;
         console.log(`[Embed69] Resolving ${embeds.length} embeds (${lang})...`);
-        const resolved = [];
-        for (const emb of embeds) {
-          const result = yield resolveEmbedLocal(emb.url, emb.hint);
-          if (result && result.url) {
-            resolved.push({
-              serverName: result.serverName || "Server",
-              audio: currentLangLabel,
-              quality: result.quality || "HD",
-              url: result.url,
-              headers: result.headers || { "User-Agent": currentUA }
-            });
-          }
-        }
+        const resolvedResults = yield Promise.all(
+          embeds.map((emb) => resolveEmbedLocal(emb.url, emb.hint))
+        );
+        const resolved = resolvedResults.filter((result) => result && result.url).map((result) => ({
+          serverName: result.serverName || "Server",
+          audio: currentLangLabel,
+          quality: result.quality || "HD",
+          url: result.url,
+          headers: result.headers || { "User-Agent": currentUA }
+        }));
         if (resolved.length > 0) {
           streams.push(...resolved);
           console.log(`[Embed69] \u2713 Streams found in ${lang}, stopping cascade`);
