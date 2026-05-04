@@ -1,6 +1,6 @@
 /**
  * cinecalidad - Built from src/cinecalidad/
- * Generated: 2026-05-04T02:16:10.371Z
+ * Generated: 2026-05-04T02:20:15.986Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -97,7 +97,7 @@ var require_http = __commonJS({
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
         "Connection": "keep-alive",
-        "sec-ch-ua": '"Chromium";v="142", "Not-A.Brand";v="24", "Google Chrome";v="142", "Opera":v="126"',
+        "sec-ch-ua": '"Not.A/Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Android"',
         "Sec-Fetch-Dest": "document",
@@ -118,19 +118,14 @@ var require_http = __commonJS({
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
           "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
         }, opt.headers);
-        const timeout = opt.timeout || 3e4;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
           const fetchOptions = Object.assign({
             redirect: opt.redirect || "follow",
             skipSizeCheck: true
           }, opt, {
-            headers,
-            signal: controller.signal
+            headers
           });
           const response = yield fetch(url, fetchOptions);
-          clearTimeout(timeoutId);
           if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
             const redirectUrl = response.headers.get("location");
             console.log(`[HTTP] Redirecci\xF3n detectada (Manual): ${redirectUrl}`);
@@ -141,12 +136,7 @@ var require_http = __commonJS({
           }
           return response;
         } catch (error) {
-          clearTimeout(timeoutId);
-          if (error.name === "AbortError") {
-            console.warn(`[HTTP] Timeout (${timeout}ms) en ${url}`);
-          } else {
-            console.error("[HTTP] Error en " + url + ": " + error.message);
-          }
+          console.error("[HTTP] Error en " + url + ": " + error.message);
           throw error;
         }
       });
@@ -1182,7 +1172,6 @@ var require_quality = __commonJS({
 // src/resolvers/goodstream.js
 var require_goodstream = __commonJS({
   "src/resolvers/goodstream.js"(exports2, module2) {
-    var axios = require("axios");
     var { detectQuality } = require_quality();
     var { getSessionUA } = require_http();
     function resolve(embedUrl) {
@@ -1190,18 +1179,17 @@ var require_goodstream = __commonJS({
         try {
           const UA = getSessionUA();
           console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
-          const response = yield axios.get(embedUrl, {
+          const response = yield fetch(embedUrl, {
             headers: {
               "User-Agent": UA,
               "Referer": "https://goodstream.one/",
               "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
               "Accept-Language": "es-MX,es;q=0.9",
               "Connection": "keep-alive"
-            },
-            timeout: 3e4,
-            maxRedirects: 5
+            }
           });
-          const match = response.data.match(/file:\s*"([^"]+)"/);
+          const data = yield response.text();
+          const match = data.match(/file:\s*"([^"]+)"/);
           if (!match) {
             console.log('[GoodStream] No se encontr\xF3 patr\xF3n file:"..."');
             return null;

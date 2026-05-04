@@ -1,4 +1,3 @@
-const axios = require("axios");
 const { detectQuality } = require('./quality.js');
 const { getSessionUA } = require('../utils/http.js');
 
@@ -6,18 +5,17 @@ async function resolve(embedUrl) {
   try {
     const UA = getSessionUA();
     console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
-    const response = await axios.get(embedUrl, {
+    const response = await fetch(embedUrl, {
       headers: {
         "User-Agent": UA,
         "Referer": "https://goodstream.one/",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "es-MX,es;q=0.9",
         "Connection": "keep-alive"
-      },
-      timeout: 30000,
-      maxRedirects: 5
+      }
     });
-    const match = response.data.match(/file:\s*"([^"]+)"/);
+    const data = await response.text();
+    const match = data.match(/file:\s*"([^"]+)"/);
     if (!match) {
       console.log('[GoodStream] No se encontró patrón file:"..."');
       return null;

@@ -1,17 +1,10 @@
-const DEFAULT_TIMEOUT = 30000;
-
-async function parallelWithLimit(items, handler, limit = 5, timeout = DEFAULT_TIMEOUT) {
+async function parallelWithLimit(items, handler, limit = 5) {
   const results = [];
 
   for (let i = 0; i < items.length; i += limit) {
     const batch = items.slice(i, i + limit);
     const batchPromises = batch.map(item => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-      return Promise.race([
-        handler(item, controller.signal).catch(() => null),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
-      ]).finally(() => clearTimeout(timeoutId));
+      return handler(item).catch(() => null);
     });
     const batchResults = await Promise.allSettled(batchPromises);
     results.push(...batchResults.map(r => r.status === 'fulfilled' ? r.value : null));
@@ -20,7 +13,7 @@ async function parallelWithLimit(items, handler, limit = 5, timeout = DEFAULT_TI
   return results;
 }
 
-async function resolveWithLimit(items, handler, limit = 5, totalTimeout = DEFAULT_TIMEOUT) {
+async function resolveWithLimit(items, handler, limit = 5) {
   const results = [];
 
   const promises = items.map(async (item) => {
@@ -35,18 +28,8 @@ async function resolveWithLimit(items, handler, limit = 5, totalTimeout = DEFAUL
   return results;
 }
 
-async function withTimeout(promise, timeoutMs = DEFAULT_TIMEOUT) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await Promise.race([
-      promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeoutMs))
-    ]);
-  } finally {
-    clearTimeout(timeoutId);
-  }
+async function withTimeout(promise) {
+  return await promise;
 }
 
-module.exports = { parallelWithLimit, resolveWithLimit, withTimeout, DEFAULT_TIMEOUT };
+module.exports = { parallelWithLimit, resolveWithLimit, withTimeout };

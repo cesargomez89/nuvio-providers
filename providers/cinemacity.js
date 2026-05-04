@@ -1,6 +1,6 @@
 /**
  * cinemacity - Built from src/cinemacity/
- * Generated: 2026-05-04T02:16:10.417Z
+ * Generated: 2026-05-04T02:20:16.030Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -97,7 +97,7 @@ var require_http = __commonJS({
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
         "Connection": "keep-alive",
-        "sec-ch-ua": '"Chromium";v="142", "Not-A.Brand";v="24", "Google Chrome";v="142", "Opera":v="126"',
+        "sec-ch-ua": '"Not.A/Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Android"',
         "Sec-Fetch-Dest": "document",
@@ -118,19 +118,14 @@ var require_http = __commonJS({
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
           "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
         }, opt.headers);
-        const timeout = opt.timeout || 3e4;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
           const fetchOptions = Object.assign({
             redirect: opt.redirect || "follow",
             skipSizeCheck: true
           }, opt, {
-            headers,
-            signal: controller.signal
+            headers
           });
           const response = yield fetch(url, fetchOptions);
-          clearTimeout(timeoutId);
           if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
             const redirectUrl = response.headers.get("location");
             console.log(`[HTTP] Redirecci\xF3n detectada (Manual): ${redirectUrl}`);
@@ -141,12 +136,7 @@ var require_http = __commonJS({
           }
           return response;
         } catch (error) {
-          clearTimeout(timeoutId);
-          if (error.name === "AbortError") {
-            console.warn(`[HTTP] Timeout (${timeout}ms) en ${url}`);
-          } else {
-            console.error("[HTTP] Error en " + url + ": " + error.message);
-          }
+          console.error("[HTTP] Error en " + url + ": " + error.message);
           throw error;
         }
       });
