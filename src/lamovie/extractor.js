@@ -1,15 +1,11 @@
-import { fetchJson, fetchHtml } from '../utils/http.js';
+import { fetchJson, fetchHtml, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
+import { getTmdbInfo } from '../utils/tmdb.js';
+import { isMovie } from '../utils/helpers.js';
 
-const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
 const BASE_URL = "https://la.movie";
 const API_URL = "https://la.movie/wp-api/v1";
-const DEFAULT_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "application/json"
-};
-
 function normalizeQuality(quality) {
     const str = quality.toString().toLowerCase();
     const match = str.match(/(\d+)/);
@@ -35,35 +31,21 @@ function buildSlug(title, year) {
     return year ? slug + "-" + year : slug;
 }
 
-async function httpGet(url, extraHeaders = {}) {
-    const headers = { ...DEFAULT_HEADERS, ...extraHeaders };
-    const res = await fetch(url, { headers, redirect: "follow" });
-    if (!res.ok) throw new Error("HTTP " + res.status + " for " + url);
-    const ct = res.headers.get("content-type") || "";
-    if (ct.indexOf("json") !== -1) return res.json();
-    return res.text();
-}
-
 async function getTmdbData(tmdbId, mediaType) {
-    const type = mediaType === "movie" ? "movie" : "tv";
     const attempts = [
         { lang: "es-MX", name: "Latino" },
         { lang: "en-US", name: "Inglés" }
     ];
 
     async function tryLang(lang, name) {
-        const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang}`;
-        const data = await httpGet(url);
-        const title = type === "movie" ? data.title : data.name;
-        const originalTitle = type === "movie" ? data.original_title : data.original_name;
+        const info = await getTmdbInfo(tmdbId, mediaType, lang);
+        if (!info) throw new Error("No info");
+        const title = info.title;
         if (lang === "es-MX" && /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(title)) {
             throw new Error("CJK in Spanish");
         }
-        console.log(`[LaMovie] TMDB (${name}): "${title}"${title !== originalTitle ? ` | Original: "${originalTitle}"` : ""}`);
-        const year = (type === "movie" ? data.release_date || "" : data.first_air_date || "").slice(0, 4);
-        const genresArr = (data.genres || []).map(g => g.id);
-        const originCountries = data.origin_country || (data.production_countries || []).map(c => c.iso_3166_1) || [];
-        return { title, originalTitle, year, genres: genresArr, originCountries };
+        console.log(`[LaMovie] TMDB (${name}): "${title}"${info.originalTitle && info.originalTitle !== title ? ` | Original: "${info.originalTitle}"` : ""}`);
+        return { title, originalTitle: info.originalTitle, year: info.year, genres: info.genres, originCountries: info.originCountries };
     }
 
     try {
@@ -82,7 +64,7 @@ function extractIdFromHtml(html) {
 async function getIdBySlug(category, slug) {
     const url = BASE_URL + "/" + category + "/" + slug + "/";
     try {
-        const html = await httpGet(url, { "Accept": "text/html" });
+        const html = await fetchHtml(url, { headers: { "Accept": "text/html" } });
         const id = extractIdFromHtml(html);
         if (id) {
             console.log(`[LaMovie] ✓ Slug directo: /${category}/${slug} → id:${id}`);
@@ -96,12 +78,12 @@ async function getIdBySlug(category, slug) {
 
 async function findBySlug(tmdbInfo, mediaType) {
     const { title, originalTitle, year, genres, originCountries } = tmdbInfo;
-    const isMovie = mediaType === "movie";
+    const isMovieLoc = isMovie(mediaType);
     const GENRE_ANIMATION = 16;
     const ANIME_COUNTRIES = ["JP", "CN", "KR"];
 
     let categories;
-    if (isMovie) {
+    if (isMovieLoc) {
         categories = ["peliculas"];
     } else {
         const isAnimation = (genres || []).includes(GENRE_ANIMATION);
@@ -141,7 +123,7 @@ async function findBySlug(tmdbInfo, mediaType) {
 async function getEpisodeId(seriesId, seasonNum, episodeNum) {
     const url = API_URL + "/single/episodes/list?_id=" + seriesId + "&season=" + seasonNum + "&page=1&postsPerPage=50";
     try {
-        const data = await httpGet(url);
+        const data = await fetchJson(url);
         if (!data || !data.data || !data.data.posts) return null;
         const posts = data.data.posts;
         for (const e of posts) {
@@ -207,7 +189,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
         if (!targetId || !targetId.length) return [];
 
-        const data = await httpGet(API_URL + "/player?postId=" + targetId + "&demo=0");
+        const data = await fetchJson(API_URL + "/player?postId=" + targetId + "&demo=0");
         if (!data || !data.data || !data.data.embeds) {
             console.log("[LaMovie] No hay embeds disponibles");
             return [];

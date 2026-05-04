@@ -1,5 +1,3 @@
-const { getRandomUA } = require('./ua.js');
-
 const DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 let sessionUA = null;

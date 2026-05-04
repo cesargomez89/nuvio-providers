@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { getTmdbTitle } from './tmdb.js';
+import { getTmdbTitle, getCorrectImdbId } from '../utils/tmdb.js';
+import { padEpisode } from '../utils/helpers.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { finalizeStreams } from '../utils/engine.js';
 
-const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
 const BASE_URL = "https://xupalace.org";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
 
@@ -14,17 +14,6 @@ const HTML_HEADERS = {
     "Connection": "keep-alive",
     "Cache-Control": "no-cache"
 };
-
-async function getImdbId(tmdbId, mediaType) {
-    try {
-        const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-        const url = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
-        const { data } = await axios.get(url, { timeout: 3000, headers: { "User-Agent": UA } });
-        return data.imdb_id || null;
-    } catch (e) {
-        return null;
-    }
-}
 
 function getXuSlugs(imdbId, title) {
     const variants = [];
@@ -51,7 +40,7 @@ async function getEmbeds(slug, mediaType, season, episode) {
     try {
         const path = mediaType === "movie" || mediaType === "movies" 
             ? `/video/${slug}/` 
-            : `/video/${slug}-${season}x${String(episode).padStart(2, "0")}/`;
+            : `/video/${slug}-${season}x${padEpisode(episode)}/`;
         const { data: html } = await axios.get(`${BASE_URL}${path}`, {
             timeout: 4500,
             headers: HTML_HEADERS
@@ -87,7 +76,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     let mediaTitle = title || await getTmdbTitle(tmdbId, mediaType);
     const LANG_NAMES = { 0: "Latino", 1: "Español", 2: "Subtitulado" };
     try {
-        const imdbId = await getImdbId(tmdbId, mediaType);
+        const { imdbId } = await getCorrectImdbId(tmdbId, mediaType);
         const slugVariants = getXuSlugs(imdbId, mediaTitle);
         console.log(`[XuPalace Turbo] Lanzando ${slugVariants.length} búsquedas en paralelo...`);
         const searchPromises = slugVariants.map((s) => getEmbeds(s, mediaType, season, episode));

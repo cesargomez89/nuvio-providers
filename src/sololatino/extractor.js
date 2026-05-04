@@ -1,10 +1,11 @@
-import { fetchHtml, fetchJson, getSessionUA, setSessionUA } from '../utils/http.js';
+import { fetchHtml, getSessionUA, setSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
+import { getCorrectImdbId } from '../utils/tmdb.js';
+import { sleep, isMovie, cleanTmdbId } from '../utils/helpers.js';
 
 const BASE_URL = "https://player.pelisserieshoy.com";
-const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
-const UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+const UA = getSessionUA();
 const HEADERS = {
     "User-Agent": UA,
     "Accept": "*/*",
@@ -12,10 +13,6 @@ const HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
     "Referer": "https://sololatino.net/"
 };
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 async function getDirectStream(id, token, cookie, playerUrl) {
     try {
@@ -56,22 +53,17 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     if (!tmdbId) return [];
     console.log(`[SoloLatino] Looking for content: ${tmdbId} (${mediaType})`);
     try {
-        const parts = tmdbId.toString().split(":");
-        const realId = parts[0];
-        const s = parseInt(parts[1] || season || 1);
-        const e = parseInt(parts[2] || episode || 1);
-        const isMovie = mediaType === "movie" || mediaType === "movies";
+        const realId = cleanTmdbId(tmdbId);
+        const s = parseInt(season || 1);
+        const e = parseInt(episode || 1);
         setSessionUA(UA);
-        const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-        const url = `https://api.themoviedb.org/3/${type}/${realId}/external_ids?api_key=${TMDB_API_KEY}`;
-        const idData = await fetchJson(url);
-        const imdbId = idData?.imdb_id;
+        const { imdbId } = await getCorrectImdbId(realId, mediaType);
         if (!imdbId) {
             console.log(`[SoloLatino] No IMDB ID found`);
             return [];
         }
         const epStr = e < 10 ? `0${e}` : e;
-        const slug = isMovie ? imdbId : `${imdbId}-${s}x${epStr}`;
+        const slug = isMovie(mediaType) ? imdbId : `${imdbId}-${s}x${epStr}`;
         const playerUrl = `${BASE_URL}/f/${slug}`;
         console.log(`[SoloLatino] Fetching: ${playerUrl}`);
         const response = await fetch(playerUrl, { headers: HEADERS });

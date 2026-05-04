@@ -1,6 +1,6 @@
 /**
  * brazucaplay - Built from src/brazucaplay/
- * Generated: 2026-05-04T21:33:45.916Z
+ * Generated: 2026-05-04T23:29:04.555Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -65,35 +65,20 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 
-// src/utils/ua.js
-var require_ua = __commonJS({
-  "src/utils/ua.js"(exports2, module2) {
-    var UA_POOL = [
-      "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    ];
-    function getRandomUA() {
-      const index = Math.floor(Math.random() * UA_POOL.length);
-      return UA_POOL[index];
-    }
-    module2.exports = { getRandomUA, UA_POOL };
-  }
-});
-
 // src/utils/http.js
 var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
-    var { getRandomUA } = require_ua();
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var sessionUA = null;
     function setSessionUA2(ua) {
       sessionUA = ua;
     }
-    function getSessionUA() {
+    function getSessionUA2() {
       return sessionUA || DEFAULT_CHROME_UA;
     }
     function getStealthHeaders() {
       return {
-        "User-Agent": getSessionUA(),
+        "User-Agent": getSessionUA2(),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
         "Connection": "keep-alive",
@@ -107,12 +92,12 @@ var require_http = __commonJS({
         "Upgrade-Insecure-Requests": "1"
       };
     }
-    var DEFAULT_UA = getSessionUA();
-    var MOBILE_UA = getSessionUA();
+    var DEFAULT_UA = getSessionUA2();
+    var MOBILE_UA = getSessionUA2();
     function request(_0) {
       return __async(this, arguments, function* (url, options = {}) {
         const opt = options || {};
-        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA();
+        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA2();
         const headers = Object.assign({
           "User-Agent": currentUA,
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -157,7 +142,7 @@ var require_http = __commonJS({
       request,
       fetchHtml,
       fetchJson: fetchJson2,
-      getSessionUA,
+      getSessionUA: getSessionUA2,
       setSessionUA: setSessionUA2,
       getStealthHeaders,
       DEFAULT_UA,
@@ -169,7 +154,7 @@ var require_http = __commonJS({
 // src/utils/m3u8.js
 var require_m3u8 = __commonJS({
   "src/utils/m3u8.js"(exports2, module2) {
-    var { getSessionUA } = require_http();
+    var { getSessionUA: getSessionUA2 } = require_http();
     function getQualityFromHeight(height) {
       if (!height)
         return "1080p";
@@ -243,7 +228,7 @@ var require_m3u8 = __commonJS({
           const fetchOptions = {
             method: isMp4 ? "HEAD" : "GET",
             headers: __spreadValues({
-              "User-Agent": getSessionUA()
+              "User-Agent": getSessionUA2()
             }, headers || {})
           };
           if (signal)
@@ -621,7 +606,7 @@ var CINEBY_HEADERS = {
   "Accept": "*/*",
   "Origin": "https://cineby.sc",
   "Referer": "https://cineby.sc/",
-  "User-Agent": "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  "User-Agent": (0, import_http.getSessionUA)()
 };
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
@@ -684,13 +669,12 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
 }
 
 // src/brazucaplay/index.js
-function getStreams(tmdbId, mediaType, season, episode, title) {
+function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
-      console.log(`[BrazucaPlay] Request: ${mediaType} ${tmdbId}`);
-      return yield extractStreams(tmdbId, mediaType, season, episode, title);
-    } catch (error) {
-      console.error(`[BrazucaPlay] Error: ${error.message}`);
+      return yield extractStreams(tmdbId, mediaType, season, episode);
+    } catch (e) {
+      console.error(`[BrazucaPlay] Error: ${e.message}`);
       return [];
     }
   });

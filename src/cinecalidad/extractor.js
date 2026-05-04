@@ -1,10 +1,10 @@
-import { request, fetchHtml } from '../utils/http.js';
+import { request, fetchHtml, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
-import { getTmdbTitle, getTmdbAliases } from './tmdb.js';
+import { getTmdbTitle, getTmdbAliases } from '../utils/tmdb.js';
 
 const BASE_URL = "https://www.cinecalidad.vg";
-const UA3 = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+const UA3 = getSessionUA();
 const HEADERS = {
     "User-Agent": UA3,
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",

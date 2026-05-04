@@ -1,4 +1,4 @@
-import { fetchJson } from '../utils/http.js';
+import { fetchJson, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 
 const API_DEC = "https://enc-dec.app/api/dec-videasy";
@@ -16,11 +16,11 @@ const CINEBY_HEADERS = {
     "Accept": "*/*",
     "Origin": "https://cineby.sc",
     "Referer": "https://cineby.sc/",
-    "User-Agent": "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": getSessionUA()
 };
 
 const ANDROID_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36",
+    "User-Agent": getSessionUA(),
     "Referer": "https://player.videasy.net/",
     "Origin": "https://player.videasy.net"
 };

@@ -1,21 +1,23 @@
-import { fetchJson } from '../utils/http.js';
+import { fetchJson, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { isMirror } from '../utils/mirrors.js';
+import { isMovie, cleanTmdbId } from '../utils/helpers.js';
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title, year) {
     if (!tmdbId)
         return [];
-    const rawId = tmdbId.toString().includes(":") ? tmdbId.toString().split(":").find((x) => !isNaN(x) && x.length > 0) : tmdbId;
-    const isMovie = mediaType === "movie" || mediaType === "movies";
+    const rawId = typeof tmdbId === "string" && tmdbId.includes(":")
+        ? tmdbId.split(":").find(x => !isNaN(x) && x.length > 0) || tmdbId
+        : tmdbId;
     let apiUrl = `https://cuevana.unbuendato.com/?id=${rawId}`;
-    if (!isMovie && season && episode) {
+    if (!isMovie(mediaType) && season && episode) {
         apiUrl += `&season=${season}&episode=${episode}`;
     }
     try {
         const data = await fetchJson(apiUrl, {
             headers: {
-                "User-Agent": "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                "User-Agent": getSessionUA()
             }
         });
         if (!data.success || !data.languages) {

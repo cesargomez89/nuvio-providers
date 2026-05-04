@@ -1,15 +1,15 @@
-import { fetchJson } from '../utils/http.js';
+import { fetchJson, getSessionUA } from '../utils/http.js';
+import { isMovie, cleanTmdbId } from '../utils/helpers.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId) return [];
 
-    const rawId = tmdbId.toString().includes(":") ? tmdbId.toString().split(":").find(x => !isNaN(x) && x.length > 0) : tmdbId;
-    const isMovie = mediaType === "movie" || mediaType === "movies";
+    const rawId = cleanTmdbId(tmdbId) || tmdbId;
 
     let apiUrl = `https://cinehdplus.unbuendato.com/?id=${rawId}`;
-    if (!isMovie && season && episode) {
+    if (!isMovie(mediaType) && season && episode) {
         apiUrl += `&season=${season}&episode=${episode}`;
     }
 
@@ -18,7 +18,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     try {
         const data = await fetchJson(apiUrl, {
             headers: {
-                "User-Agent": "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                "User-Agent": getSessionUA()
             }
         });
 

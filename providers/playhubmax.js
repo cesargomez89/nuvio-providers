@@ -1,6 +1,6 @@
 /**
  * playhubmax - Built from src/playhubmax/
- * Generated: 2026-05-04T21:33:45.963Z
+ * Generated: 2026-05-04T23:29:04.606Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -65,35 +65,20 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 
-// src/utils/ua.js
-var require_ua = __commonJS({
-  "src/utils/ua.js"(exports2, module2) {
-    var UA_POOL = [
-      "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    ];
-    function getRandomUA() {
-      const index = Math.floor(Math.random() * UA_POOL.length);
-      return UA_POOL[index];
-    }
-    module2.exports = { getRandomUA, UA_POOL };
-  }
-});
-
 // src/utils/http.js
 var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
-    var { getRandomUA } = require_ua();
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var sessionUA = null;
     function setSessionUA(ua) {
       sessionUA = ua;
     }
-    function getSessionUA() {
+    function getSessionUA2() {
       return sessionUA || DEFAULT_CHROME_UA;
     }
     function getStealthHeaders() {
       return {
-        "User-Agent": getSessionUA(),
+        "User-Agent": getSessionUA2(),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
         "Connection": "keep-alive",
@@ -107,12 +92,12 @@ var require_http = __commonJS({
         "Upgrade-Insecure-Requests": "1"
       };
     }
-    var DEFAULT_UA = getSessionUA();
-    var MOBILE_UA = getSessionUA();
+    var DEFAULT_UA = getSessionUA2();
+    var MOBILE_UA = getSessionUA2();
     function request(_0) {
       return __async(this, arguments, function* (url, options = {}) {
         const opt = options || {};
-        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA();
+        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA2();
         const headers = Object.assign({
           "User-Agent": currentUA,
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -157,7 +142,7 @@ var require_http = __commonJS({
       request,
       fetchHtml,
       fetchJson: fetchJson2,
-      getSessionUA,
+      getSessionUA: getSessionUA2,
       setSessionUA,
       getStealthHeaders,
       DEFAULT_UA,
@@ -169,7 +154,7 @@ var require_http = __commonJS({
 // src/utils/m3u8.js
 var require_m3u8 = __commonJS({
   "src/utils/m3u8.js"(exports2, module2) {
-    var { getSessionUA } = require_http();
+    var { getSessionUA: getSessionUA2 } = require_http();
     function getQualityFromHeight(height) {
       if (!height)
         return "1080p";
@@ -243,7 +228,7 @@ var require_m3u8 = __commonJS({
           const fetchOptions = {
             method: isMp4 ? "HEAD" : "GET",
             headers: __spreadValues({
-              "User-Agent": getSessionUA()
+              "User-Agent": getSessionUA2()
             }, headers || {})
           };
           if (signal)
@@ -611,7 +596,7 @@ var require_engine = __commonJS({
 // src/resolvers/voe.js
 var require_voe = __commonJS({
   "src/resolvers/voe.js"(exports2, module2) {
-    var { getSessionUA } = require_http();
+    var { getSessionUA: getSessionUA2 } = require_http();
     var { validateStream } = require_m3u8();
     function localAtob(input) {
       if (!input)
@@ -629,7 +614,7 @@ var require_voe = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const currentUA = getSessionUA();
+          const currentUA = getSessionUA2();
           console.log(`[VOE] TV-Resolving: ${url}`);
           const response = yield fetch(url, {
             headers: { "User-Agent": currentUA },
@@ -728,7 +713,7 @@ var require_voe = __commonJS({
 // src/resolvers/hlswish.js
 var require_hlswish = __commonJS({
   "src/resolvers/hlswish.js"(exports2, module2) {
-    var { getSessionUA } = require_http();
+    var { getSessionUA: getSessionUA2 } = require_http();
     var { validateStream } = require_m3u8();
     function unpackEval(payload, radix, symtab) {
       const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -752,7 +737,7 @@ var require_hlswish = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA();
+          const UA2 = getSessionUA2();
           const rawId = url.split("/").pop().replace(/\.html$/, "");
           const urlObj = new URL(url);
           const mirrors = [
@@ -927,8 +912,8 @@ var require_aes_gcm = __commonJS({
 var require_filemoon = __commonJS({
   "src/resolvers/filemoon.js"(exports2, module2) {
     var { decryptByse } = require_aes_gcm();
-    var { getSessionUA } = require_http();
-    var UA_CHROME = getSessionUA();
+    var { getSessionUA: getSessionUA2 } = require_http();
+    var UA_CHROME = getSessionUA2();
     function unpack(p, a, c, k, e, d) {
       while (c--)
         if (k[c])
@@ -1019,7 +1004,7 @@ var require_filemoon = __commonJS({
 // src/resolvers/vidhide.js
 var require_vidhide = __commonJS({
   "src/resolvers/vidhide.js"(exports2, module2) {
-    var { getSessionUA, getStealthHeaders } = require_http();
+    var { getSessionUA: getSessionUA2, getStealthHeaders } = require_http();
     var { validateStream } = require_m3u8();
     function unpackVidHide(script) {
       try {
@@ -1051,7 +1036,7 @@ var require_vidhide = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const currentUA = getSessionUA();
+          const currentUA = getSessionUA2();
           console.log(`[VidHide] TV-Resolving: ${url}`);
           const urlObj = new URL(url);
           const domain = urlObj.hostname;
@@ -1121,7 +1106,7 @@ var require_vidhide = __commonJS({
 // src/resolvers/quality.js
 var require_quality = __commonJS({
   "src/resolvers/quality.js"(exports2, module2) {
-    var { request, getSessionUA } = require_http();
+    var { request, getSessionUA: getSessionUA2 } = require_http();
     function detectQuality(_0) {
       return __async(this, arguments, function* (url, headers = {}) {
         try {
@@ -1130,7 +1115,7 @@ var require_quality = __commonJS({
           const res = yield request(url, {
             timeout: 5e3,
             headers: __spreadValues({
-              "User-Agent": getSessionUA()
+              "User-Agent": getSessionUA2()
             }, headers)
           });
           const data = yield res.text();
@@ -1173,11 +1158,11 @@ var require_quality = __commonJS({
 var require_goodstream = __commonJS({
   "src/resolvers/goodstream.js"(exports2, module2) {
     var { detectQuality } = require_quality();
-    var { getSessionUA } = require_http();
+    var { getSessionUA: getSessionUA2 } = require_http();
     function resolve(embedUrl) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA();
+          const UA2 = getSessionUA2();
           console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
           const response = yield fetch(embedUrl, {
             headers: {
@@ -1311,10 +1296,10 @@ var require_fastream = __commonJS({
 // src/resolvers/vimeos.js
 var require_vimeos = __commonJS({
   "src/resolvers/vimeos.js"(exports2, module2) {
-    var { fetchHtml, fetchJson: fetchJson2, getSessionUA } = require_http();
+    var { fetchHtml, fetchJson: fetchJson2, getSessionUA: getSessionUA2 } = require_http();
     function resolve(embedUrl) {
       return __async(this, null, function* () {
-        const UA2 = getSessionUA();
+        const UA2 = getSessionUA2();
         try {
           console.log("[Vimeos] Resolviendo: " + embedUrl);
           var html = yield fetchHtml(embedUrl, {
@@ -1410,8 +1395,8 @@ var require_resolvers = __commonJS({
     var { resolve: resolveFastream } = require_fastream();
     var { resolve: resolveVimeos } = require_vimeos();
     var { isMirror } = require_mirrors();
-    var { getSessionUA } = require_http();
-    var UA2 = getSessionUA();
+    var { getSessionUA: getSessionUA2 } = require_http();
+    var UA2 = getSessionUA2();
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
@@ -1469,33 +1454,155 @@ var require_resolvers = __commonJS({
   }
 });
 
+// src/utils/tmdb.js
+var require_tmdb = __commonJS({
+  "src/utils/tmdb.js"(exports2, module2) {
+    var { fetchJson: fetchJson2 } = require_http();
+    var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
+    var titleCache = /* @__PURE__ */ new Map();
+    var idCache = /* @__PURE__ */ new Map();
+    function getTmdbTitle(tmdbId, mediaType, retries = 2) {
+      return __async(this, null, function* () {
+        var _a, _b, _c, _d;
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (titleCache.has(cacheKey))
+          return titleCache.get(cacheKey);
+        if (retries < 2)
+          yield new Promise((r) => setTimeout(r, 1e3));
+        const isImdb = tmdbId && tmdbId.startsWith("tt");
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const fetchUrl = isImdb ? `https://api.themoviedb.org/3/find/${tmdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id` : `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
+          const data = yield fetchJson2(fetchUrl);
+          const title = isImdb ? ((_b = (_a = data[type + "_results"]) == null ? void 0 : _a[0]) == null ? void 0 : _b.title) || ((_d = (_c = data[type + "_results"]) == null ? void 0 : _c[0]) == null ? void 0 : _d.name) : data.title || data.name;
+          const result = title || null;
+          titleCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          if (retries > 0)
+            return getTmdbTitle(tmdbId, mediaType, retries - 1);
+          titleCache.set(cacheKey, null);
+          return null;
+        }
+      });
+    }
+    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
+      return __async(this, null, function* () {
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang || "es-MX"}`;
+          const data = yield fetchJson2(url);
+          return {
+            title: data.title || data.name,
+            originalTitle: data.original_title || data.original_name || null,
+            year: (data.release_date || data.first_air_date || "").split("-")[0],
+            genres: (data.genres || []).map((g) => g.id),
+            originCountries: data.origin_country || (data.production_countries || []).map((c) => c.iso_3166_1) || []
+          };
+        } catch (e) {
+          if (retries > 0) {
+            yield new Promise((r) => setTimeout(r, 1e3));
+            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
+          }
+          return null;
+        }
+      });
+    }
+    function getCorrectImdbId(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        if (!tmdbId)
+          return { imdbId: null, title: "" };
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (idCache.has(cacheKey))
+          return idCache.get(cacheKey);
+        if (tmdbId.startsWith("tt")) {
+          const res = { imdbId: tmdbId, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, res);
+          return res;
+        }
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const idUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
+          const idRes = yield fetchJson2(idUrl);
+          if (!idRes || !idRes.imdb_id) {
+            const result2 = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+            idCache.set(cacheKey, result2);
+            return result2;
+          }
+          const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
+          const result = {
+            imdbId: idRes.imdb_id,
+            title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
+            year: (metaRes == null ? void 0 : metaRes.year) || null,
+            offset: 0,
+            fromMapping: false
+          };
+          idCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, result);
+          return result;
+        }
+      });
+    }
+    function getTmdbAliases(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        try {
+          const titleEs = yield getTmdbTitle(tmdbId, mediaType);
+          const titleEn = yield (() => __async(this, null, function* () {
+            try {
+              const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+              const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
+              const data = yield fetchJson2(url);
+              return data.title || data.name || null;
+            } catch (e) {
+              return null;
+            }
+          }))();
+          const aliases = [];
+          if (titleEs)
+            aliases.push(titleEs);
+          if (titleEn && titleEn !== titleEs)
+            aliases.push(titleEn);
+          try {
+            const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+            const altUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/alternative_titles?api_key=${TMDB_API_KEY}`;
+            const altData = yield fetchJson2(altUrl);
+            const titles = altData.titles || altData.results || [];
+            for (const t of titles) {
+              const altTitle = t.title || t.name;
+              if (altTitle && !aliases.includes(altTitle))
+                aliases.push(altTitle);
+            }
+          } catch (e) {
+            console.warn(`[TMDB-Aliases] Alternative titles fetch failed`);
+          }
+          return aliases;
+        } catch (e) {
+          return [];
+        }
+      });
+    }
+    module2.exports = { getTmdbTitle, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
+  }
+});
+
 // src/playhubmax/extractor.js
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
+var import_tmdb = __toESM(require_tmdb());
 var PHM_API = "https://api.playhubmax.com/api";
-var UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+var UA = (0, import_http.getSessionUA)();
 var API_HEADERS = {
   "User-Agent": UA,
   "Accept": "application/json, text/plain, */*",
   "Origin": "https://www.playhubmax.com",
   "Referer": "https://www.playhubmax.com/"
 };
-var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
 var AES_KEY_STR = "33dff3b1c1362e45e1425fcc9724d6f3";
 var AES_IV_STR = "33dff3b1c1362e45";
-function getTmdbTitle(tmdbId, mediaType) {
-  return __async(this, null, function* () {
-    try {
-      const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-      const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
-      const data = yield (0, import_http.fetchJson)(url);
-      return data.title || data.name || null;
-    } catch (e) {
-      return null;
-    }
-  });
-}
 function decryptSources(b64) {
   try {
     const CryptoJS2 = require("crypto-js");
@@ -1553,7 +1660,8 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     try {
       let mediaTitle = title;
       if (!mediaTitle && tmdbId) {
-        mediaTitle = yield getTmdbTitle(tmdbId, mediaType);
+        const info = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType);
+        mediaTitle = info == null ? void 0 : info.title;
       }
       if (!mediaTitle)
         return [];
@@ -1604,10 +1712,10 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
 }
 
 // src/playhubmax/index.js
-function getStreams(tmdbId, mediaType, season, episode, title) {
+function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
-      return yield extractStreams(tmdbId, mediaType, season, episode, title);
+      return yield extractStreams(tmdbId, mediaType, season, episode);
     } catch (e) {
       console.error(`[PlayHubMax] Error: ${e.message}`);
       return [];

@@ -1,5 +1,5 @@
-import { fetchHtml, fetchJson } from './http.js';
-import { getTmdbTitle, getTmdbInfo } from './tmdb.js';
+import { fetchHtml, fetchJson, getSessionUA } from '../utils/http.js';
+import { getTmdbTitle, getTmdbInfo } from '../utils/tmdb.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { levenshtein } from '../utils/title.js';
@@ -7,7 +7,7 @@ import { levenshtein } from '../utils/title.js';
 const BASE_URL = "https://www.fuegocine.com";
 const SEARCH_BASE = `${BASE_URL}/feeds/posts/summary?alt=json&max-results=8&q=`;
 const DEFAULT_HEADERS = {
-  "User-Agent": "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "User-Agent": getSessionUA(),
   "Referer": `${BASE_URL}/`
 };
 

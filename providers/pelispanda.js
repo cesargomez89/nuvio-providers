@@ -1,6 +1,6 @@
 /**
  * pelispanda - Built from src/pelispanda/
- * Generated: 2026-05-04T21:33:45.954Z
+ * Generated: 2026-05-04T23:29:04.596Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -65,24 +65,9 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 
-// src/utils/ua.js
-var require_ua = __commonJS({
-  "src/utils/ua.js"(exports2, module2) {
-    var UA_POOL = [
-      "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    ];
-    function getRandomUA() {
-      const index = Math.floor(Math.random() * UA_POOL.length);
-      return UA_POOL[index];
-    }
-    module2.exports = { getRandomUA, UA_POOL };
-  }
-});
-
 // src/utils/http.js
 var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
-    var { getRandomUA } = require_ua();
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var sessionUA = null;
     function setSessionUA(ua) {
@@ -1386,10 +1371,10 @@ function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
 }
 
 // src/pelispanda/index.js
-function getStreams(tmdbId, mediaType, season, episode, title) {
+function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
-      return yield extractStreams(tmdbId, mediaType, season, episode, title);
+      return yield extractStreams(tmdbId, mediaType, season, episode);
     } catch (e) {
       console.error(`[PelisPanda] Error: ${e.message}`);
       return [];

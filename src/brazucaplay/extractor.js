@@ -1,4 +1,4 @@
-import { fetchJson, setSessionUA } from '../utils/http.js';
+import { fetchJson, setSessionUA, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 
 const API_DEC = "https://enc-dec.app/api/dec-videasy";
@@ -13,7 +13,7 @@ const CINEBY_HEADERS = {
     "Accept": "*/*",
     "Origin": "https://cineby.sc",
     "Referer": "https://cineby.sc/",
-    "User-Agent": "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": getSessionUA()
 };
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {

@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-05-04T21:33:45.959Z
+ * Generated: 2026-05-04T23:29:04.603Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -65,24 +65,36 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 
-// src/utils/ua.js
-var require_ua = __commonJS({
-  "src/utils/ua.js"(exports2, module2) {
-    var UA_POOL = [
-      "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    ];
-    function getRandomUA() {
-      const index = Math.floor(Math.random() * UA_POOL.length);
-      return UA_POOL[index];
+// src/utils/helpers.js
+var require_helpers = __commonJS({
+  "src/utils/helpers.js"(exports2, module2) {
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
     }
-    module2.exports = { getRandomUA, UA_POOL };
+    function padEpisode(episode) {
+      return String(episode).padStart(2, "0");
+    }
+    function isMovie2(mediaType) {
+      return mediaType === "movie" || mediaType === "movies";
+    }
+    function cleanTmdbId(tmdbId) {
+      return tmdbId ? tmdbId.toString().split(":")[0] : tmdbId;
+    }
+    function toDoubleBase64(str) {
+      try {
+        if (typeof btoa !== "undefined")
+          return btoa(str);
+      } catch (e) {
+      }
+      return Buffer.from(str, "utf-8").toString("base64");
+    }
+    module2.exports = { sleep, padEpisode, isMovie: isMovie2, cleanTmdbId, toDoubleBase64 };
   }
 });
 
 // src/utils/http.js
 var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
-    var { getRandomUA } = require_ua();
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var sessionUA = null;
     function setSessionUA(ua) {
@@ -163,6 +175,140 @@ var require_http = __commonJS({
       DEFAULT_UA: DEFAULT_UA2,
       MOBILE_UA
     };
+  }
+});
+
+// src/utils/tmdb.js
+var require_tmdb = __commonJS({
+  "src/utils/tmdb.js"(exports2, module2) {
+    var { fetchJson: fetchJson2 } = require_http();
+    var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
+    var titleCache = /* @__PURE__ */ new Map();
+    var idCache = /* @__PURE__ */ new Map();
+    function getTmdbTitle2(tmdbId, mediaType, retries = 2) {
+      return __async(this, null, function* () {
+        var _a, _b, _c, _d;
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (titleCache.has(cacheKey))
+          return titleCache.get(cacheKey);
+        if (retries < 2)
+          yield new Promise((r) => setTimeout(r, 1e3));
+        const isImdb = tmdbId && tmdbId.startsWith("tt");
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const fetchUrl = isImdb ? `https://api.themoviedb.org/3/find/${tmdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id` : `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
+          const data = yield fetchJson2(fetchUrl);
+          const title = isImdb ? ((_b = (_a = data[type + "_results"]) == null ? void 0 : _a[0]) == null ? void 0 : _b.title) || ((_d = (_c = data[type + "_results"]) == null ? void 0 : _c[0]) == null ? void 0 : _d.name) : data.title || data.name;
+          const result = title || null;
+          titleCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          if (retries > 0)
+            return getTmdbTitle2(tmdbId, mediaType, retries - 1);
+          titleCache.set(cacheKey, null);
+          return null;
+        }
+      });
+    }
+    function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
+      return __async(this, null, function* () {
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang || "es-MX"}`;
+          const data = yield fetchJson2(url);
+          return {
+            title: data.title || data.name,
+            originalTitle: data.original_title || data.original_name || null,
+            year: (data.release_date || data.first_air_date || "").split("-")[0],
+            genres: (data.genres || []).map((g) => g.id),
+            originCountries: data.origin_country || (data.production_countries || []).map((c) => c.iso_3166_1) || []
+          };
+        } catch (e) {
+          if (retries > 0) {
+            yield new Promise((r) => setTimeout(r, 1e3));
+            return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
+          }
+          return null;
+        }
+      });
+    }
+    function getCorrectImdbId(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        if (!tmdbId)
+          return { imdbId: null, title: "" };
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (idCache.has(cacheKey))
+          return idCache.get(cacheKey);
+        if (tmdbId.startsWith("tt")) {
+          const res = { imdbId: tmdbId, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, res);
+          return res;
+        }
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const idUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
+          const idRes = yield fetchJson2(idUrl);
+          if (!idRes || !idRes.imdb_id) {
+            const result2 = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+            idCache.set(cacheKey, result2);
+            return result2;
+          }
+          const metaRes = yield getTmdbInfo(tmdbId, mediaType);
+          const result = {
+            imdbId: idRes.imdb_id,
+            title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
+            year: (metaRes == null ? void 0 : metaRes.year) || null,
+            offset: 0,
+            fromMapping: false
+          };
+          idCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, result);
+          return result;
+        }
+      });
+    }
+    function getTmdbAliases2(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        try {
+          const titleEs = yield getTmdbTitle2(tmdbId, mediaType);
+          const titleEn = yield (() => __async(this, null, function* () {
+            try {
+              const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+              const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
+              const data = yield fetchJson2(url);
+              return data.title || data.name || null;
+            } catch (e) {
+              return null;
+            }
+          }))();
+          const aliases = [];
+          if (titleEs)
+            aliases.push(titleEs);
+          if (titleEn && titleEn !== titleEs)
+            aliases.push(titleEn);
+          try {
+            const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+            const altUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/alternative_titles?api_key=${TMDB_API_KEY}`;
+            const altData = yield fetchJson2(altUrl);
+            const titles = altData.titles || altData.results || [];
+            for (const t of titles) {
+              const altTitle = t.title || t.name;
+              if (altTitle && !aliases.includes(altTitle))
+                aliases.push(altTitle);
+            }
+          } catch (e) {
+            console.warn(`[TMDB-Aliases] Alternative titles fetch failed`);
+          }
+          return aliases;
+        } catch (e) {
+          return [];
+        }
+      });
+    }
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
   }
 });
 
@@ -1373,81 +1519,9 @@ function fetchJson(_0) {
   });
 }
 
-// src/pelisplus/tmdb.js
-var axios = require("axios");
-var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
-var titleCache = /* @__PURE__ */ new Map();
-function getTmdbTitle(tmdbId, mediaType, language = "en-US", retries = 2) {
-  return __async(this, null, function* () {
-    var _a, _b, _c;
-    if (!tmdbId)
-      return null;
-    const cleanId = tmdbId.toString().split(":")[0];
-    const cacheKey = `${cleanId}_${mediaType}_${language}`;
-    if (titleCache.has(cacheKey))
-      return titleCache.get(cacheKey);
-    try {
-      const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-      let url;
-      if (cleanId.startsWith("tt")) {
-        url = `https://api.themoviedb.org/3/find/${cleanId}?api_key=${TMDB_API_KEY}&external_source=imdb_id&language=${language}`;
-        const { data } = yield axios.get(url, { timeout: 6e3 });
-        const result = type === "movie" ? (_a = data.movie_results) == null ? void 0 : _a[0] : ((_b = data.tv_results) == null ? void 0 : _b[0]) || ((_c = data.movie_results) == null ? void 0 : _c[0]);
-        const title = (result == null ? void 0 : result.name) || (result == null ? void 0 : result.title) || null;
-        if (title)
-          titleCache.set(cacheKey, title);
-        return title;
-      } else {
-        url = `https://api.themoviedb.org/3/${type}/${cleanId}?api_key=${TMDB_API_KEY}&language=${language}`;
-        const { data } = yield axios.get(url, { timeout: 6e3 });
-        const title = data.name || data.title || null;
-        if (title)
-          titleCache.set(cacheKey, title);
-        return title;
-      }
-    } catch (e) {
-      if (retries > 0) {
-        console.log(`[TMDB-Rescue] Retrying ${tmdbId} (${retries} left)...`);
-        yield new Promise((r) => setTimeout(r, 1e3));
-        return getTmdbTitle(tmdbId, mediaType, retries - 1);
-      }
-      console.log(`[TMDB-Rescue] Failed to fetch title for ${tmdbId}: ${e.message}`);
-      return null;
-    }
-  });
-}
-function getTmdbAliases(tmdbId, mediaType) {
-  return __async(this, null, function* () {
-    if (!tmdbId)
-      return [];
-    const cleanId = tmdbId.toString().split(":")[0];
-    const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-    const titles = /* @__PURE__ */ new Set();
-    try {
-      const [enTitle, esTitle] = yield Promise.all([
-        getTmdbTitle(cleanId, type, "en-US"),
-        getTmdbTitle(cleanId, type, "es-MX")
-      ]);
-      if (enTitle)
-        titles.add(enTitle);
-      if (esTitle)
-        titles.add(esTitle);
-      const altUrl = `https://api.themoviedb.org/3/${type}/${cleanId}/alternative_titles?api_key=${TMDB_API_KEY}`;
-      const { data } = yield axios.get(altUrl, { timeout: 5e3 });
-      const altResults = data.titles || data.results || [];
-      altResults.forEach((item) => {
-        if (item.title)
-          titles.add(item.title);
-      });
-      return Array.from(titles);
-    } catch (e) {
-      console.warn(`[TMDB-Aliases] Failed for ${tmdbId}: ${e.message}`);
-      return Array.from(titles);
-    }
-  });
-}
-
 // src/pelisplus/extractor.js
+var import_helpers = __toESM(require_helpers());
+var import_tmdb = __toESM(require_tmdb());
 var import_resolvers = __toESM(require_resolvers());
 var import_m3u8 = __toESM(require_m3u8());
 var import_title = __toESM(require_title());
@@ -1461,8 +1535,8 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       let titlesToTry = [title];
       if (tmdbId && tmdbId.toString().match(/^\d+/) && !tmdbId.toString().startsWith("tt")) {
         const [aliases, spanishTitle] = yield Promise.all([
-          getTmdbAliases(tmdbId, mediaType),
-          getTmdbTitle(tmdbId, mediaType, "es-MX")
+          (0, import_tmdb.getTmdbAliases)(tmdbId, mediaType),
+          (0, import_tmdb.getTmdbTitle)(tmdbId, mediaType, "es-MX")
         ]);
         const allAliases = [title];
         if (spanishTitle)
@@ -1486,9 +1560,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           while ((m = aRegex.exec(html)) !== null) {
             const href = m[1];
             const content = m[2];
-            if (mediaType === "movie" && !href.includes("/pelicula/"))
+            if ((0, import_helpers.isMovie)(mediaType) && !href.includes("/pelicula/"))
               continue;
-            if (mediaType === "tv" && !href.includes("/serie/"))
+            if (!(0, import_helpers.isMovie)(mediaType) && !href.includes("/serie/"))
               continue;
             let resultTitle = "";
             const pMatch = content.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
@@ -1547,7 +1621,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         console.log(`[PelisPlus] No matches found for ${tmdbId}`);
         return [];
       }
-      if (mediaType === "tv") {
+      if (!(0, import_helpers.isMovie)(mediaType)) {
         if (movieUrl.endsWith("/"))
           movieUrl = movieUrl.slice(0, -1);
         movieUrl = `${movieUrl}/temporada/${season}/capitulo/${episode}`;
@@ -1720,10 +1794,10 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
 }
 
 // src/pelisplus/index.js
-function getStreams(tmdbId, mediaType, season, episode, title) {
+function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
-      return yield extractStreams(tmdbId, mediaType, season, episode, title);
+      return yield extractStreams(tmdbId, mediaType, season, episode);
     } catch (e) {
       console.error(`[PelisPlus] Error: ${e.message}`);
       return [];

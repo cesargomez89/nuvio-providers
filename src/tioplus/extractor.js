@@ -1,30 +1,11 @@
 import { fetchHtml, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
+import { getTmdbInfo } from '../utils/tmdb.js';
+import { isMovie, toDoubleBase64 } from '../utils/helpers.js';
 
 const BASE_URL = "https://tioplus.app";
-const UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
-
-function toDoubleBase64(str) {
-    try {
-        if (typeof btoa !== "undefined") return btoa(str);
-        return Buffer.from(str).toString("base64");
-    } catch (e) { return ""; }
-}
-
-async function getTmdbInfo(tmdbId, mediaType) {
-    try {
-        const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-        const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
-        const res = await fetch(url);
-        const data = await res.json();
-        return {
-            title: data.title || data.name,
-            year: (data.release_date || data.first_air_date || "").split("-")[0]
-        };
-    } catch (e) { return null; }
-}
+const UA = getSessionUA();
 
 async function getRedirectUrl(serverEncoded, referer) {
     try {
@@ -54,7 +35,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         const searchQuery = mediaTitle.split(/[:(]/)[0].trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
         const candidates = [];
         
-        const typePrefix = mediaType === "movie" ? "pelicula" : "serie";
+        const typePrefix = isMovie(mediaType) ? "pelicula" : "serie";
         const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
         const directHtml = await fetchHtml(directUrl, { headers: { "User-Agent": UA } });
         if (directHtml && !directHtml.includes("404") && !directHtml.includes("Not Found") && directHtml.length > 1000) {
@@ -83,7 +64,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             keywords.forEach(word => { if (candTitle.includes(word)) score += 5; });
             if (releaseYear && cand.title.includes(`(${releaseYear})`)) score += 50;
             if (candTitle.includes(mediaTitle.toLowerCase())) score += 10;
-            const isCorrectType = mediaType === "movie" && cand.url.includes("/pelicula/") || mediaType !== "movie" && cand.url.includes("/serie/");
+            const isCorrectType = isMovie(mediaType) && cand.url.includes("/pelicula/") || !isMovie(mediaType) && cand.url.includes("/serie/");
             if (isCorrectType && score > bestScore) {
                 bestScore = score;
                 targetUrl = cand.url;
@@ -91,7 +72,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         }
         if (bestScore < 10) return [];
         let finalMediaUrl = targetUrl;
-        if (mediaType !== "movie") {
+        if (!isMovie(mediaType)) {
             const s = parseInt(season) || 1;
             const e = parseInt(episode) || 1;
             finalMediaUrl = `${targetUrl}/season/${s}/episode/${e}`;

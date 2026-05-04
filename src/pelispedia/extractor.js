@@ -1,6 +1,6 @@
 import { fetchHtml, getSessionUA } from '../utils/http.js';
 import { resolveEmbed, getDirectCdnHeaders } from '../utils/resolvers.js';
-import { getTmdbTitle } from './tmdb.js';
+import { getTmdbTitle } from '../utils/tmdb.js';
 
 const BASE = "https://pelispedia.mov";
 const UA = getSessionUA();

@@ -1,5 +1,6 @@
 import { fetchText, fetchJson, fetchHtml, BASE_URL } from './http.js';
-import { getTmdbTitle, getTmdbAliases } from './tmdb.js';
+import { isMovie } from '../utils/helpers.js';
+import { getTmdbTitle, getTmdbAliases } from '../utils/tmdb.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { validateStream } from '../utils/m3u8.js';
 import { normalizeTitle, titleMatch } from '../utils/title.js';
@@ -45,8 +46,8 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                     const href = m[1];
                     const content = m[2];
                     
-                    if (mediaType === 'movie' && !href.includes('/pelicula/')) continue;
-                    if (mediaType === 'tv' && !href.includes('/serie/')) continue;
+                    if (isMovie(mediaType) && !href.includes('/pelicula/')) continue;
+                    if (!isMovie(mediaType) && !href.includes('/serie/')) continue;
                     
                     let resultTitle = '';
                     const pMatch = content.match(/<p[^>]*>([\s\S]*?)<\/p>/i);
@@ -120,7 +121,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             return [];
         }
 
-        if (mediaType === 'tv') {
+        if (!isMovie(mediaType)) {
             if (movieUrl.endsWith('/')) movieUrl = movieUrl.slice(0, -1);
             movieUrl = `${movieUrl}/temporada/${season}/capitulo/${episode}`;
             console.log(`[PelisPlus] Episode URL: ${movieUrl}`);

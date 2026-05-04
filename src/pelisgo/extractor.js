@@ -1,7 +1,7 @@
 import { fetchHtml, fetchJson, getStealthHeaders } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
-import { getCorrectImdbId, getTmdbTitle } from './tmdb.js';
+import { getCorrectImdbId, getTmdbTitle } from '../utils/tmdb.js';
 
 const BASE = "https://pelisgo.online";
 const WHITELIST = ["Magi", "Filemoon", "Pixeldrain"];

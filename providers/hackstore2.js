@@ -1,6 +1,6 @@
 /**
  * hackstore2 - Built from src/hackstore2/
- * Generated: 2026-05-04T21:33:45.945Z
+ * Generated: 2026-05-04T23:29:04.585Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -65,24 +65,9 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 
-// src/utils/ua.js
-var require_ua = __commonJS({
-  "src/utils/ua.js"(exports2, module2) {
-    var UA_POOL = [
-      "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    ];
-    function getRandomUA() {
-      const index = Math.floor(Math.random() * UA_POOL.length);
-      return UA_POOL[index];
-    }
-    module2.exports = { getRandomUA, UA_POOL };
-  }
-});
-
 // src/utils/http.js
 var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
-    var { getRandomUA } = require_ua();
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var sessionUA = null;
     function setSessionUA2(ua) {
@@ -608,23 +593,56 @@ var require_engine = __commonJS({
   }
 });
 
-// src/utils/id_mapper.js
-var require_id_mapper = __commonJS({
-  "src/utils/id_mapper.js"(exports2, module2) {
+// src/utils/tmdb.js
+var require_tmdb = __commonJS({
+  "src/utils/tmdb.js"(exports2, module2) {
     var { fetchJson: fetchJson2 } = require_http();
-    var TMDB_API_KEY2 = "439c478a771f35c05022f9feabcca01c";
-    var ID_CACHE = /* @__PURE__ */ new Map();
-    function getTmdbInfo2(tmdbId, mediaType) {
+    var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
+    var titleCache = /* @__PURE__ */ new Map();
+    var idCache = /* @__PURE__ */ new Map();
+    function getTmdbTitle2(tmdbId, mediaType, retries = 2) {
+      return __async(this, null, function* () {
+        var _a, _b, _c, _d;
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (titleCache.has(cacheKey))
+          return titleCache.get(cacheKey);
+        if (retries < 2)
+          yield new Promise((r) => setTimeout(r, 1e3));
+        const isImdb = tmdbId && tmdbId.startsWith("tt");
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const fetchUrl = isImdb ? `https://api.themoviedb.org/3/find/${tmdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id` : `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
+          const data = yield fetchJson2(fetchUrl);
+          const title = isImdb ? ((_b = (_a = data[type + "_results"]) == null ? void 0 : _a[0]) == null ? void 0 : _b.title) || ((_d = (_c = data[type + "_results"]) == null ? void 0 : _c[0]) == null ? void 0 : _d.name) : data.title || data.name;
+          const result = title || null;
+          titleCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          if (retries > 0)
+            return getTmdbTitle2(tmdbId, mediaType, retries - 1);
+          titleCache.set(cacheKey, null);
+          return null;
+        }
+      });
+    }
+    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
       return __async(this, null, function* () {
         try {
           const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-          const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY2}&language=es-MX`;
+          const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang || "es-MX"}`;
           const data = yield fetchJson2(url);
           return {
             title: data.title || data.name,
-            year: (data.release_date || data.first_air_date || "").split("-")[0]
+            originalTitle: data.original_title || data.original_name || null,
+            year: (data.release_date || data.first_air_date || "").split("-")[0],
+            genres: (data.genres || []).map((g) => g.id),
+            originCountries: data.origin_country || (data.production_countries || []).map((c) => c.iso_3166_1) || []
           };
         } catch (e) {
+          if (retries > 0) {
+            yield new Promise((r) => setTimeout(r, 1e3));
+            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
+          }
           return null;
         }
       });
@@ -634,20 +652,20 @@ var require_id_mapper = __commonJS({
         if (!tmdbId)
           return { imdbId: null, title: "" };
         const cacheKey = `${mediaType}_${tmdbId}`;
-        if (ID_CACHE.has(cacheKey))
-          return ID_CACHE.get(cacheKey);
+        if (idCache.has(cacheKey))
+          return idCache.get(cacheKey);
         if (tmdbId.startsWith("tt")) {
           const res = { imdbId: tmdbId, title: "Contenido", offset: 0, fromMapping: false };
-          ID_CACHE.set(cacheKey, res);
+          idCache.set(cacheKey, res);
           return res;
         }
         try {
           const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-          const idUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY2}`;
+          const idUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
           const idRes = yield fetchJson2(idUrl);
           if (!idRes || !idRes.imdb_id) {
             const result2 = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
-            ID_CACHE.set(cacheKey, result2);
+            idCache.set(cacheKey, result2);
             return result2;
           }
           const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
@@ -658,16 +676,54 @@ var require_id_mapper = __commonJS({
             offset: 0,
             fromMapping: false
           };
-          ID_CACHE.set(cacheKey, result);
+          idCache.set(cacheKey, result);
           return result;
         } catch (e) {
           const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
-          ID_CACHE.set(cacheKey, result);
+          idCache.set(cacheKey, result);
           return result;
         }
       });
     }
-    module2.exports = { getCorrectImdbId: getCorrectImdbId2, getTmdbInfo: getTmdbInfo2 };
+    function getTmdbAliases2(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        try {
+          const titleEs = yield getTmdbTitle2(tmdbId, mediaType);
+          const titleEn = yield (() => __async(this, null, function* () {
+            try {
+              const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+              const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
+              const data = yield fetchJson2(url);
+              return data.title || data.name || null;
+            } catch (e) {
+              return null;
+            }
+          }))();
+          const aliases = [];
+          if (titleEs)
+            aliases.push(titleEs);
+          if (titleEn && titleEn !== titleEs)
+            aliases.push(titleEn);
+          try {
+            const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+            const altUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/alternative_titles?api_key=${TMDB_API_KEY}`;
+            const altData = yield fetchJson2(altUrl);
+            const titles = altData.titles || altData.results || [];
+            for (const t of titles) {
+              const altTitle = t.title || t.name;
+              if (altTitle && !aliases.includes(altTitle))
+                aliases.push(altTitle);
+            }
+          } catch (e) {
+            console.warn(`[TMDB-Aliases] Alternative titles fetch failed`);
+          }
+          return aliases;
+        } catch (e) {
+          return [];
+        }
+      });
+    }
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo: getTmdbInfo2, getCorrectImdbId: getCorrectImdbId2, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
   }
 });
 
@@ -738,52 +794,8 @@ var require_aes_gcm = __commonJS({
 var import_http = __toESM(require_http());
 var import_m3u8 = __toESM(require_m3u8());
 var import_engine = __toESM(require_engine());
-var import_id_mapper = __toESM(require_id_mapper());
 var import_mirrors = __toESM(require_mirrors());
-
-// src/hackstore2/tmdb.js
-var axios = require("axios");
-var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
-function getTmdbTitle(tmdbId, mediaType, language = "en-US", retries = 2) {
-  return __async(this, null, function* () {
-    if (!tmdbId)
-      return null;
-    try {
-      const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-      const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${language}`;
-      const { data } = yield axios.get(url, { timeout: 6e3 });
-      return data.name || data.title || null;
-    } catch (e) {
-      if (retries > 0) {
-        yield new Promise((r) => setTimeout(r, 1e3));
-        return getTmdbTitle(tmdbId, mediaType, retries - 1);
-      }
-      return null;
-    }
-  });
-}
-function getTmdbAliases(tmdbId, mediaType) {
-  return __async(this, null, function* () {
-    if (!tmdbId)
-      return [];
-    const titles = /* @__PURE__ */ new Set();
-    try {
-      const [enTitle, esTitle] = yield Promise.all([
-        getTmdbTitle(tmdbId, mediaType, "en-US"),
-        getTmdbTitle(tmdbId, mediaType, "es-MX")
-      ]);
-      if (enTitle)
-        titles.add(enTitle);
-      if (esTitle)
-        titles.add(esTitle);
-      return Array.from(titles);
-    } catch (e) {
-      return Array.from(titles);
-    }
-  });
-}
-
-// src/hackstore2/extractor.js
+var import_tmdb = __toESM(require_tmdb());
 var BASE_URL = "https://hackstore.mx";
 var COMMON_HEADERS = {
   "User-Agent": (0, import_http.getSessionUA)(),
@@ -1094,8 +1106,8 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     console.log(`[HackStore2] API Fast-Track: ${title || tmdbId} (TMDB: ${tmdbId})`);
     try {
       const [info, aliases] = yield Promise.all([
-        (0, import_id_mapper.getTmdbInfo)(tmdbId, mediaType),
-        getTmdbAliases(tmdbId, mediaType)
+        (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType),
+        (0, import_tmdb.getTmdbAliases)(tmdbId, mediaType)
       ]);
       const year = (info == null ? void 0 : info.year) || "";
       const baseTitles = /* @__PURE__ */ new Set();
@@ -1190,13 +1202,12 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
 }
 
 // src/hackstore2/index.js
-function getStreams(tmdbId, mediaType, season, episode, title) {
+function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
-      console.log(`[HackStore2] Request: ${mediaType} ${tmdbId}`);
-      return yield extractStreams(tmdbId, mediaType, season, episode, title);
-    } catch (error) {
-      console.error(`[HackStore2] Error: ${error.message}`);
+      return yield extractStreams(tmdbId, mediaType, season, episode);
+    } catch (e) {
+      console.error(`[HackStore2] Error: ${e.message}`);
       return [];
     }
   });

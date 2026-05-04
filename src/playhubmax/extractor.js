@@ -1,28 +1,19 @@
-import { fetchJson } from '../utils/http.js';
+import { fetchJson, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
+import { getTmdbInfo } from '../utils/tmdb.js';
 
 const PHM_API = "https://api.playhubmax.com/api";
-const UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+const UA = getSessionUA();
 const API_HEADERS = {
     "User-Agent": UA,
     "Accept": "application/json, text/plain, */*",
     "Origin": "https://www.playhubmax.com",
     "Referer": "https://www.playhubmax.com/"
 };
-const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
 
 const AES_KEY_STR = "33dff3b1c1362e45e1425fcc9724d6f3";
 const AES_IV_STR = "33dff3b1c1362e45";
-
-async function getTmdbTitle(tmdbId, mediaType) {
-    try {
-        const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-        const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
-        const data = await fetchJson(url);
-        return data.title || data.name || null;
-    } catch (e) { return null; }
-}
 
 function decryptSources(b64) {
     try {
@@ -66,7 +57,8 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     try {
         let mediaTitle = title;
         if (!mediaTitle && tmdbId) {
-            mediaTitle = await getTmdbTitle(tmdbId, mediaType);
+            const info = await getTmdbInfo(tmdbId, mediaType);
+            mediaTitle = info?.title;
         }
         if (!mediaTitle) return [];
         const type = mediaType === "series" || mediaType === "tv" ? "tv" : "movie";

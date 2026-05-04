@@ -1,9 +1,8 @@
 import { fetchJson, fetchHtml, getSessionUA, setSessionUA, getStealthHeaders } from '../utils/http.js';
 import { validateStream } from '../utils/m3u8.js';
 import { finalizeStreams, normalizeLanguage } from '../utils/engine.js';
-import { getCorrectImdbId, getTmdbInfo } from '../utils/id_mapper.js';
 import { isMirror } from '../utils/mirrors.js';
-import { getTmdbTitle, getTmdbAliases } from './tmdb.js';
+import { getCorrectImdbId, getTmdbInfo, getTmdbTitle, getTmdbAliases } from '../utils/tmdb.js';
 
 const BASE_URL = "https://hackstore.mx";
 const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";

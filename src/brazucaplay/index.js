@@ -2,13 +2,8 @@
  * brazucaplay Provider
  */
 import { extractStreams } from './extractor.js';
-async function getStreams(tmdbId, mediaType, season, episode, title) {
-    try {
-        console.log(`[BrazucaPlay] Request: ${mediaType} ${tmdbId}`);
-        return await extractStreams(tmdbId, mediaType, season, episode, title);
-    } catch (error) {
-        console.error(`[BrazucaPlay] Error: ${error.message}`);
-        return [];
-    }
+async function getStreams(tmdbId, mediaType, season, episode) {
+    try { return await extractStreams(tmdbId, mediaType, season, episode); }
+    catch (e) { console.error(`[BrazucaPlay] Error: ${e.message}`); return []; }
 }
 module.exports = { getStreams };
