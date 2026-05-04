@@ -1,8 +1,9 @@
 import { fetchJson, fetchHtml, getSessionUA, setSessionUA, getStealthHeaders } from '../utils/http.js';
 import { validateStream } from '../utils/m3u8.js';
 import { finalizeStreams, normalizeLanguage } from '../utils/engine.js';
-import { getCorrectImdbId } from '../utils/id_mapper.js';
+import { getCorrectImdbId, getTmdbInfo } from '../utils/id_mapper.js';
 import { isMirror } from '../utils/mirrors.js';
+import { getTmdbTitle, getTmdbAliases } from './tmdb.js';
 
 const BASE_URL = "https://hackstore.mx";
 const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
@@ -258,57 +259,111 @@ async function resolveEmbed(url, hint = "") {
     return { url, quality: "HD", verified: false };
 }
 
+function normalizeSlug(title) {
+    if (!title) return "";
+    return title.toLowerCase()
+        .replace(/[áàäâ]/g, "a")
+        .replace(/[éèëê]/g, "e")
+        .replace(/[íìïî]/g, "i")
+        .replace(/[óòöô]/g, "o")
+        .replace(/[úùüû]/g, "u")
+        .replace(/ñ/g, "n")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId) return [];
-    console.log(`[HackStore2] Looking for content: ${tmdbId} (${mediaType})`);
+    console.log(`[HackStore2] API Fast-Track: ${title || tmdbId} (TMDB: ${tmdbId})`);
     try {
-        const currentUA = getSessionUA();
-        setSessionUA(currentUA);
-        const imdbInfo = await getCorrectImdbId(tmdbId, mediaType);
-        if (!imdbInfo || !imdbInfo.imdbId) {
-            console.log(`[HackStore2] No IMDB ID found for ${tmdbId}`);
+        const [info, aliases] = await Promise.all([
+            getTmdbInfo(tmdbId, mediaType),
+            getTmdbAliases(tmdbId, mediaType)
+        ]);
+        const year = info?.year || "";
+        const baseTitles = new Set();
+        if (title) baseTitles.add(title);
+        if (info?.title) baseTitles.add(info.title);
+        if (aliases) aliases.forEach(a => baseTitles.add(a));
+        
+        const slugsToTry = [];
+        for (const t of baseTitles) {
+            const sl = normalizeSlug(t);
+            if (!sl) continue;
+            if (year) slugsToTry.push(`${sl}-${year}`);
+            slugsToTry.push(sl);
+        }
+        const uniqueSlugs = [...new Set(slugsToTry)].slice(0, 6);
+        console.log(`[HackStore2] Slug Storm:`, uniqueSlugs);
+        
+        let targetId = null;
+        const postType = mediaType === "movie" || mediaType === "movies" ? "movies" : "tvshows";
+        
+        const idResults = await Promise.all(uniqueSlugs.map(async (slug) => {
+            const endpoint = `${BASE_URL}/wp-api/v1/single/${postType}?slug=${slug}&postType=${postType}`;
+            try {
+                const res = await fetchJson(endpoint);
+                if (res && res.data && res.data._id) {
+                    return { slug, id: res.data._id };
+                }
+            } catch (e) {}
+            return null;
+        }));
+        
+        const match = idResults.find(r => r !== null);
+        if (match) {
+            targetId = match.id;
+            console.log(`[HackStore2] Match! Slug: ${match.slug} -> ID: ${targetId}`);
+        }
+        
+        if (!targetId) {
+            console.log("[HackStore2] ID not found.");
             return [];
         }
-        let urlSuffix = imdbInfo.imdbId;
-        if (season !== null && episode !== null) {
-            const epPadded = String(episode).padStart(2, "0");
-            urlSuffix = `${imdbInfo.imdbId}-${season}x${epPadded}`;
-        }
-        const url = `${BASE_URL}/f/${urlSuffix}`;
-        console.log(`[HackStore2] Searching: ${url}`);
-        const response = await fetch(url, { headers: { "User-Agent": currentUA, "Referer": BASE_URL + "/" } });
-        if (!response.ok) return [];
-        const html = await response.text();
-        const match = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
-        if (!match) return [];
-        let rawData = JSON.parse(match[1].replace(/\\\//g, "/"));
-        let data = Array.isArray(rawData) ? rawData : Object.values(rawData);
-        const streams = [];
-        const langMap = { "LAT": "Latino", "ESP": "Español", "SUB": "Subtitulado" };
-        for (const item of data) {
-            const vLang = (item.video_language || "").toUpperCase();
-            if (vLang === "ESP") continue;
-            const currentLangLabel = langMap[vLang] || "Latino";
-            if (item.sortedEmbeds && Array.isArray(item.sortedEmbeds)) {
-                for (const embed of item.sortedEmbeds) {
-                    if (embed.embedUrl) {
-                        const resolved = await resolveEmbed(embed.embedUrl, embed.type || "");
-                        if (resolved) {
-                            streams.push({
-                                serverName: resolved.serverName || "Server",
-                                audio: currentLangLabel,
-                                quality: resolved.quality || "HD",
-                                url: resolved.url,
-                                headers: resolved.headers || { "User-Agent": currentUA }
-                            });
-                        }
-                    }
+        
+        if (postType === "tvshows") {
+            console.log(`[HackStore2] Episode S${season}E${episode}...`);
+            const epListUrl = `${BASE_URL}/wp-api/v1/single/episodes/list?_id=${targetId}&season=${season}&page=1&postsPerPage=200`;
+            const epRes = await fetchJson(epListUrl);
+            if (epRes && epRes.data && epRes.data.posts) {
+                const epObj = epRes.data.posts.find(p => p.season_number == season && p.episode_number == episode);
+                if (epObj && epObj._id) {
+                    targetId = epObj._id;
+                } else {
+                    return [];
                 }
+            } else {
+                return [];
             }
         }
-        return await finalizeStreams(streams, "HackStore2", title || "");
+        
+        const playerResponse = await fetchJson(`${BASE_URL}/wp-api/v1/player?postId=${targetId}`);
+        if (!playerResponse || !playerResponse.data || !playerResponse.data.embeds) return [];
+        
+        const playerData = playerResponse.data.embeds.slice(0, 15);
+        const streamPromises = playerData.map(async (p) => {
+            const lang = (p.lang || "Latino").toLowerCase();
+            if (lang.includes("sub") || lang.includes("vose") || lang.includes("eng") || lang.includes("espana")) return null;
+            const rawUrl = p.url;
+            if (!rawUrl || rawUrl.includes("la.movie")) return null;
+            try {
+                const resolved = await resolveEmbed(rawUrl);
+                if (!resolved || !resolved.url) return null;
+                return {
+                    url: resolved.url,
+                    quality: resolved.quality || "HD",
+                    verified: resolved.verified || false,
+                    langLabel: "Latino",
+                    serverName: resolved.serverName || p.server || "Online",
+                    headers: resolved.headers || {}
+                };
+            } catch (e) { return null; }
+        });
+        
+        const candidates = (await Promise.all(streamPromises)).filter(Boolean);
+        return await finalizeStreams(candidates, "HackStore2", title || "");
     } catch (error) {
-        console.error(`[HackStore2] Error: ${error.message}`);
+        console.error(`[HackStore2] Fatal Error:`, error.message);
         return [];
     }
 }

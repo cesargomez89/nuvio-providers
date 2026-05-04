@@ -1,6 +1,6 @@
 /**
  * seriesmetro - Built from src/seriesmetro/
- * Generated: 2026-05-03T20:29:19.360Z
+ * Generated: 2026-05-04T00:31:28.587Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1441,7 +1441,7 @@ var require_resolvers = __commonJS({
         return { "User-Agent": UA, "referer": url.split("?")[0] };
       }
     }
-    function resolveEmbed(url, signal = null) {
+    function resolveEmbed2(url, signal = null) {
       return __async(this, null, function* () {
         if (!url)
           return null;
@@ -1469,7 +1469,7 @@ var require_resolvers = __commonJS({
         };
       });
     }
-    module2.exports = { resolveEmbed, getDirectCdnHeaders };
+    module2.exports = { resolveEmbed: resolveEmbed2, getDirectCdnHeaders };
   }
 });
 
@@ -1551,6 +1551,7 @@ function getTmdbAliases(tmdbId, mediaType) {
 }
 
 // src/seriesmetro/extractor.js
+var import_resolvers = __toESM(require_resolvers());
 var BASE = "https://www3.seriesmetro.net";
 var UA3 = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 var HEADERS = {
@@ -1559,120 +1560,128 @@ var HEADERS = {
   "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7",
   "Referer": BASE
 };
-function findContentUrl(tmdbInfo, mediaType) {
-  return __async(this, null, function* () {
-    var _a;
-    const searchTitles = [tmdbInfo.title, ...tmdbInfo.aliases || []].filter(Boolean);
-    const cleanTitle = ((_a = searchTitles[0]) == null ? void 0 : _a.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "")) || "";
-    const cleanOriginal = (tmdbInfo.originalTitle || "").toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-    const searchUrl = `${BASE}/search/${cleanTitle}`;
-    try {
-      const html = yield (0, import_http.fetchHtml)(searchUrl, { headers: HEADERS });
-      const firstMatch = html.match(/<a href="([^"]+)" class="MovieItem[^>]*>/i);
-      if (firstMatch)
-        return { url: firstMatch[1], html };
-      if (cleanOriginal && cleanOriginal !== cleanTitle) {
-        const altUrl = `${BASE}/search/${cleanOriginal}`;
-        const altHtml = yield (0, import_http.fetchHtml)(altUrl, { headers: HEADERS });
-        const altMatch = altHtml.match(/<a href="([^"]+)" class="MovieItem[^>]*>/i);
-        if (altMatch)
-          return { url: altMatch[1], html: altHtml };
-      }
-      for (const altTitle of searchTitles.slice(2)) {
-        const altSearch = altTitle.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-        if (altSearch === cleanTitle || altSearch === cleanOriginal)
-          continue;
-        const url = `${BASE}/search/${altSearch}`;
-        const h = yield (0, import_http.fetchHtml)(url, { headers: HEADERS });
-        const m = h.match(/<a href="([^"]+)" class="MovieItem[^>]*>/i);
-        if (m)
-          return { url: m[1], html: h };
-      }
-    } catch (e) {
-      console.log(`[SeriesMetro] Search error: ${e.message}`);
-    }
-    return null;
-  });
+function normalizeSlug(title) {
+  if (!title)
+    return "";
+  return title.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
-function getEpisodeUrl(seriesUrl, seriesHtml, season, episode) {
+function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
-    const url = `${seriesUrl.replace(/\/$/, "")}/season-${season}-episode-${episode}`;
-    try {
-      const epHtml = yield (0, import_http.fetchHtml)(url, { headers: HEADERS });
-      if (epHtml.includes("404") || epHtml.includes("Not Found"))
-        return null;
-      return epHtml.includes("embed") ? url : null;
-    } catch (e) {
-      return null;
+    var _a, _b;
+    if (!tmdbId)
+      return [];
+    const aliases = yield getTmdbAliases(tmdbId, mediaType);
+    let mediaTitle = title || aliases[0] || "";
+    if (!mediaTitle) {
+      mediaTitle = aliases[1] || aliases[0] || title;
     }
-  });
-}
-function extractEmbedStreams(targetUrl, refererUrl) {
-  return __async(this, null, function* () {
-    var _a;
-    const streams = [];
+    if (!mediaTitle) {
+      console.log(`[SeriesMetro] \u2718 No title found for: ${tmdbId}`);
+      return [];
+    }
+    console.log(`[SeriesMetro] Looking for: ${mediaTitle}`);
+    const slugs = [];
+    for (const t of [title, ...aliases].filter(Boolean)) {
+      const slug = normalizeSlug(t);
+      if (slug)
+        slugs.push(slug);
+    }
+    const uniqueSlugs = [...new Set(slugs)].slice(0, 6);
+    let seriesUrl = null;
+    for (const slug of uniqueSlugs) {
+      const typePrefix = mediaType === "movie" || mediaType === "movies" ? "pelicula" : "serie";
+      const testUrl = `${BASE}/${typePrefix}/${slug}`;
+      try {
+        const response = yield fetch(testUrl, { headers: HEADERS });
+        if (response.ok) {
+          const html = yield response.text();
+          if (!html.includes("404") && !html.includes("Not Found") && html.length > 1e3) {
+            console.log(`[SeriesMetro] Found: ${testUrl}`);
+            seriesUrl = testUrl;
+            break;
+          }
+        }
+      } catch (e) {
+      }
+    }
+    if (!seriesUrl) {
+      console.log(`[SeriesMetro] \u2718 No content found for: ${mediaTitle}`);
+      return [];
+    }
+    let episodeUrl = seriesUrl;
+    if (mediaType === "tv" && season && episode) {
+      const episodeSlug = `${normalizeSlug(mediaTitle)}-temporada-${season}-capitulo-${episode}`;
+      episodeUrl = `${BASE}/capitulo/${episodeSlug}/`;
+      try {
+        const response = yield fetch(episodeUrl, { headers: HEADERS });
+        if (!response.ok) {
+          const altSlug = `${normalizeSlug(aliases[0])}-temporada-${season}-capitulo-${episode}`;
+          episodeUrl = `${BASE}/capitulo/${altSlug}/`;
+        }
+      } catch (e) {
+      }
+      console.log(`[SeriesMetro] Episode: ${episodeUrl}`);
+    }
     try {
-      const html = yield (0, import_http.fetchHtml)(targetUrl, { headers: __spreadProps(__spreadValues({}, HEADERS), { "Referer": refererUrl }) });
-      const serverMatches = html.match(/data-server="(\d+)"/g) || [];
-      for (const serverAttr of serverMatches) {
-        const serverId = (_a = serverAttr.match(/data-server="(\d+)"/)) == null ? void 0 : _a[1];
-        if (!serverId)
+      const html = yield (0, import_http.fetchHtml)(episodeUrl, { headers: __spreadProps(__spreadValues({}, HEADERS), { "Referer": seriesUrl }) });
+      const streams = [];
+      const embedMatches = html.match(/data-src="([^"]+trembed=\d+[^"]*)"/g) || [];
+      for (const match of embedMatches) {
+        const embedUrl = (_a = match.match(/data-src="([^"]+)"/)) == null ? void 0 : _a[1];
+        if (!embedUrl)
           continue;
-        const ajaxUrl = `${BASE}/ajax/e/${serverId}`;
+        const cleanUrl = embedUrl.replace(/&amp;/g, "&");
+        const fullUrl = cleanUrl.startsWith("http") ? cleanUrl : `${BASE}${cleanUrl}`;
         try {
-          const ajaxData = yield (0, import_http.fetchJson)(ajaxUrl, {
-            method: "POST",
-            data: new URLSearchParams({ id: serverId }),
-            headers: __spreadProps(__spreadValues({}, HEADERS), { "Referer": targetUrl, "X-Requested-With": "XMLHttpRequest" })
-          });
-          if (ajaxData == null ? void 0 : ajaxData.embedUrl) {
-            const { resolveEmbed } = yield Promise.resolve().then(() => __toESM(require_resolvers()));
-            const resolved = yield resolveEmbed(ajaxData.embedUrl);
-            if (resolved) {
-              streams.push(__spreadProps(__spreadValues({}, resolved), {
-                lang: "Latino",
-                serverLabel: "SeriesMetro"
-              }));
+          const epHtml = yield (0, import_http.fetchHtml)(fullUrl, { headers: __spreadProps(__spreadValues({}, HEADERS), { "Referer": episodeUrl }) });
+          const iframeMatch = epHtml.match(/<iframe[^>]+src="([^"]+)"/);
+          if (iframeMatch && iframeMatch[1]) {
+            let src = iframeMatch[1];
+            if (src.startsWith("//"))
+              src = "https:" + src;
+            const resolved = yield (0, import_resolvers.resolveEmbed)(src);
+            if (resolved && resolved.url) {
+              streams.push({
+                url: resolved.url,
+                quality: resolved.quality || "HD",
+                verified: resolved.verified || false,
+                langLabel: "Latino",
+                serverName: resolved.serverName || "SeriesMetro",
+                headers: resolved.headers || {}
+              });
             }
           }
         } catch (e) {
         }
       }
+      if (streams.length === 0) {
+        const iframeSrcMatches = html.match(/<iframe[^>]+src="([^"]+)"/g) || [];
+        for (const iframeTag of iframeSrcMatches) {
+          const src = (_b = iframeTag.match(/src="([^"]+)"/)) == null ? void 0 : _b[1];
+          if (!src || src.includes("facebook") || src.includes("google"))
+            continue;
+          let fullSrc = src;
+          if (src.startsWith("//"))
+            fullSrc = "https:" + src;
+          const resolved = yield (0, import_resolvers.resolveEmbed)(fullSrc);
+          if (resolved && resolved.url) {
+            streams.push({
+              url: resolved.url,
+              quality: resolved.quality || "HD",
+              verified: resolved.verified || false,
+              langLabel: "Latino",
+              serverName: resolved.serverName || "SeriesMetro",
+              headers: resolved.headers || {}
+            });
+          }
+        }
+      }
+      console.log(`[SeriesMetro] Found ${streams.length} streams`);
+      return yield (0, import_engine.finalizeStreams)(streams, "SeriesMetro", mediaTitle);
     } catch (e) {
-      console.log(`[SeriesMetro] Extract error: ${e.message}`);
-    }
-    return streams;
-  });
-}
-function extractStreams(tmdbId, mediaType, season, episode, title) {
-  return __async(this, null, function* () {
-    if (!tmdbId)
-      return [];
-    const aliases = yield getTmdbAliases(tmdbId, mediaType);
-    let tmdbInfo = { title: title || aliases[0] || "" };
-    if (!tmdbInfo.title) {
-      tmdbInfo = {
-        title: aliases[1] || aliases[0] || title,
-        originalTitle: aliases[0] || title,
-        aliases
-      };
-    }
-    if (!tmdbInfo.title)
-      return [];
-    const found = yield findContentUrl(tmdbInfo, mediaType);
-    if (!found) {
-      console.log(`[SeriesMetro] \u2718 No se encontr\xF3 contenido para: ${tmdbInfo.title}`);
+      console.log(`[SeriesMetro] Error: ${e.message}`);
       return [];
     }
-    let targetUrl = found.url;
-    if (mediaType === "tv" && season && episode) {
-      const epUrl = yield getEpisodeUrl(found.url, found.html, season, episode);
-      if (!epUrl)
-        return [];
-      targetUrl = epUrl;
-    }
-    const streams = yield extractEmbedStreams(targetUrl, found.url);
-    return yield (0, import_engine.finalizeStreams)(streams, "SeriesMetro", tmdbInfo.title);
   });
 }
 

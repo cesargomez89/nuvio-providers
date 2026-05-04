@@ -50,7 +50,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             if (spanishTitle) allAliases.push(spanishTitle);
             if (aliases) aliases.forEach(a => allAliases.push(a));
             
-            const mainKeyword = title.split(/\s+/).filter(w => w.length > 4)[0];
+            const mainKeyword = title ? title.split(/\s+/).filter(w => w.length > 4)[0] : null;
             if (mainKeyword && !allAliases.includes(mainKeyword)) {
                 allAliases.push(mainKeyword);
             }
@@ -115,13 +115,26 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         let movieUrl = null;
         let bestMatch = null;
         
+        let exactMatches = [];
+        let partialMatches = [];
         for (const hits of allSearchHits) {
             for (const hit of hits) {
-                if (!bestMatch) {
-                    bestMatch = hit;
-                    console.log(`[PelisPlus] Selected: ${hit.title}`);
+                const hitNorm = normalizeTitle(hit.title);
+                const isExact = title && hitNorm === normalizeTitle(title);
+                if (isExact) {
+                    exactMatches.push(hit);
+                } else {
+                    partialMatches.push(hit);
                 }
             }
+        }
+        if (exactMatches.length > 0) {
+            bestMatch = exactMatches[0];
+            console.log(`[PelisPlus] Selected (exact): ${bestMatch.title}`);
+        } else if (partialMatches.length > 0) {
+            partialMatches.sort((a, b) => a.title.length - b.title.length);
+            bestMatch = partialMatches[0];
+            console.log(`[PelisPlus] Selected (best): ${bestMatch.title}`);
         }
         
         if (bestMatch) {
@@ -211,6 +224,19 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                     }
                 } catch (e) {}
             }
+        }
+
+        if (rawResults.length === 0) {
+            console.log(`[PelisPlus] Trying iframe sources...`);
+            $('iframe[src]').each((i, el) => {
+                const src = $(el).attr('src');
+                if (src && src.startsWith('http') && !src.includes('+url+') && !src.includes("'+url+'") && !src.includes("'+link+'")) {
+                    if (!seenUrls.has(src)) {
+                        seenUrls.add(src);
+                        rawResults.push({ serverUrl: src, serverName: 'Servidor', language: 'Latino' });
+                    }
+                }
+            });
         }
 
         console.log(`[PelisPlus] Resolving ${rawResults.length} sources...`);

@@ -6,15 +6,12 @@ const targetProvider = args[0] ? args[0].toLowerCase() : null;
 
 const providersDir = path.join(__dirname, 'providers');
 const testConfigs = [
-  { tmdbId: '76479', mediaType: 'tv', season: 2, episode: 1 },
   { tmdbId: '76479', mediaType: 'tv', season: 5, episode: 1 },
-  { tmdbId: '687163', mediaType: 'movie' },
-  { tmdbId: '208903', mediaType: 'movie' },
-  { tmdbId: '693996', mediaType: 'movie' },
-  { tmdbId: '1392703', mediaType: 'movie' },
   { tmdbId: '1396', mediaType: 'tv', season: 1, episode: 1 },
-  { tmdbId: '1399', mediaType: 'tv', season: 1, episode: 1 },
   { tmdbId: '66732', mediaType: 'tv', season: 1, episode: 1 },
+  { tmdbId: '687163', mediaType: 'movie' },
+  { tmdbId: '423', mediaType: 'movie' },
+  { tmdbId: '1327819', mediaType: 'movie' },
 ];
 
 let providerFiles = fs.readdirSync(providersDir).filter(f => f.endsWith('.js') && !f.startsWith('_'));
@@ -40,15 +37,15 @@ async function testProvider(filename) {
     }
 
     for (const config of testConfigs) {
-      const label = config.mediaType === 'movie' 
-        ? `Movie ${config.tmdbId}` 
+      const label = config.mediaType === 'movie'
+        ? `Movie ${config.tmdbId}`
         : `TV ${config.tmdbId} S${config.season}E${config.episode}`;
       console.log(`[${name}] Testing ${label}...`);
       try {
         const streams = await mod.getStreams(
-          config.tmdbId, 
-          config.mediaType, 
-          config.season || null, 
+          config.tmdbId,
+          config.mediaType,
+          config.season || null,
           config.episode || null
         );
         if (config.mediaType === 'movie') {

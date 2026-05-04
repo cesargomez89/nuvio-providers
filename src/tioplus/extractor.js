@@ -51,15 +51,26 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         const releaseYear = tmdbInfo?.year || "";
         if (!mediaTitle) return [];
         console.log(`[TioPlus] Searching: ${mediaTitle} (${releaseYear})`);
-        const searchQuery = encodeURIComponent(mediaTitle.split(/[:(]/)[0].trim());
-        const searchUrl = `${BASE_URL}/search/${searchQuery}`;
-        const html = await fetchHtml(searchUrl, { headers: { "User-Agent": UA } });
-        if (!html) return [];
-        const itemRegex = /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;
-        let match;
+        const searchQuery = mediaTitle.split(/[:(]/)[0].trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
         const candidates = [];
-        while ((match = itemRegex.exec(html)) !== null) {
-            candidates.push({ url: match[1], title: match[2].trim() });
+        
+        const typePrefix = mediaType === "movie" ? "pelicula" : "serie";
+        const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
+        const directHtml = await fetchHtml(directUrl, { headers: { "User-Agent": UA } });
+        if (directHtml && !directHtml.includes("404") && !directHtml.includes("Not Found") && directHtml.length > 1000) {
+            candidates.push({ url: directUrl, title: mediaTitle });
+        }
+        
+        if (candidates.length === 0) {
+            const searchUrl = `${BASE_URL}/search/${encodeURIComponent(searchQuery)}`;
+            const html = await fetchHtml(searchUrl, { headers: { "User-Agent": UA } });
+            if (html) {
+                const itemRegex = /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;
+                let match;
+                while ((match = itemRegex.exec(html)) !== null) {
+                    candidates.push({ url: match[1], title: match[2].trim() });
+                }
+            }
         }
         if (candidates.length === 0) return [];
         let targetUrl = null;
@@ -85,7 +96,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             const e = parseInt(episode) || 1;
             finalMediaUrl = `${targetUrl}/season/${s}/episode/${e}`;
         }
-        const mediaHtml = await fetchHtml(finalMediaUrl, { headers: { "User-Agent": UA, "Referer": searchUrl } });
+        const mediaHtml = await fetchHtml(finalMediaUrl, { headers: { "User-Agent": UA, "Referer": BASE_URL } });
         if (!mediaHtml) return [];
         const serverRegex = /data-server=['"]([^'"]+)['"][^>]*>[\s\S]*?<span>([^<]+)<\/span>/gi;
         let sMatch;

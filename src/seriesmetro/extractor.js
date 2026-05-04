@@ -1,6 +1,7 @@
 import { fetchJson, fetchHtml } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { getTmdbTitle, getTmdbAliases } from './tmdb.js';
+import { resolveEmbed } from '../utils/resolvers.js';
 
 const BASE = "https://www3.seriesmetro.net";
 const UA3 = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -11,116 +12,144 @@ const HEADERS = {
     "Referer": BASE
 };
 
-async function findContentUrl(tmdbInfo, mediaType) {
-    const searchTitles = [tmdbInfo.title, ...(tmdbInfo.aliases || [])].filter(Boolean);
-    const cleanTitle = searchTitles[0]?.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "") || "";
-    const cleanOriginal = (tmdbInfo.originalTitle || "").toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-    
-    const searchUrl = `${BASE}/search/${cleanTitle}`;
-    try {
-        const html = await fetchHtml(searchUrl, { headers: HEADERS });
-        const firstMatch = html.match(/<a href="([^"]+)" class="MovieItem[^>]*>/i);
-        if (firstMatch) return { url: firstMatch[1], html };
-        
-        if (cleanOriginal && cleanOriginal !== cleanTitle) {
-            const altUrl = `${BASE}/search/${cleanOriginal}`;
-            const altHtml = await fetchHtml(altUrl, { headers: HEADERS });
-            const altMatch = altHtml.match(/<a href="([^"]+)" class="MovieItem[^>]*>/i);
-            if (altMatch) return { url: altMatch[1], html: altHtml };
-        }
-        
-        for (const altTitle of searchTitles.slice(2)) {
-            const altSearch = altTitle.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-            if (altSearch === cleanTitle || altSearch === cleanOriginal) continue;
-            const url = `${BASE}/search/${altSearch}`;
-            const h = await fetchHtml(url, { headers: HEADERS });
-            const m = h.match(/<a href="([^"]+)" class="MovieItem[^>]*>/i);
-            if (m) return { url: m[1], html: h };
-        }
-    } catch (e) {
-        console.log(`[SeriesMetro] Search error: ${e.message}`);
-    }
-    return null;
-}
-
-async function getEpisodeUrl(seriesUrl, seriesHtml, season, episode) {
-    const url = `${seriesUrl.replace(/\/$/, "")}/season-${season}-episode-${episode}`;
-    try {
-        const epHtml = await fetchHtml(url, { headers: HEADERS });
-        if (epHtml.includes("404") || epHtml.includes("Not Found")) return null;
-        return epHtml.includes("embed") ? url : null;
-    } catch {
-        return null;
-    }
-}
-
-async function extractEmbedStreams(targetUrl, refererUrl) {
-    const streams = [];
-    try {
-        const html = await fetchHtml(targetUrl, { headers: { ...HEADERS, "Referer": refererUrl } });
-        const serverMatches = html.match(/data-server="(\d+)"/g) || [];
-        
-        for (const serverAttr of serverMatches) {
-            const serverId = serverAttr.match(/data-server="(\d+)"/)?.[1];
-            if (!serverId) continue;
-            
-            const ajaxUrl = `${BASE}/ajax/e/${serverId}`;
-            try {
-                const ajaxData = await fetchJson(ajaxUrl, { 
-                    method: "POST",
-                    data: new URLSearchParams({ id: serverId }),
-                    headers: { ...HEADERS, "Referer": targetUrl, "X-Requested-With": "XMLHttpRequest" }
-                });
-                
-                if (ajaxData?.embedUrl) {
-                    const { resolveEmbed } = await import('../utils/resolvers.js');
-                    const resolved = await resolveEmbed(ajaxData.embedUrl);
-                    if (resolved) {
-                        streams.push({
-                            ...resolved,
-                            lang: "Latino",
-                            serverLabel: "SeriesMetro"
-                        });
-                    }
-                }
-            } catch (e) {
-                // skip
-            }
-        }
-    } catch (e) {
-        console.log(`[SeriesMetro] Extract error: ${e.message}`);
-    }
-    return streams;
+function normalizeSlug(title) {
+    if (!title) return "";
+    return title.toLowerCase()
+        .replace(/[áàäâ]/g, "a")
+        .replace(/[éèëê]/g, "e")
+        .replace(/[íìïî]/g, "i")
+        .replace(/[óòöô]/g, "o")
+        .replace(/[úùüû]/g, "u")
+        .replace(/ñ/g, "n")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 }
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId) return [];
     
     const aliases = await getTmdbAliases(tmdbId, mediaType);
-    let tmdbInfo = { title: title || aliases[0] || "" };
+    let mediaTitle = title || aliases[0] || "";
     
-    if (!tmdbInfo.title) {
-        tmdbInfo = {
-            title: aliases[1] || aliases[0] || title,
-            originalTitle: aliases[0] || title,
-            aliases
-        };
+    if (!mediaTitle) {
+        mediaTitle = aliases[1] || aliases[0] || title;
     }
-    if (!tmdbInfo.title) return [];
-    
-    const found = await findContentUrl(tmdbInfo, mediaType);
-    if (!found) {
-        console.log(`[SeriesMetro] ✘ No se encontró contenido para: ${tmdbInfo.title}`);
+    if (!mediaTitle) {
+        console.log(`[SeriesMetro] ✘ No title found for: ${tmdbId}`);
         return [];
     }
     
-    let targetUrl = found.url;
-    if (mediaType === "tv" && season && episode) {
-        const epUrl = await getEpisodeUrl(found.url, found.html, season, episode);
-        if (!epUrl) return [];
-        targetUrl = epUrl;
+    console.log(`[SeriesMetro] Looking for: ${mediaTitle}`);
+    
+    const slugs = [];
+    for (const t of [title, ...aliases].filter(Boolean)) {
+        const slug = normalizeSlug(t);
+        if (slug) slugs.push(slug);
+    }
+    const uniqueSlugs = [...new Set(slugs)].slice(0, 6);
+    
+    let seriesUrl = null;
+    for (const slug of uniqueSlugs) {
+        const typePrefix = mediaType === "movie" || mediaType === "movies" ? "pelicula" : "serie";
+        const testUrl = `${BASE}/${typePrefix}/${slug}`;
+        
+        try {
+            const response = await fetch(testUrl, { headers: HEADERS });
+            if (response.ok) {
+                const html = await response.text();
+                if (!html.includes("404") && !html.includes("Not Found") && html.length > 1000) {
+                    console.log(`[SeriesMetro] Found: ${testUrl}`);
+                    seriesUrl = testUrl;
+                    break;
+                }
+            }
+        } catch (e) {}
     }
     
-    const streams = await extractEmbedStreams(targetUrl, found.url);
-    return await finalizeStreams(streams, "SeriesMetro", tmdbInfo.title);
+    if (!seriesUrl) {
+        console.log(`[SeriesMetro] ✘ No content found for: ${mediaTitle}`);
+        return [];
+    }
+    
+    let episodeUrl = seriesUrl;
+    if (mediaType === "tv" && season && episode) {
+        const episodeSlug = `${normalizeSlug(mediaTitle)}-temporada-${season}-capitulo-${episode}`;
+        episodeUrl = `${BASE}/capitulo/${episodeSlug}/`;
+        
+        try {
+            const response = await fetch(episodeUrl, { headers: HEADERS });
+            if (!response.ok) {
+                const altSlug = `${normalizeSlug(aliases[0])}-temporada-${season}-capitulo-${episode}`;
+                episodeUrl = `${BASE}/capitulo/${altSlug}/`;
+            }
+        } catch (e) {}
+        
+        console.log(`[SeriesMetro] Episode: ${episodeUrl}`);
+    }
+    
+    try {
+        const html = await fetchHtml(episodeUrl, { headers: { ...HEADERS, "Referer": seriesUrl } });
+        
+        const streams = [];
+        const embedMatches = html.match(/data-src="([^"]+trembed=\d+[^"]*)"/g) || [];
+        
+        for (const match of embedMatches) {
+            const embedUrl = match.match(/data-src="([^"]+)"/)?.[1];
+            if (!embedUrl) continue;
+            
+            const cleanUrl = embedUrl.replace(/&amp;/g, "&");
+            const fullUrl = cleanUrl.startsWith("http") ? cleanUrl : `${BASE}${cleanUrl}`;
+            
+            try {
+                const epHtml = await fetchHtml(fullUrl, { headers: { ...HEADERS, "Referer": episodeUrl } });
+                
+                const iframeMatch = epHtml.match(/<iframe[^>]+src="([^"]+)"/);
+                if (iframeMatch && iframeMatch[1]) {
+                    let src = iframeMatch[1];
+                    if (src.startsWith("//")) src = "https:" + src;
+                    
+                    const resolved = await resolveEmbed(src);
+                    if (resolved && resolved.url) {
+                        streams.push({
+                            url: resolved.url,
+                            quality: resolved.quality || "HD",
+                            verified: resolved.verified || false,
+                            langLabel: "Latino",
+                            serverName: resolved.serverName || "SeriesMetro",
+                            headers: resolved.headers || {}
+                        });
+                    }
+                }
+            } catch (e) {}
+        }
+        
+        if (streams.length === 0) {
+            const iframeSrcMatches = html.match(/<iframe[^>]+src="([^"]+)"/g) || [];
+            for (const iframeTag of iframeSrcMatches) {
+                const src = iframeTag.match(/src="([^"]+)"/)?.[1];
+                if (!src || src.includes("facebook") || src.includes("google")) continue;
+                
+                let fullSrc = src;
+                if (src.startsWith("//")) fullSrc = "https:" + src;
+                
+                const resolved = await resolveEmbed(fullSrc);
+                if (resolved && resolved.url) {
+                    streams.push({
+                        url: resolved.url,
+                        quality: resolved.quality || "HD",
+                        verified: resolved.verified || false,
+                        langLabel: "Latino",
+                        serverName: resolved.serverName || "SeriesMetro",
+                        headers: resolved.headers || {}
+                    });
+                }
+            }
+        }
+        
+        console.log(`[SeriesMetro] Found ${streams.length} streams`);
+        return await finalizeStreams(streams, "SeriesMetro", mediaTitle);
+    } catch (e) {
+        console.log(`[SeriesMetro] Error: ${e.message}`);
+        return [];
+    }
 }
