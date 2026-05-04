@@ -1,0 +1,8 @@
+{
+  "name": "PelisPlus",
+  "description": "Películas y series en Latino desde PelisPlus.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

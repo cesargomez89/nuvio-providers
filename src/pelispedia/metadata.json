@@ -1,0 +1,8 @@
+{
+  "name": "PelisPedia",
+  "description": "Películas en Latino desde PelisPedia.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

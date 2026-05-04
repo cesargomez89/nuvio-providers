@@ -1,0 +1,8 @@
+{
+  "name": "Videasy",
+  "description": "Películas y series en Latino.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

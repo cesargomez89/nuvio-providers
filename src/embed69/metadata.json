@@ -1,0 +1,8 @@
+{
+  "name": "Embed69",
+  "description": "Streams en Latino/Español desde Embed69.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

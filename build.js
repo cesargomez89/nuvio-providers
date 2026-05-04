@@ -2,15 +2,16 @@
 
 /**
  * Build script for nuvio-providers
- * 
+ *
  * Bundles each provider from src/<provider>/ into a single file at providers/<provider>.js
- * 
+ *
  * Usage:
  *   node build.js              # Build all providers
  *   node build.js vixsrc       # Build only vixsrc
  *   node build.js --minify     # Build all with minification
  *   node build.js --watch      # Watch mode (requires nodemon)
  *   node build.js --transpile  # Transpile async/await in providers/
+ *   node build.js --manifest   # Generate manifest only (no build)
  */
 
 const esbuild = require('esbuild');
@@ -19,6 +20,7 @@ const path = require('path');
 
 const srcDir = path.join(__dirname, 'src');
 const outDir = path.join(__dirname, 'providers');
+const manifestPath = path.join(__dirname, 'manifest.json');
 
 // Modules that the Nuvio app provides - don't bundle these
 const EXTERNAL_MODULES = [
@@ -28,6 +30,82 @@ const EXTERNAL_MODULES = [
     'crypto-js',
     'axios'
 ];
+
+// Default metadata for providers without metadata.json
+const DEFAULT_METADATA = {
+    author: 'cesargomez89',
+    supportedTypes: ['movie', 'tv'],
+    contentLanguage: ['es'],
+    formats: ['mp4', 'mkv']
+};
+
+// Read metadata.json from provider folder
+function getProviderMetadata(providerName) {
+    const metadataPath = path.join(srcDir, providerName, 'metadata.json');
+    if (fs.existsSync(metadataPath)) {
+        try {
+            return JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
+        } catch (e) {
+            console.warn(`⚠️  Invalid metadata.json for ${providerName}, using defaults`);
+        }
+    }
+    return null;
+}
+
+// Read current manifest version
+function getCurrentVersion() {
+    if (fs.existsSync(manifestPath)) {
+        try {
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+            return manifest.version || '1.0.0';
+        } catch (e) {
+            return '1.0.0';
+        }
+    }
+    return '1.0.0';
+}
+
+// Increment semver patch version
+function incrementVersion(version) {
+    const parts = version.split('.');
+    const patch = parseInt(parts[2] || '0', 10) + 1;
+    return `${parts[0]}.${parts[1]}.${patch}`;
+}
+
+// Generate manifest.json from provider metadata
+function generateManifest(providers, newVersion) {
+    const validProviders = providers.filter(providerName => {
+        // Skip directories without index.js (not actual providers)
+        const indexPath = path.join(srcDir, providerName, 'index.js');
+        return fs.existsSync(indexPath);
+    });
+
+    const scrapers = validProviders.map(providerName => {
+        const metadata = getProviderMetadata(providerName);
+        const merged = { ...DEFAULT_METADATA, ...metadata };
+
+        return {
+            id: providerName,
+            name: merged.name || providerName,
+            description: merged.description || `Streams from ${providerName}`,
+            version: newVersion,
+            author: merged.author,
+            supportedTypes: merged.supportedTypes,
+            filename: `providers/${providerName}.js`,
+            enabled: true,
+            contentLanguage: merged.contentLanguage,
+            formats: merged.formats,
+            limited: false,
+            supportsExternalPlayer: true
+        };
+    });
+
+    return {
+        name: "Latinus Mexico",
+        version: newVersion,
+        scrapers
+    };
+}
 
 // Get provider names from command line or discover all
 function getProvidersToBuild() {
@@ -158,6 +236,17 @@ async function main() {
         return;
     }
 
+    // Handle --manifest flag (generate manifest only, no build)
+    if (args.includes('--manifest')) {
+        const providers = getProvidersToBuild();
+        const currentVersion = getCurrentVersion();
+        const newVersion = incrementVersion(currentVersion);
+        const manifest = generateManifest(providers, newVersion);
+        fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+        console.log(`✅ manifest.json generated (version: ${newVersion})`);
+        return;
+    }
+
     const providers = getProvidersToBuild();
 
     if (providers.length === 0) {
@@ -183,7 +272,14 @@ async function main() {
         else failed++;
     }
 
-    console.log(`\n✨ Done! ${success} built, ${failed} skipped/failed\n`);
+    // Generate manifest with incremented version
+    const currentVersion = getCurrentVersion();
+    const newVersion = incrementVersion(currentVersion);
+    const manifest = generateManifest(providers, newVersion);
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+    console.log(`\n✨ Done! ${success} built, ${failed} skipped/failed`);
+    console.log(`📋 Manifest updated (version: ${currentVersion} → ${newVersion})\n`);
 }
 
 main().catch(err => {

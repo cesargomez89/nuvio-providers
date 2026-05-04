@@ -1,0 +1,8 @@
+{
+  "name": "PelisGo",
+  "description": "Películas en Latino desde PelisGo.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

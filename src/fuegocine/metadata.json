@@ -1,0 +1,8 @@
+{
+  "name": "FuegoCine",
+  "description": "Películas en Latino desde FuegoCine.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

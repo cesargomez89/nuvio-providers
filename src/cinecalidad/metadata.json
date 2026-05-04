@@ -1,0 +1,8 @@
+{
+  "name": "CineCalidad",
+  "description": "Películas en Latino desde CineCalidad.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

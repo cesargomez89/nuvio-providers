@@ -1,0 +1,8 @@
+{
+  "name": "Cuevana",
+  "description": "Películas y series en Latino (Cuevana).",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

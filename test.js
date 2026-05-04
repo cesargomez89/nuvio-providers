@@ -7,10 +7,11 @@ const targetProvider = args[0] ? args[0].toLowerCase() : null;
 const providersDir = path.join(__dirname, 'providers');
 const testConfigs = [
   { tmdbId: '76478', mediaType: 'tv', season: 5, episode: 1 },
-  // { tmdbId: '1396', mediaType: 'tv', season: 1, episode: 1 },
-  // { tmdbId: '66732', mediaType: 'tv', season: 1, episode: 1 },
-  // { tmdbId: '687163', mediaType: 'movie' },
-  // { tmdbId: '423', mediaType: 'movie' },
+  { tmdbId: '1396', mediaType: 'tv', season: 1, episode: 1 },
+  { tmdbId: '66732', mediaType: 'tv', season: 1, episode: 1 },
+  { tmdbId: '687163', mediaType: 'movie' },
+  { tmdbId: '423', mediaType: 'movie' },
+  { tmdbId: '603', mediaType: 'movie' },
   { tmdbId: '1327819', mediaType: 'movie' },
 ];
 

@@ -1,0 +1,8 @@
+{
+  "name": "HackStore",
+  "description": "Películas y series en Latino desde HackStore.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}
