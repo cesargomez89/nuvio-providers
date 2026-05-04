@@ -2,35 +2,9 @@ import { fetchText, fetchJson, fetchHtml, BASE_URL } from './http.js';
 import { getTmdbTitle, getTmdbAliases } from './tmdb.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { validateStream } from '../utils/m3u8.js';
+import { normalizeTitle, titleMatch } from '../utils/title.js';
 
 const cheerio = require('cheerio');
-
-function normalizeTitle(t) {
-    if (!t) return '';
-    return t.toLowerCase()
-        .replace(/[áàäâ]/g, 'a')
-        .replace(/[éèëê]/g, 'e')
-        .replace(/[íìïî]/g, 'i')
-        .replace(/[óòöô]/g, 'o')
-        .replace(/[úùüû]/g, 'u')
-        .replace(/ñ/g, 'n')
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-function titleMatch(query, target) {
-    const q = normalizeTitle(query);
-    const t = normalizeTitle(target);
-    if (!q || !t) return false;
-    if (q === t) return true;
-    const qWords = q.split(' ').filter(w => w.length > 2);
-    const tWords = t.split(' ');
-    if (qWords.length === 0) return q === t;
-    const matchCount = qWords.filter(w => tWords.includes(w)).length;
-    const ratio = matchCount / qWords.length;
-    return ratio >= 0.8;
-}
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId) return [];

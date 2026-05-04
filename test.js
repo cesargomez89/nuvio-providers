@@ -36,7 +36,7 @@ async function testProvider(filename) {
       return { name, status: 'skip', error: null, movieStreams: 0, tvStreams: 0 };
     }
 
-    for (const config of testConfigs) {
+    const configPromises = testConfigs.map(async (config) => {
       const label = config.mediaType === 'movie'
         ? `Movie ${config.tmdbId}`
         : `TV ${config.tmdbId} S${config.season}E${config.episode}`;
@@ -48,14 +48,21 @@ async function testProvider(filename) {
           config.season || null,
           config.episode || null
         );
-        if (config.mediaType === 'movie') {
-          movieStreams += streams.length;
-        } else {
-          tvStreams += streams.length;
-        }
         console.log(`[${name}] ${label}: ${streams.length} streams`);
+        return { config, streams };
       } catch (e) {
         console.log(`[${name}] ${label} error: ${e.message}`);
+        return { config, streams: [] };
+      }
+    });
+
+    const configResults = await Promise.all(configPromises);
+
+    for (const result of configResults) {
+      if (result.config.mediaType === 'movie') {
+        movieStreams += result.streams.length;
+      } else {
+        tvStreams += result.streams.length;
       }
     }
 

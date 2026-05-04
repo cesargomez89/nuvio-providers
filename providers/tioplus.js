@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-05-04T00:31:28.620Z
+ * Generated: 2026-05-04T00:40:11.889Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1611,23 +1611,30 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       if (encodes.length === 0)
         return [];
-      const resolvedStreams = [];
-      for (const item of encodes) {
+      const resolutionPromises = encodes.map((item) => __async(this, null, function* () {
         try {
-          yield new Promise((r) => setTimeout(r, Math.floor(Math.random() * 1e3) + 1e3));
           const realEmbedUrl = yield getRedirectUrl(item.enc, finalMediaUrl);
           if (realEmbedUrl && realEmbedUrl.startsWith("http")) {
             const resolved = yield (0, import_resolvers.resolveEmbed)(realEmbedUrl);
             if (resolved && (resolved.url || Array.isArray(resolved) && resolved.length > 0)) {
               const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
-              streamsArray.forEach((s) => {
-                resolvedStreams.push(__spreadProps(__spreadValues({}, s), { serverLabel: item.serverName, langLabel: item.lang === "LAT" ? "Latino" : item.lang === "ESP" ? "Espa\xF1ol" : "Subtitulado" }));
-              });
+              return streamsArray.map((s) => __spreadProps(__spreadValues({}, s), {
+                serverLabel: item.serverName,
+                langLabel: item.lang === "LAT" ? "Latino" : item.lang === "ESP" ? "Espa\xF1ol" : "Subtitulado"
+              }));
             }
           }
         } catch (err) {
         }
-      }
+        return [];
+      }));
+      const allResolved = yield Promise.allSettled(resolutionPromises);
+      const resolvedStreams = [];
+      allResolved.forEach((r) => {
+        if (r.status === "fulfilled" && r.value) {
+          resolvedStreams.push(...r.value);
+        }
+      });
       return yield (0, import_engine.finalizeStreams)(resolvedStreams, "TioPlus", mediaTitle);
     } catch (error) {
       console.error(`[TioPlus] Error: ${error.message}`);

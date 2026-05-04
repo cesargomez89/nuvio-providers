@@ -112,22 +112,33 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             encodes.push({ enc, serverName: rawServerName, lang });
         }
         if (encodes.length === 0) return [];
-        const resolvedStreams = [];
-        for (const item of encodes) {
+        
+        const resolutionPromises = encodes.map(async (item) => {
             try {
-                await new Promise(r => setTimeout(r, Math.floor(Math.random() * 1000) + 1000));
                 const realEmbedUrl = await getRedirectUrl(item.enc, finalMediaUrl);
                 if (realEmbedUrl && realEmbedUrl.startsWith("http")) {
                     const resolved = await resolveEmbed(realEmbedUrl);
                     if (resolved && (resolved.url || Array.isArray(resolved) && resolved.length > 0)) {
                         const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
-                        streamsArray.forEach(s => {
-                            resolvedStreams.push({ ...s, serverLabel: item.serverName, langLabel: item.lang === "LAT" ? "Latino" : item.lang === "ESP" ? "Español" : "Subtitulado" });
-                        });
+                        return streamsArray.map(s => ({
+                            ...s,
+                            serverLabel: item.serverName,
+                            langLabel: item.lang === "LAT" ? "Latino" : item.lang === "ESP" ? "Español" : "Subtitulado"
+                        }));
                     }
                 }
             } catch (err) {}
-        }
+            return [];
+        });
+
+        const allResolved = await Promise.allSettled(resolutionPromises);
+        const resolvedStreams = [];
+        allResolved.forEach(r => {
+            if (r.status === 'fulfilled' && r.value) {
+                resolvedStreams.push(...r.value);
+            }
+        });
+
         return await finalizeStreams(resolvedStreams, "TioPlus", mediaTitle);
     } catch (error) {
         console.error(`[TioPlus] Error: ${error.message}`);
