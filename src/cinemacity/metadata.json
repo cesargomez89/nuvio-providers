@@ -4,5 +4,7 @@
   "author": "cesargomez89",
   "supportedTypes": ["movie", "tv"],
   "contentLanguage": ["es"],
-  "formats": ["mp4", "mkv"]
+  "formats": ["mp4", "mkv"],
+  "enabled": false
+
 }

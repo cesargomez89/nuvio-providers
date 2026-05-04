@@ -86,17 +86,17 @@ function generateManifest(providers, newVersion) {
 
         return {
             id: providerName,
-            name: merged.name || providerName,
-            description: merged.description || `Streams from ${providerName}`,
+            name: merged.name !== undefined ? merged.name : providerName,
+            description: merged.description !== undefined ? merged.description : `Streams from ${providerName}`,
             version: newVersion,
-            author: merged.author,
+            author: DEFAULT_METADATA.author,
             supportedTypes: merged.supportedTypes,
             filename: `providers/${providerName}.js`,
-            enabled: true,
+            enabled: merged.enabled !== undefined ? merged.enabled : true,
             contentLanguage: merged.contentLanguage,
             formats: merged.formats,
-            limited: false,
-            supportsExternalPlayer: true
+            limited: merged.limited !== undefined ? merged.limited : false,
+            supportsExternalPlayer: merged.supportsExternalPlayer !== undefined ? merged.supportsExternalPlayer : true
         };
     });
 
@@ -122,7 +122,7 @@ function getProvidersToBuild() {
     }
 
     return fs.readdirSync(srcDir, { withFileTypes: true })
-        .filter(d => d.isDirectory())
+        .filter(d => d.isDirectory() && !d.name.startsWith('_'))
         .map(d => d.name);
 }
 
