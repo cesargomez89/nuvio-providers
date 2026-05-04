@@ -14,7 +14,7 @@ async function resolve(embedUrl) {
         "Accept-Language": "es-MX,es;q=0.9",
         "Connection": "keep-alive"
       },
-      timeout: 15000,
+      timeout: 30000,
       maxRedirects: 5
     });
     const match = response.data.match(/file:\s*"([^"]+)"/);

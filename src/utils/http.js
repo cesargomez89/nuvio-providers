@@ -41,7 +41,7 @@ async function request(url, options = {}) {
     "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
   }, opt.headers);
 
-  const timeout = opt.timeout || 25000;
+  const timeout = opt.timeout || 30000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -56,7 +56,7 @@ async function request(url, options = {}) {
 
     const response = await fetch(url, fetchOptions);
     clearTimeout(timeoutId);
-    
+
     if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
       const redirectUrl = response.headers.get("location");
       console.log(`[HTTP] Redirección detectada (Manual): ${redirectUrl}`);

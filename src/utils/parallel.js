@@ -1,4 +1,4 @@
-const DEFAULT_TIMEOUT = 25000;
+const DEFAULT_TIMEOUT = 30000;
 
 async function parallelWithLimit(items, handler, limit = 5, timeout = DEFAULT_TIMEOUT) {
   const results = [];
@@ -38,7 +38,7 @@ async function resolveWithLimit(items, handler, limit = 5, totalTimeout = DEFAUL
 async function withTimeout(promise, timeoutMs = DEFAULT_TIMEOUT) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  
+
   try {
     return await Promise.race([
       promise,
