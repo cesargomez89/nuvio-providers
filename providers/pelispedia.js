@@ -1,6 +1,6 @@
 /**
  * pelispedia - Built from src/pelispedia/
- * Generated: 2026-05-04T00:40:11.805Z
+ * Generated: 2026-05-04T01:14:26.979Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -118,16 +118,19 @@ var require_http = __commonJS({
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
           "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
         }, opt.headers);
+        const timeout = opt.timeout || 15e3;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
           const fetchOptions = Object.assign({
             redirect: opt.redirect || "follow",
             skipSizeCheck: true
           }, opt, {
-            headers
+            headers,
+            signal: controller.signal
           });
-          if (opt.signal)
-            fetchOptions.signal = opt.signal;
           const response = yield fetch(url, fetchOptions);
+          clearTimeout(timeoutId);
           if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
             const redirectUrl = response.headers.get("location");
             console.log(`[HTTP] Redirecci\xF3n detectada (Manual): ${redirectUrl}`);
@@ -138,7 +141,12 @@ var require_http = __commonJS({
           }
           return response;
         } catch (error) {
-          console.error("[HTTP] Error en " + url + ": " + error.message);
+          clearTimeout(timeoutId);
+          if (error.name === "AbortError") {
+            console.warn(`[HTTP] Timeout (${timeout}ms) en ${url}`);
+          } else {
+            console.error("[HTTP] Error en " + url + ": " + error.message);
+          }
           throw error;
         }
       });
@@ -1471,26 +1479,35 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       console.log(`[PelisPedia] Found: ${targetUrl}`);
       const rawEmbeds = yield extractPlayerEmbeds(targetUrl);
       const streams = [];
-      for (const embed of rawEmbeds) {
-        let currentUrl = embed.url;
-        let resolved = null;
-        if (currentUrl.includes("embed69")) {
-          resolved = yield resolveEmbed69(currentUrl);
-        } else {
-          resolved = yield (0, import_resolvers.resolveEmbed)(currentUrl);
-        }
-        if (resolved) {
-          const results = Array.isArray(resolved) ? resolved : [resolved];
-          for (const r of results) {
-            if (r.url) {
-              streams.push({
-                name: "PelisPedia",
-                title: `${r.quality || "1080p"} \xB7 Latino \xB7 ${r.servername || embed.servername || "Server"}`,
-                url: r.url,
-                headers: r.headers || (0, import_resolvers.getDirectCdnHeaders)(r.url) || { "User-Agent": UA, "Referer": currentUrl }
-              });
+      const EMBED_LIMIT = 3;
+      for (let i = 0; i < rawEmbeds.length; i += EMBED_LIMIT) {
+        const batch = rawEmbeds.slice(i, i + EMBED_LIMIT);
+        const batchResults = yield Promise.allSettled(batch.map((embed) => __async(this, null, function* () {
+          let currentUrl = embed.url;
+          let resolved = null;
+          if (currentUrl.includes("embed69")) {
+            resolved = yield resolveEmbed69(currentUrl);
+          } else {
+            resolved = yield (0, import_resolvers.resolveEmbed)(currentUrl);
+          }
+          if (resolved) {
+            const results = Array.isArray(resolved) ? resolved : [resolved];
+            for (const r of results) {
+              if (r.url) {
+                return {
+                  name: "PelisPedia",
+                  title: `${r.quality || "1080p"} \xB7 Latino \xB7 ${r.servername || embed.servername || "Server"}`,
+                  url: r.url,
+                  headers: r.headers || (0, import_resolvers.getDirectCdnHeaders)(r.url) || { "User-Agent": UA, "Referer": currentUrl }
+                };
+              }
             }
           }
+          return null;
+        })));
+        for (const r of batchResults) {
+          if (r.status === "fulfilled" && r.value)
+            streams.push(r.value);
         }
       }
       return streams;

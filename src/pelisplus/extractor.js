@@ -33,7 +33,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             console.log(`[PelisPlus] Trying ${titlesToTry.length} search terms`);
         }
 
-        const searchPromises = titlesToTry.slice(0, 5).map(async (t) => {
+        const searchPromises = titlesToTry.slice(0, 3).map(async (t) => {
             try {
                 const searchUrl = `${BASE_URL}/search?s=${encodeURIComponent(t)}`;
                 const html = await fetchText(searchUrl);
@@ -265,19 +265,24 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         };
 
         let timeoutId;
+        const STREAM_LIMIT = 3;
         const timeoutPromise = new Promise((resolve) => {
             timeoutId = setTimeout(() => {
                 isFinished = true;
                 try { controller.abort(); } catch (e) {}
                 resolve();
-            }, 7000);
+            }, 10000);
         });
 
         try {
-            await Promise.race([
-                Promise.all(rawResults.map(res => processStream(res))),
-                timeoutPromise
-            ]);
+            const batches = [];
+            for (let i = 0; i < rawResults.length; i += STREAM_LIMIT) {
+                batches.push(rawResults.slice(i, i + STREAM_LIMIT));
+            }
+            for (const batch of batches) {
+                if (isFinished) break;
+                await Promise.all(batch.map(res => processStream(res)));
+            }
         } finally {
             if (timeoutId) clearTimeout(timeoutId);
         }

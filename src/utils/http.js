@@ -41,17 +41,22 @@ async function request(url, options = {}) {
     "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
   }, opt.headers);
 
+  const timeout = opt.timeout || 25000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
   try {
     const fetchOptions = Object.assign({
       redirect: opt.redirect || "follow",
       skipSizeCheck: true
     }, opt, {
-      headers
+      headers,
+      signal: controller.signal
     });
-    if (opt.signal)
-      fetchOptions.signal = opt.signal;
 
     const response = await fetch(url, fetchOptions);
+    clearTimeout(timeoutId);
+    
     if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
       const redirectUrl = response.headers.get("location");
       console.log(`[HTTP] Redirección detectada (Manual): ${redirectUrl}`);
@@ -62,7 +67,12 @@ async function request(url, options = {}) {
     }
     return response;
   } catch (error) {
-    console.error("[HTTP] Error en " + url + ": " + error.message);
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      console.warn(`[HTTP] Timeout (${timeout}ms) en ${url}`);
+    } else {
+      console.error("[HTTP] Error en " + url + ": " + error.message);
+    }
     throw error;
   }
 }

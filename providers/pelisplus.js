@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-05-04T00:40:11.821Z
+ * Generated: 2026-05-04T01:14:26.997Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -118,16 +118,19 @@ var require_http = __commonJS({
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
           "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
         }, opt.headers);
+        const timeout = opt.timeout || 15e3;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
           const fetchOptions = Object.assign({
             redirect: opt.redirect || "follow",
             skipSizeCheck: true
           }, opt, {
-            headers
+            headers,
+            signal: controller.signal
           });
-          if (opt.signal)
-            fetchOptions.signal = opt.signal;
           const response = yield fetch(url, fetchOptions);
+          clearTimeout(timeoutId);
           if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
             const redirectUrl = response.headers.get("location");
             console.log(`[HTTP] Redirecci\xF3n detectada (Manual): ${redirectUrl}`);
@@ -138,7 +141,12 @@ var require_http = __commonJS({
           }
           return response;
         } catch (error) {
-          console.error("[HTTP] Error en " + url + ": " + error.message);
+          clearTimeout(timeoutId);
+          if (error.name === "AbortError") {
+            console.warn(`[HTTP] Timeout (${timeout}ms) en ${url}`);
+          } else {
+            console.error("[HTTP] Error en " + url + ": " + error.message);
+          }
           throw error;
         }
       });
@@ -1480,7 +1488,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         titlesToTry = Array.from(new Set(allAliases.filter(Boolean)));
         console.log(`[PelisPlus] Trying ${titlesToTry.length} search terms`);
       }
-      const searchPromises = titlesToTry.slice(0, 5).map((t) => __async(this, null, function* () {
+      const searchPromises = titlesToTry.slice(0, 3).map((t) => __async(this, null, function* () {
         try {
           const searchUrl = `${BASE_URL}/search?s=${encodeURIComponent(t)}`;
           const html = yield fetchText(searchUrl);
@@ -1684,6 +1692,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         }
       });
       let timeoutId;
+      const STREAM_LIMIT = 3;
       const timeoutPromise = new Promise((resolve) => {
         timeoutId = setTimeout(() => {
           isFinished = true;
@@ -1692,13 +1701,18 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           } catch (e) {
           }
           resolve();
-        }, 7e3);
+        }, 1e4);
       });
       try {
-        yield Promise.race([
-          Promise.all(rawResults.map((res) => processStream(res))),
-          timeoutPromise
-        ]);
+        const batches = [];
+        for (let i = 0; i < rawResults.length; i += STREAM_LIMIT) {
+          batches.push(rawResults.slice(i, i + STREAM_LIMIT));
+        }
+        for (const batch of batches) {
+          if (isFinished)
+            break;
+          yield Promise.all(batch.map((res) => processStream(res)));
+        }
       } finally {
         if (timeoutId)
           clearTimeout(timeoutId);

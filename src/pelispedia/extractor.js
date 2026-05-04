@@ -154,29 +154,37 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         
         const rawEmbeds = await extractPlayerEmbeds(targetUrl);
         const streams = [];
+        const EMBED_LIMIT = 3;
         
-        for (const embed of rawEmbeds) {
-            let currentUrl = embed.url;
-            let resolved = null;
-            
-            if (currentUrl.includes("embed69")) {
-                resolved = await resolveEmbed69(currentUrl);
-            } else {
-                resolved = await resolveEmbed(currentUrl);
-            }
-            
-            if (resolved) {
-                const results = Array.isArray(resolved) ? resolved : [resolved];
-                for (const r of results) {
-                    if (r.url) {
-                        streams.push({
-                            name: "PelisPedia",
-                            title: `${r.quality || "1080p"} · Latino · ${r.servername || embed.servername || "Server"}`,
-                            url: r.url,
-                            headers: r.headers || getDirectCdnHeaders(r.url) || { "User-Agent": UA, "Referer": currentUrl }
-                        });
+        for (let i = 0; i < rawEmbeds.length; i += EMBED_LIMIT) {
+            const batch = rawEmbeds.slice(i, i + EMBED_LIMIT);
+            const batchResults = await Promise.allSettled(batch.map(async (embed) => {
+                let currentUrl = embed.url;
+                let resolved = null;
+                
+                if (currentUrl.includes("embed69")) {
+                    resolved = await resolveEmbed69(currentUrl);
+                } else {
+                    resolved = await resolveEmbed(currentUrl);
+                }
+                
+                if (resolved) {
+                    const results = Array.isArray(resolved) ? resolved : [resolved];
+                    for (const r of results) {
+                        if (r.url) {
+                            return {
+                                name: "PelisPedia",
+                                title: `${r.quality || "1080p"} · Latino · ${r.servername || embed.servername || "Server"}`,
+                                url: r.url,
+                                headers: r.headers || getDirectCdnHeaders(r.url) || { "User-Agent": UA, "Referer": currentUrl }
+                            };
+                        }
                     }
                 }
+                return null;
+            }));
+            for (const r of batchResults) {
+                if (r.status === 'fulfilled' && r.value) streams.push(r.value);
             }
         }
         
