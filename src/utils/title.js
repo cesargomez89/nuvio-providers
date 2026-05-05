@@ -25,6 +25,10 @@ function titleMatch(query, target, minRatio = 0.8) {
   return ratio >= minRatio;
 }
 
+function buildSlug(title) {
+    return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+
 function levenshtein(a, b) {
   if (!a || !b) return Math.max((a || "").length, (b || "").length);
   const matrix = [];
@@ -42,4 +46,4 @@ function levenshtein(a, b) {
   return matrix[b.length][a.length];
 }
 
-module.exports = { normalizeTitle, titleMatch, levenshtein };
+module.exports = { normalizeTitle, titleMatch, levenshtein, buildSlug };

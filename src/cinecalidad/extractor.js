@@ -2,6 +2,8 @@ import { request, fetchHtml, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbTitle, getTmdbAliases, getTmdbInfo } from '../utils/tmdb.js';
+import { b64decode } from '../utils/helpers.js';
+import { buildSlug } from '../utils/title.js';
 
 const BASE_URL = "https://www.cinecalidad.vg";
 const UA3 = getSessionUA();
@@ -13,28 +15,6 @@ const HEADERS = {
     "Upgrade-Insecure-Requests": "1",
     "Referer": `${BASE_URL}/`
 };
-
-function getServerName(url) {
-    if (url.includes("goodstream")) return "GoodStream";
-    if (url.includes("hlswish") || url.includes("streamwish") || url.includes("strwish")) return "StreamWish";
-    if (url.includes("voe.sx")) return "VOE";
-    if (url.includes("filemoon")) return "Filemoon";
-    if (url.includes("vimeos")) return "Vimeos";
-    return "Online";
-}
-
-function b64decode(str) {
-    try {
-        if (typeof atob !== "undefined") return atob(str);
-        return Buffer.from(str, "base64").toString("utf8");
-    } catch (e) {
-        return null;
-    }
-}
-
-function buildSlug(title) {
-    return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-}
 
 async function getMovieUrl(slug, expectedYear) {
     const slugsToTry = [slug, `${slug}-2`, `${slug}-3`];
@@ -124,10 +104,8 @@ async function processEmbed(embedUrl) {
         if (!result || !result.url) return null;
         return {
             langLabel: "Latino",
-            serverLabel: getServerName(embedUrl),
             url: result.url,
             quality: result.quality,
-            siteQuality: null,
             headers: result.headers || {}
         };
     } catch (e) {

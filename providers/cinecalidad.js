@@ -1,6 +1,6 @@
 /**
  * cinecalidad - Built from src/cinecalidad/
- * Generated: 2026-05-05T06:34:39.002Z
+ * Generated: 2026-05-05T18:11:27.781Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1458,7 +1458,7 @@ var require_resolvers = __commonJS({
 var require_tmdb = __commonJS({
   "src/utils/tmdb.js"(exports2, module2) {
     var { fetchJson } = require_http();
-    var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
+    var TMDB_API_KEY = ["439c478a771f35c05022f9feabcca01c", "d131017ccc6e5462a81c9304d21476de", "1c29a5198ee1854bd5eb45dbe8d17d92"][Math.floor(Math.random() * 3)];
     var titleCache = /* @__PURE__ */ new Map();
     var idCache = /* @__PURE__ */ new Map();
     function getTmdbTitle2(tmdbId, mediaType, retries = 2) {
@@ -1588,11 +1588,156 @@ var require_tmdb = __commonJS({
   }
 });
 
+// src/utils/helpers.js
+var require_helpers = __commonJS({
+  "src/utils/helpers.js"(exports2, module2) {
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+    function padEpisode(episode) {
+      return String(episode).padStart(2, "0");
+    }
+    function isMovie(mediaType) {
+      return mediaType === "movie" || mediaType === "movies";
+    }
+    function cleanTmdbId(tmdbId) {
+      return tmdbId ? tmdbId.toString().split(":")[0] : tmdbId;
+    }
+    function toDoubleBase64(str) {
+      try {
+        if (typeof btoa !== "undefined")
+          return btoa(str);
+      } catch (e) {
+      }
+      try {
+        if (typeof Buffer !== "undefined")
+          return Buffer.from(str, "utf-8").toString("base64");
+      } catch (e) {
+      }
+      const bytes = [];
+      for (let i = 0; i < str.length; i++) {
+        let c = str.charCodeAt(i);
+        if (c < 128)
+          bytes.push(c);
+        else if (c < 2048)
+          bytes.push(192 | c >> 6, 128 | c & 63);
+        else if (c < 55296 || c >= 57344)
+          bytes.push(224 | c >> 12, 128 | c >> 6 & 63, 128 | c & 63);
+        else {
+          i++;
+          const cp = 65536 + ((c & 1023) << 10 | str.charCodeAt(i) & 1023);
+          bytes.push(240 | cp >> 18, 128 | cp >> 12 & 63, 128 | cp >> 6 & 63, 128 | cp & 63);
+        }
+      }
+      const b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+      let r = "";
+      for (let i = 0; i < bytes.length; i += 3) {
+        const b0 = bytes[i], b1 = bytes[i + 1], b2 = bytes[i + 2];
+        if (b1 === void 0)
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4] + "==";
+        else if (b2 === void 0)
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2] + "=";
+        else
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2 | b2 >> 6] + b64[b2 & 63];
+      }
+      return r;
+    }
+    function b64decode2(str) {
+      try {
+        if (typeof atob !== "undefined")
+          return atob(str);
+      } catch (e) {
+      }
+      try {
+        if (typeof Buffer !== "undefined")
+          return Buffer.from(str, "base64").toString("utf8");
+      } catch (e) {
+      }
+      try {
+        const s = str.replace(/[\s]/g, "");
+        if (s.length % 4 !== 0)
+          return null;
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        const lookup = {};
+        for (let i = 0; i < chars.length; i++)
+          lookup[chars[i]] = i;
+        let r = "";
+        for (let i = 0; i < s.length; i += 4) {
+          const c0 = lookup[s[i]], c1 = lookup[s[i + 1]], c2 = lookup[s[i + 2]], c3 = lookup[s[i + 3]];
+          if (c0 === void 0 || c1 === void 0 || c2 === void 0 || c3 === void 0)
+            return null;
+          r += String.fromCharCode(c0 << 2 | c1 >> 4);
+          if (c2 !== 64) {
+            r += String.fromCharCode((c1 & 15) << 4 | c2 >> 2);
+            if (c3 !== 64)
+              r += String.fromCharCode((c2 & 3) << 6 | c3);
+          }
+        }
+        return r;
+      } catch (e) {
+        return null;
+      }
+    }
+    module2.exports = { sleep, padEpisode, isMovie, cleanTmdbId, toDoubleBase64, b64decode: b64decode2 };
+  }
+});
+
+// src/utils/title.js
+var require_title = __commonJS({
+  "src/utils/title.js"(exports2, module2) {
+    function normalizeTitle(t) {
+      if (!t)
+        return "";
+      return t.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    }
+    function titleMatch(query, target, minRatio = 0.8) {
+      const q = normalizeTitle(query);
+      const t = normalizeTitle(target);
+      if (!q || !t)
+        return false;
+      if (q === t)
+        return true;
+      const qWords = q.split(" ").filter((w) => w.length > 2);
+      const tWords = t.split(" ");
+      if (qWords.length === 0)
+        return q === t;
+      const matchCount = qWords.filter((w) => tWords.includes(w)).length;
+      const ratio = matchCount / qWords.length;
+      return ratio >= minRatio;
+    }
+    function buildSlug2(title) {
+      return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    }
+    function levenshtein(a, b) {
+      if (!a || !b)
+        return Math.max((a || "").length, (b || "").length);
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++)
+        matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++)
+        matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+    module2.exports = { normalizeTitle, titleMatch, levenshtein, buildSlug: buildSlug2 };
+  }
+});
+
 // src/cinecalidad/extractor.js
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
+var import_helpers = __toESM(require_helpers());
+var import_title = __toESM(require_title());
 var BASE_URL = "https://www.cinecalidad.vg";
 var UA3 = (0, import_http.getSessionUA)();
 var HEADERS = {
@@ -1603,31 +1748,6 @@ var HEADERS = {
   "Upgrade-Insecure-Requests": "1",
   "Referer": `${BASE_URL}/`
 };
-function getServerName(url) {
-  if (url.includes("goodstream"))
-    return "GoodStream";
-  if (url.includes("hlswish") || url.includes("streamwish") || url.includes("strwish"))
-    return "StreamWish";
-  if (url.includes("voe.sx"))
-    return "VOE";
-  if (url.includes("filemoon"))
-    return "Filemoon";
-  if (url.includes("vimeos"))
-    return "Vimeos";
-  return "Online";
-}
-function b64decode(str) {
-  try {
-    if (typeof atob !== "undefined")
-      return atob(str);
-    return Buffer.from(str, "base64").toString("utf8");
-  } catch (e) {
-    return null;
-  }
-}
-function buildSlug(title) {
-  return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-}
 function getMovieUrl(slug, expectedYear) {
   return __async(this, null, function* () {
     const slugsToTry = [slug, `${slug}-2`, `${slug}-3`];
@@ -1690,7 +1810,7 @@ function getEmbedUrls(movieUrl) {
       while ((match = regex.exec(data)) !== null)
         embedLinks.push(match[1]);
       const decodedUrls = [...new Set(
-        embedLinks.map((b64) => b64decode(b64)).filter((url) => url && url.startsWith("http"))
+        embedLinks.map((b64) => (0, import_helpers.b64decode)(b64)).filter((url) => url && url.startsWith("http"))
       )];
       const directEmbeds = decodedUrls.filter(isKnownEmbed);
       const intermediateUrls = decodedUrls.filter((u) => !isKnownEmbed(u));
@@ -1731,10 +1851,8 @@ function processEmbed(embedUrl) {
         return null;
       return {
         langLabel: "Latino",
-        serverLabel: getServerName(embedUrl),
         url: result.url,
         quality: result.quality,
-        siteQuality: null,
         headers: result.headers || {}
       };
     } catch (e) {
@@ -1761,7 +1879,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       if (!mediaTitle)
         return [];
-      const slug = buildSlug(mediaTitle);
+      const slug = (0, import_title.buildSlug)(mediaTitle);
       let selectedUrl = yield getMovieUrl(slug, releaseYear);
       if (!selectedUrl) {
         console.log(`[CineCalidad] Slug directo fall\xF3, intentando b\xFAsqueda interna para: ${mediaTitle}`);
@@ -1803,7 +1921,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         }))].slice(0, 5);
         if (filteredAliases.length > 0) {
           const aliasPromises = filteredAliases.map((alias) => __async(this, null, function* () {
-            const aliasSlug = buildSlug(alias);
+            const aliasSlug = (0, import_title.buildSlug)(alias);
             const urlBySlug = yield getMovieUrl(aliasSlug, releaseYear);
             if (urlBySlug)
               return urlBySlug;

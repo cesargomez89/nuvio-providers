@@ -3,6 +3,7 @@ import { getTmdbTitle, getTmdbInfo } from '../utils/tmdb.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { levenshtein } from '../utils/title.js';
+import { b64decode } from '../utils/helpers.js';
 
 const BASE_URL = "https://www.fuegocine.com";
 const SEARCH_BASE = `${BASE_URL}/feeds/posts/summary?alt=json&max-results=8&q=`;
@@ -14,14 +15,6 @@ const DEFAULT_HEADERS = {
 function normalize(t) {
   if (!t) return "";
   return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
-}
-
-function b64decode(str) {
-  try {
-    return Buffer.from(str, "base64").toString("binary");
-  } catch (e) {
-    return "";
-  }
 }
 
 function decodeUrl(url) {

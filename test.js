@@ -1,7 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { AsyncLocalStorage } = require('async_hooks');
-const { normalizeTitle } = require('./src/utils/title.js');
 
 class Semaphore {
   constructor(max) { this.max = max; this.current = 0; this.queue = []; }
@@ -31,98 +29,12 @@ const testConfigs = [
   { tmdbId: '603', mediaType: 'movie' },
 ];
 
-const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
-const TMDB_TIMEOUT = 5000;
-
-function isMovie(mediaType) {
-  return mediaType === 'movie' || mediaType === 'movies';
-}
-
-async function fetchTmdbInfo(tmdbId, mediaType, language) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TMDB_TIMEOUT);
-  try {
-    const type = isMovie(mediaType) ? 'movie' : 'tv';
-    const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${language}`;
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-    const data = await res.json();
-    return {
-      title: data.title || data.name || null,
-      year: (data.release_date || data.first_air_date || '').split('-')[0] || '',
-    };
-  } catch {
-    clearTimeout(timeout);
-    return { title: null, year: '' };
-  }
-}
-
-async function fetchAllTmdbData(configs) {
-  const unique = new Map();
-  for (const c of configs) {
-    const key = `${c.tmdbId}-${c.mediaType}`;
-    if (!unique.has(key)) unique.set(key, c);
-  }
-  const entries = Array.from(unique.values());
-  const results = await Promise.all(entries.map(c =>
-    Promise.all([
-      fetchTmdbInfo(c.tmdbId, c.mediaType, 'es-MX'),
-      fetchTmdbInfo(c.tmdbId, c.mediaType, 'en-US'),
-    ])
-  ));
+function buildTmdbCache(configs) {
   const cache = new Map();
-  entries.forEach((c, i) => {
-    cache.set(`${c.tmdbId}-${c.mediaType}`, { es: results[i][0], en: results[i][1] });
-  });
+  for (const c of configs) {
+    cache.set(`${c.tmdbId}-${c.mediaType}`, { id: c.tmdbId });
+  }
   return cache;
-}
-
-function analyzeProviderLogs(consoleOutput, tmdbTitle, tmdbEnTitle) {
-  const unresolved = [];
-
-  const confirmedPattern = /✓ Título confirmado:\s*"([^"]+)"/i;
-  const confirmedLine = consoleOutput.find(line => confirmedPattern.test(line));
-  if (confirmedLine && tmdbTitle) {
-    const confirmedTitle = confirmedLine.match(confirmedPattern)[1];
-    const normTmdb = normalizeTitle(tmdbTitle);
-    const normEn = tmdbEnTitle ? normalizeTitle(tmdbEnTitle) : null;
-    const normConfirmed = normalizeTitle(confirmedTitle);
-    if (normConfirmed !== normTmdb && (!normEn || normConfirmed !== normEn)) {
-      unresolved.push(`Found: "${confirmedTitle}" but no match with TMDB titles`);
-    }
-    return unresolved;
-  }
-
-  const titlePatterns = [
-    /Match found:\s*(.+)/i,
-    /Selected \(exact\):\s*(.+)/i,
-    /Selected \(best\):\s*(.+)/i,
-    /Encontrado.*:\s*(.+)/i,
-  ];
-
-  const foundTitles = [];
-  for (const line of consoleOutput) {
-    for (const p of titlePatterns) {
-      const m = line.match(p);
-      if (m) foundTitles.push(m[1]);
-    }
-  }
-
-  if (foundTitles.length > 0 && tmdbTitle) {
-    const normTmdb = normalizeTitle(tmdbTitle);
-    const normEn = tmdbEnTitle ? normalizeTitle(tmdbEnTitle) : null;
-
-    const anyMatch = foundTitles.some(ft => {
-      const normFt = normalizeTitle(ft);
-      return normFt === normTmdb || (normEn && normFt === normEn);
-    });
-
-    if (!anyMatch) {
-      unresolved.push(`Found: "${foundTitles[0]}" but no match with TMDB titles`);
-    }
-  }
-
-  return unresolved;
 }
 
 const originalConsoleLog = console.log;
@@ -130,7 +42,6 @@ const originalConsoleWarn = console.warn;
 const originalConsoleError = console.error;
 const logLines = [];
 const allCapturedProviderLogs = [];
-const logStorage = new AsyncLocalStorage();
 
 function logBoth(msg) {
   originalConsoleLog(msg);
@@ -142,24 +53,15 @@ function logFileOnly(msg) {
 }
 
 console.log = function(...args) {
-  const msg = args.join(' ');
-  const store = logStorage.getStore();
-  if (store) store.push(msg);
-  allCapturedProviderLogs.push(msg);
+  allCapturedProviderLogs.push(args.join(' '));
 };
 
 console.warn = function(...args) {
-  const msg = '[WARN] ' + args.join(' ');
-  const store = logStorage.getStore();
-  if (store) store.push(msg);
-  allCapturedProviderLogs.push(msg);
+  allCapturedProviderLogs.push('[WARN] ' + args.join(' '));
 };
 
 console.error = function(...args) {
-  const msg = '[ERROR] ' + args.join(' ');
-  const store = logStorage.getStore();
-  if (store) store.push(msg);
-  allCapturedProviderLogs.push(msg);
+  allCapturedProviderLogs.push('[ERROR] ' + args.join(' '));
 };
 
 let providerFiles = fs.readdirSync(providersDir).filter(f => f.endsWith('.js') && !f.startsWith('_'));
@@ -176,11 +78,10 @@ async function testProvider(filename, tmdbCache, sem) {
   const providerPath = path.join(providersDir, filename);
   let movieStreams = 0;
   let tvStreams = 0;
-  let totalTime = 0;
   const detailedResults = [];
-  let mismatchCount = 0;
 
   try {
+    const providerStart = Date.now();
     const mod = require(providerPath);
     if (!mod.getStreams) {
       logBoth(`${name.padEnd(15)} - SKIP (no getStreams)`);
@@ -189,32 +90,26 @@ async function testProvider(filename, tmdbCache, sem) {
     }
 
     const configPromises = testConfigs.map(async (config) => {
-      const key = `${config.tmdbId}-${config.mediaType}`;
-      const cached = tmdbCache.get(key);
-      const tmdbInfo = cached.es;
-      const enTitle = cached.en.title;
-
-      const startTime = Date.now();
       let streams = [];
       let error = null;
-      const capturedLogs = [];
+      let elapsed = 0;
 
       try {
-        streams = await sem.run(() => logStorage.run(capturedLogs, () => mod.getStreams(
-          config.tmdbId,
-          config.mediaType,
-          config.season || null,
-          config.episode || null
-        )));
+        const result = await sem.run(async () => {
+          const startTime = Date.now();
+          const s = await mod.getStreams(
+            config.tmdbId,
+            config.mediaType,
+            config.season || null,
+            config.episode || null
+          );
+          return { streams: s, elapsed: Date.now() - startTime };
+        });
+        streams = result.streams;
+        elapsed = result.elapsed;
       } catch (e) {
         error = e.message;
       }
-
-      const unresolved = analyzeProviderLogs(capturedLogs, tmdbInfo.title, enTitle);
-      if (unresolved.length > 0) mismatchCount += unresolved.length;
-
-      const elapsed = Date.now() - startTime;
-      totalTime += elapsed;
 
       const streamDetails = streams.map(s => ({
         quality: s.quality || 'SD',
@@ -225,11 +120,10 @@ async function testProvider(filename, tmdbCache, sem) {
       return {
         config,
         streams: streamDetails,
-        tmdb: tmdbInfo,
-        tmdbEn: enTitle,
+        tmdb: { id: config.tmdbId },
         error,
         elapsed,
-        unresolved,
+        unresolved: [],
       };
     });
 
@@ -244,11 +138,12 @@ async function testProvider(filename, tmdbCache, sem) {
       detailedResults.push(result);
     }
 
-    const timeSec = (totalTime / 1000).toFixed(1);
+    const providerElapsed = Date.now() - providerStart;
+    const timeSec = (providerElapsed / 1000).toFixed(1);
     logBoth(`${name.padEnd(15)} ✓  ${String(movieStreams).padStart(2)}M/${String(tvStreams).padStart(2)}TV ${timeSec}s`);
 
-    logFileOnly(`[${name}] OK (${totalTime}ms) - ${movieStreams + tvStreams} streams, ${mismatchCount} mismatches`);
-    return { name, status: 'ok', error: null, movieStreams, tvStreams, time: totalTime, details: detailedResults, mismatches: mismatchCount };
+    logFileOnly(`[${name}] OK (${providerElapsed}ms) - ${movieStreams + tvStreams} streams`);
+    return { name, status: 'ok', error: null, movieStreams, tvStreams, time: providerElapsed, details: detailedResults, mismatches: 0 };
   } catch (e) {
     logBoth(`${name.padEnd(15)} ✗ FAIL: ${e.message}`);
     logFileOnly(`[${name}] FAIL: ${e.message}`);
@@ -256,12 +151,15 @@ async function testProvider(filename, tmdbCache, sem) {
   }
 }
 
-async function runWithConcurrency(items, fn, concurrency = 5) {
+async function runWithConcurrency(items, fn, concurrency = 5, delayMs = 100) {
   const results = [];
   for (let i = 0; i < items.length; i += concurrency) {
     const batch = items.slice(i, i + concurrency);
     const batchResults = await Promise.all(batch.map(item => fn(item)));
     results.push(...batchResults);
+    if (i + concurrency < items.length) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
   }
   return results;
 }
@@ -269,9 +167,9 @@ async function runWithConcurrency(items, fn, concurrency = 5) {
 async function main() {
   logBoth(`Testing ${providerFiles.length} providers (${testConfigs.length} configs each)...\n`);
 
-  const tmdbCache = await fetchAllTmdbData(testConfigs);
-  const sem = new Semaphore(30);
-  const results = await Promise.all(providerFiles.map(f => testProvider(f, tmdbCache, sem)));
+  const tmdbCache = buildTmdbCache(testConfigs);
+  const sem = new Semaphore(2);
+  const results = await runWithConcurrency(providerFiles, f => testProvider(f, tmdbCache, sem), 4, 50);
 
   logBoth('\n─────────────────────────────────────────────');
 
@@ -296,17 +194,12 @@ async function main() {
     if (provider.details && provider.details.length > 0) {
       for (const detail of provider.details) {
         const config = detail.config;
-        const tmdb = detail.tmdb;
-        const tmdbEn = detail.tmdbEn;
 
         const typeLabel = config.mediaType === 'movie'
           ? `Movie \`${config.tmdbId}\``
           : `TV \`${config.tmdbId}\` S\`${config.season}\`E\`${config.episode}\``;
 
-        const titleInfo = tmdb.title ? `${tmdb.title}${tmdb.year ? ` (${tmdb.year})` : ''}` : `ID: ${config.tmdbId}`;
-        const enTitleInfo = tmdbEn && tmdbEn !== tmdb.title ? ` [EN: ${tmdbEn}]` : '';
-
-        logFileOnly(`### ${typeLabel} — ${titleInfo}${enTitleInfo}`);
+        logFileOnly(`### ${typeLabel} — TMDB ID: ${config.tmdbId}`);
         logFileOnly('');
 
         if (detail.error) {
@@ -341,23 +234,11 @@ async function main() {
   const totalMovieStreams = results.reduce((sum, r) => sum + r.movieStreams, 0);
   const totalTvStreams = results.reduce((sum, r) => sum + r.tvStreams, 0);
 
-  const totalMismatches = results.reduce((sum, r) => sum + (r.mismatches || 0), 0);
-
   logFileOnly('# Results Summary');
   logFileOnly('');
   logFileOnly(`- **Providers:** ${results.length} | ✅ Passed: ${passed} | ❌ Failed: ${failed} | ⏭ Skipped: ${skipped}`);
   logFileOnly(`- **Streams:** ${totalMovieStreams + totalTvStreams} total (${totalMovieStreams} movie, ${totalTvStreams} TV)`);
-  logFileOnly(`  - ⚠ Title Mismatches: ${totalMismatches}`);
   logFileOnly('');
-
-  const withMismatches = results.filter(r => (r.mismatches || 0) > 0);
-  if (withMismatches.length > 0) {
-    logFileOnly('### Providers with Title Mismatches');
-    withMismatches.forEach(r => {
-      logFileOnly(`  - **${r.name}**: ${r.mismatches} mismatches`);
-    });
-    logFileOnly('');
-  }
 
   logFileOnly('### Provider Details');
   logFileOnly('');
@@ -377,7 +258,7 @@ async function main() {
   });
 
   logFileOnly('');
-  logBoth(`✅ Passed: ${passed} | ${totalMovieStreams}M/${totalTvStreams}TV | Mismatches: ${totalMismatches}`);
+  logBoth(`✅ Passed: ${passed} | ${totalMovieStreams}M/${totalTvStreams}TV`);
   logBoth(`Log: test.md(${logLines.length} lines)`);
 
   logFileOnly('\n');

@@ -18,7 +18,53 @@ function toDoubleBase64(str) {
     try {
         if (typeof btoa !== "undefined") return btoa(str);
     } catch (e) {}
-    return Buffer.from(str, 'utf-8').toString('base64');
+    try {
+        if (typeof Buffer !== "undefined") return Buffer.from(str, 'utf-8').toString('base64');
+    } catch (e) {}
+    const bytes = [];
+    for (let i = 0; i < str.length; i++) {
+        let c = str.charCodeAt(i);
+        if (c < 0x80) bytes.push(c);
+        else if (c < 0x800) bytes.push(0xC0 | (c >> 6), 0x80 | (c & 0x3F));
+        else if (c < 0xD800 || c >= 0xE000) bytes.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
+        else { i++; const cp = 0x10000 + (((c & 0x3FF) << 10) | (str.charCodeAt(i) & 0x3FF)); bytes.push(0xF0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3F), 0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F)); }
+    }
+    const b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    let r = '';
+    for (let i = 0; i < bytes.length; i += 3) {
+        const b0 = bytes[i], b1 = bytes[i + 1], b2 = bytes[i + 2];
+        if (b1 === undefined) r += b64[b0 >> 2] + b64[(b0 & 3) << 4] + '==';
+        else if (b2 === undefined) r += b64[b0 >> 2] + b64[((b0 & 3) << 4) | (b1 >> 4)] + b64[(b1 & 15) << 2] + '=';
+        else r += b64[b0 >> 2] + b64[((b0 & 3) << 4) | (b1 >> 4)] + b64[((b1 & 15) << 2) | (b2 >> 6)] + b64[b2 & 63];
+    }
+    return r;
 }
 
-module.exports = { sleep, padEpisode, isMovie, cleanTmdbId, toDoubleBase64 };
+function b64decode(str) {
+    try {
+        if (typeof atob !== "undefined") return atob(str);
+    } catch (e) {}
+    try {
+        if (typeof Buffer !== "undefined") return Buffer.from(str, 'base64').toString('utf8');
+    } catch (e) {}
+    try {
+        const s = str.replace(/[\s]/g, '');
+        if (s.length % 4 !== 0) return null;
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        const lookup = {};
+        for (let i = 0; i < chars.length; i++) lookup[chars[i]] = i;
+        let r = '';
+        for (let i = 0; i < s.length; i += 4) {
+            const c0 = lookup[s[i]], c1 = lookup[s[i + 1]], c2 = lookup[s[i + 2]], c3 = lookup[s[i + 3]];
+            if (c0 === undefined || c1 === undefined || c2 === undefined || c3 === undefined) return null;
+            r += String.fromCharCode((c0 << 2) | (c1 >> 4));
+            if (c2 !== 64) {
+                r += String.fromCharCode(((c1 & 15) << 4) | (c2 >> 2));
+                if (c3 !== 64) r += String.fromCharCode(((c2 & 3) << 6) | c3);
+            }
+        }
+        return r;
+    } catch (e) { return null; }
+}
+
+module.exports = { sleep, padEpisode, isMovie, cleanTmdbId, toDoubleBase64, b64decode };

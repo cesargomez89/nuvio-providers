@@ -1,9 +1,8 @@
 import { fetchJson, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
+import { getTmdbInfo, getCorrectImdbId } from '../utils/tmdb.js';
 
 const API_DEC = "https://enc-dec.app/api/dec-videasy";
-const TMDB_API_KEY = "1c29a5198ee1854bd5eb45dbe8d17d92";
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 const SERVERS = {
     "Omen": { url: "https://api.videasy.net/lamovie/sources-with-title", label: "L-Movie", lang: "Latino" },
@@ -27,12 +26,11 @@ const ANDROID_HEADERS = {
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
     try {
-        const tmdbUrl = `${TMDB_BASE_URL}/${mediaType === "tv" ? "tv" : "movie"}/${tmdbId}?api_key=${TMDB_API_KEY}&append_to_response=external_ids`;
-        const tmdbData = await fetchJson(tmdbUrl);
-        const contentTitle = tmdbData.title || tmdbData.name;
-        const year = (tmdbData.release_date || tmdbData.first_air_date || "").split("-")[0];
+        const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
+        const contentTitle = tmdbInfo?.title || title;
+        const year = tmdbInfo?.year || "";
+        const { imdbId } = await getCorrectImdbId(tmdbId, mediaType);
         const doubleEncTitle = encodeURIComponent(encodeURIComponent(contentTitle));
-        const imdbId = tmdbData.external_ids?.imdb_id || "";
 
         const serverPromises = Object.entries(SERVERS).map(async ([serverId, config]) => {
             try {

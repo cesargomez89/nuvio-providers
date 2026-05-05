@@ -1,9 +1,8 @@
 import { fetchJson, setSessionUA, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
+import { getTmdbInfo, getCorrectImdbId } from '../utils/tmdb.js';
 
 const API_DEC = "https://enc-dec.app/api/dec-videasy";
-const TMDB_API_KEY = "d131017ccc6e5462a81c9304d21476de";
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 const SERVERS = {
     "Gekko": { url: "https://api2.videasy.net/cuevana/sources-with-title", label: "Cuevana" }
@@ -21,12 +20,11 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     console.log(`[BrazucaPlay] Looking for content: ${tmdbId} (${mediaType})`);
     try {
         setSessionUA(CINEBY_HEADERS["User-Agent"]);
-        const tmdbUrl = `${TMDB_BASE_URL}/${mediaType === "tv" ? "tv" : "movie"}/${tmdbId}?api_key=${TMDB_API_KEY}&append_to_response=external_ids`;
-        const tmdbData = await fetchJson(tmdbUrl);
-        const contentTitle = tmdbData.title || tmdbData.name;
-        const year = (tmdbData.release_date || tmdbData.first_air_date || "").split("-")[0];
+        const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
+        const contentTitle = tmdbInfo?.title || title;
+        const year = tmdbInfo?.year || "";
+        const { imdbId } = await getCorrectImdbId(tmdbId, mediaType);
         const doubleEncTitle = encodeURIComponent(encodeURIComponent(contentTitle));
-        const imdbId = tmdbData.external_ids?.imdb_id || "";
         const streams = [];
         for (const [serverId, config] of Object.entries(SERVERS)) {
             try {

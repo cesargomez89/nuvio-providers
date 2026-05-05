@@ -1,26 +1,14 @@
 import { fetchJson, getSessionUA } from '../utils/http.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { validateStream } from '../utils/m3u8.js';
-
-const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
-
-async function getFallbackTitle(tmdbId, mediaType) {
-    try {
-        const type = mediaType === "movie" ? "movie" : "tv";
-        const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
-        const data = await fetchJson(url);
-        return data.name || data.title || null;
-    } catch (e) {
-        return null;
-    }
-}
+import { getTmdbTitle } from '../utils/tmdb.js';
 
 export async function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
     console.log(`[PelisPanda] Sync-Extracción para TMDB: ${tmdbId} (${mediaType})`);
     try {
         let searchTitle = providedTitle;
         if (!searchTitle || searchTitle === tmdbId) {
-            searchTitle = await getFallbackTitle(tmdbId, mediaType);
+            searchTitle = await getTmdbTitle(tmdbId, mediaType);
         }
         if (!searchTitle) {
             console.log("[PelisPanda] Falló obtención de título.");

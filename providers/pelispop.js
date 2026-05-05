@@ -1,6 +1,6 @@
 /**
  * pelispop - Built from src/pelispop/
- * Generated: 2026-05-05T06:34:39.142Z
+ * Generated: 2026-05-05T18:11:27.827Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -73,12 +73,12 @@ var require_http = __commonJS({
     function setSessionUA(ua) {
       sessionUA = ua;
     }
-    function getSessionUA2() {
+    function getSessionUA() {
       return sessionUA || DEFAULT_CHROME_UA;
     }
-    function getStealthHeaders() {
+    function getStealthHeaders2() {
       return {
-        "User-Agent": getSessionUA2(),
+        "User-Agent": getSessionUA(),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
         "Connection": "keep-alive",
@@ -92,12 +92,12 @@ var require_http = __commonJS({
         "Upgrade-Insecure-Requests": "1"
       };
     }
-    var DEFAULT_UA = getSessionUA2();
-    var MOBILE_UA = getSessionUA2();
+    var DEFAULT_UA = getSessionUA();
+    var MOBILE_UA = getSessionUA();
     function request(_0) {
       return __async(this, arguments, function* (url, options = {}) {
         const opt = options || {};
-        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA2();
+        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA();
         const headers = Object.assign({
           "User-Agent": currentUA,
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -142,9 +142,9 @@ var require_http = __commonJS({
       request,
       fetchHtml: fetchHtml2,
       fetchJson,
-      getSessionUA: getSessionUA2,
+      getSessionUA,
       setSessionUA,
-      getStealthHeaders,
+      getStealthHeaders: getStealthHeaders2,
       DEFAULT_UA,
       MOBILE_UA
     };
@@ -154,7 +154,7 @@ var require_http = __commonJS({
 // src/utils/m3u8.js
 var require_m3u8 = __commonJS({
   "src/utils/m3u8.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function getQualityFromHeight(height) {
       if (!height)
         return "1080p";
@@ -228,7 +228,7 @@ var require_m3u8 = __commonJS({
           const fetchOptions = {
             method: isMp4 ? "HEAD" : "GET",
             headers: __spreadValues({
-              "User-Agent": getSessionUA2()
+              "User-Agent": getSessionUA()
             }, headers || {})
           };
           if (signal)
@@ -596,7 +596,7 @@ var require_engine = __commonJS({
 // src/resolvers/voe.js
 var require_voe = __commonJS({
   "src/resolvers/voe.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var { validateStream } = require_m3u8();
     function localAtob(input) {
       if (!input)
@@ -614,7 +614,7 @@ var require_voe = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const currentUA = getSessionUA2();
+          const currentUA = getSessionUA();
           console.log(`[VOE] TV-Resolving: ${url}`);
           const response = yield fetch(url, {
             headers: { "User-Agent": currentUA },
@@ -713,7 +713,7 @@ var require_voe = __commonJS({
 // src/resolvers/hlswish.js
 var require_hlswish = __commonJS({
   "src/resolvers/hlswish.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var { validateStream } = require_m3u8();
     function unpackEval(payload, radix, symtab) {
       const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -737,7 +737,7 @@ var require_hlswish = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const rawId = url.split("/").pop().replace(/\.html$/, "");
           const urlObj = new URL(url);
           const mirrors = [
@@ -912,8 +912,8 @@ var require_aes_gcm = __commonJS({
 var require_filemoon = __commonJS({
   "src/resolvers/filemoon.js"(exports2, module2) {
     var { decryptByse } = require_aes_gcm();
-    var { getSessionUA: getSessionUA2 } = require_http();
-    var UA_CHROME = getSessionUA2();
+    var { getSessionUA } = require_http();
+    var UA_CHROME = getSessionUA();
     function unpack(p, a, c, k, e, d) {
       while (c--)
         if (k[c])
@@ -1004,7 +1004,7 @@ var require_filemoon = __commonJS({
 // src/resolvers/vidhide.js
 var require_vidhide = __commonJS({
   "src/resolvers/vidhide.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2, getStealthHeaders } = require_http();
+    var { getSessionUA, getStealthHeaders: getStealthHeaders2 } = require_http();
     var { validateStream } = require_m3u8();
     function unpackVidHide(script) {
       try {
@@ -1036,7 +1036,7 @@ var require_vidhide = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const currentUA = getSessionUA2();
+          const currentUA = getSessionUA();
           console.log(`[VidHide] TV-Resolving: ${url}`);
           const urlObj = new URL(url);
           const domain = urlObj.hostname;
@@ -1075,7 +1075,7 @@ var require_vidhide = __commonJS({
             finalUrl = new URL(url).origin + finalUrl;
           if (!finalUrl.includes("referer="))
             finalUrl += (finalUrl.includes("?") ? "&" : "?") + "referer=embed69.org";
-          const reqHeaders = __spreadProps(__spreadValues({}, getStealthHeaders()), {
+          const reqHeaders = __spreadProps(__spreadValues({}, getStealthHeaders2()), {
             "Referer": url.split("?")[0],
             "Origin": new URL(url).origin,
             "X-Requested-With": "XMLHttpRequest",
@@ -1106,7 +1106,7 @@ var require_vidhide = __commonJS({
 // src/resolvers/quality.js
 var require_quality = __commonJS({
   "src/resolvers/quality.js"(exports2, module2) {
-    var { request, getSessionUA: getSessionUA2 } = require_http();
+    var { request, getSessionUA } = require_http();
     function detectQuality(_0) {
       return __async(this, arguments, function* (url, headers = {}) {
         try {
@@ -1115,7 +1115,7 @@ var require_quality = __commonJS({
           const res = yield request(url, {
             timeout: 5e3,
             headers: __spreadValues({
-              "User-Agent": getSessionUA2()
+              "User-Agent": getSessionUA()
             }, headers)
           });
           const data = yield res.text();
@@ -1158,11 +1158,11 @@ var require_quality = __commonJS({
 var require_goodstream = __commonJS({
   "src/resolvers/goodstream.js"(exports2, module2) {
     var { detectQuality } = require_quality();
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(embedUrl) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
           const response = yield fetch(embedUrl, {
             headers: {
@@ -1296,10 +1296,10 @@ var require_fastream = __commonJS({
 // src/resolvers/vimeos.js
 var require_vimeos = __commonJS({
   "src/resolvers/vimeos.js"(exports2, module2) {
-    var { fetchHtml: fetchHtml2, fetchJson, getSessionUA: getSessionUA2 } = require_http();
+    var { fetchHtml: fetchHtml2, fetchJson, getSessionUA } = require_http();
     function resolve(embedUrl) {
       return __async(this, null, function* () {
-        const UA = getSessionUA2();
+        const UA = getSessionUA();
         try {
           console.log("[Vimeos] Resolviendo: " + embedUrl);
           var html = yield fetchHtml2(embedUrl, {
@@ -1395,17 +1395,17 @@ var require_resolvers = __commonJS({
     var { resolve: resolveFastream } = require_fastream();
     var { resolve: resolveVimeos } = require_vimeos();
     var { isMirror } = require_mirrors();
-    var { getSessionUA: getSessionUA2 } = require_http();
-    var UA = getSessionUA2();
+    var { getSessionUA } = require_http();
+    var UA = getSessionUA();
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
-      const { getStealthHeaders } = require_http();
+      const { getStealthHeaders: getStealthHeaders2 } = require_http();
       const s = url.toLowerCase();
       try {
         const domain = new URL(url).hostname;
         const baseOrigin = `https://${domain}`;
-        const headers = __spreadProps(__spreadValues({}, getStealthHeaders()), {
+        const headers = __spreadProps(__spreadValues({}, getStealthHeaders2()), {
           "Referer": baseOrigin,
           "Origin": baseOrigin
         });
@@ -1458,7 +1458,7 @@ var require_resolvers = __commonJS({
 var require_tmdb = __commonJS({
   "src/utils/tmdb.js"(exports2, module2) {
     var { fetchJson } = require_http();
-    var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
+    var TMDB_API_KEY = ["439c478a771f35c05022f9feabcca01c", "d131017ccc6e5462a81c9304d21476de", "1c29a5198ee1854bd5eb45dbe8d17d92"][Math.floor(Math.random() * 3)];
     var titleCache = /* @__PURE__ */ new Map();
     var idCache = /* @__PURE__ */ new Map();
     function getTmdbTitle2(tmdbId, mediaType, retries = 2) {
@@ -1588,56 +1588,219 @@ var require_tmdb = __commonJS({
   }
 });
 
+// src/utils/helpers.js
+var require_helpers = __commonJS({
+  "src/utils/helpers.js"(exports2, module2) {
+    function sleep2(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+    function padEpisode(episode) {
+      return String(episode).padStart(2, "0");
+    }
+    function isMovie2(mediaType) {
+      return mediaType === "movie" || mediaType === "movies";
+    }
+    function cleanTmdbId2(tmdbId) {
+      return tmdbId ? tmdbId.toString().split(":")[0] : tmdbId;
+    }
+    function toDoubleBase64(str) {
+      try {
+        if (typeof btoa !== "undefined")
+          return btoa(str);
+      } catch (e) {
+      }
+      try {
+        if (typeof Buffer !== "undefined")
+          return Buffer.from(str, "utf-8").toString("base64");
+      } catch (e) {
+      }
+      const bytes = [];
+      for (let i = 0; i < str.length; i++) {
+        let c = str.charCodeAt(i);
+        if (c < 128)
+          bytes.push(c);
+        else if (c < 2048)
+          bytes.push(192 | c >> 6, 128 | c & 63);
+        else if (c < 55296 || c >= 57344)
+          bytes.push(224 | c >> 12, 128 | c >> 6 & 63, 128 | c & 63);
+        else {
+          i++;
+          const cp = 65536 + ((c & 1023) << 10 | str.charCodeAt(i) & 1023);
+          bytes.push(240 | cp >> 18, 128 | cp >> 12 & 63, 128 | cp >> 6 & 63, 128 | cp & 63);
+        }
+      }
+      const b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+      let r = "";
+      for (let i = 0; i < bytes.length; i += 3) {
+        const b0 = bytes[i], b1 = bytes[i + 1], b2 = bytes[i + 2];
+        if (b1 === void 0)
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4] + "==";
+        else if (b2 === void 0)
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2] + "=";
+        else
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2 | b2 >> 6] + b64[b2 & 63];
+      }
+      return r;
+    }
+    function b64decode2(str) {
+      try {
+        if (typeof atob !== "undefined")
+          return atob(str);
+      } catch (e) {
+      }
+      try {
+        if (typeof Buffer !== "undefined")
+          return Buffer.from(str, "base64").toString("utf8");
+      } catch (e) {
+      }
+      try {
+        const s = str.replace(/[\s]/g, "");
+        if (s.length % 4 !== 0)
+          return null;
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        const lookup = {};
+        for (let i = 0; i < chars.length; i++)
+          lookup[chars[i]] = i;
+        let r = "";
+        for (let i = 0; i < s.length; i += 4) {
+          const c0 = lookup[s[i]], c1 = lookup[s[i + 1]], c2 = lookup[s[i + 2]], c3 = lookup[s[i + 3]];
+          if (c0 === void 0 || c1 === void 0 || c2 === void 0 || c3 === void 0)
+            return null;
+          r += String.fromCharCode(c0 << 2 | c1 >> 4);
+          if (c2 !== 64) {
+            r += String.fromCharCode((c1 & 15) << 4 | c2 >> 2);
+            if (c3 !== 64)
+              r += String.fromCharCode((c2 & 3) << 6 | c3);
+          }
+        }
+        return r;
+      } catch (e) {
+        return null;
+      }
+    }
+    module2.exports = { sleep: sleep2, padEpisode, isMovie: isMovie2, cleanTmdbId: cleanTmdbId2, toDoubleBase64, b64decode: b64decode2 };
+  }
+});
+
+// src/utils/title.js
+var require_title = __commonJS({
+  "src/utils/title.js"(exports2, module2) {
+    function normalizeTitle2(t) {
+      if (!t)
+        return "";
+      return t.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    }
+    function titleMatch(query, target, minRatio = 0.8) {
+      const q = normalizeTitle2(query);
+      const t = normalizeTitle2(target);
+      if (!q || !t)
+        return false;
+      if (q === t)
+        return true;
+      const qWords = q.split(" ").filter((w) => w.length > 2);
+      const tWords = t.split(" ");
+      if (qWords.length === 0)
+        return q === t;
+      const matchCount = qWords.filter((w) => tWords.includes(w)).length;
+      const ratio = matchCount / qWords.length;
+      return ratio >= minRatio;
+    }
+    function buildSlug2(title) {
+      return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    }
+    function levenshtein(a, b) {
+      if (!a || !b)
+        return Math.max((a || "").length, (b || "").length);
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++)
+        matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++)
+        matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+    module2.exports = { normalizeTitle: normalizeTitle2, titleMatch, levenshtein, buildSlug: buildSlug2 };
+  }
+});
+
+// src/utils/parallel.js
+var require_parallel = __commonJS({
+  "src/utils/parallel.js"(exports2, module2) {
+    function parallelWithLimit2(items, handler, limit = 5) {
+      return __async(this, null, function* () {
+        const results = [];
+        for (let i = 0; i < items.length; i += limit) {
+          const batch = items.slice(i, i + limit);
+          const batchPromises = batch.map((item) => {
+            return handler(item).catch(() => null);
+          });
+          const batchResults = yield Promise.allSettled(batchPromises);
+          results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
+        }
+        return results;
+      });
+    }
+    function resolveWithLimit(items, handler, limit = 5) {
+      return __async(this, null, function* () {
+        const results = [];
+        const promises = items.map((item) => __async(this, null, function* () {
+          return yield handler(item);
+        }));
+        const settled = yield Promise.allSettled(promises);
+        settled.forEach((r) => {
+          if (r.status === "fulfilled" && r.value)
+            results.push(r.value);
+        });
+        return results;
+      });
+    }
+    function withTimeout(promise) {
+      return __async(this, null, function* () {
+        return yield promise;
+      });
+    }
+    module2.exports = { parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
+  }
+});
+
 // src/pelispop/extractor.js
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
+var import_helpers = __toESM(require_helpers());
+var import_title = __toESM(require_title());
+var import_parallel = __toESM(require_parallel());
 var BASE_URL = "https://pelispop.mov";
-var UA3 = (0, import_http.getSessionUA)();
-var HEADERS = {
-  "User-Agent": UA3,
-  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+var HEADERS = __spreadProps(__spreadValues({}, (0, import_http.getStealthHeaders)()), {
   "Accept-Language": "es-MX,es;q=0.9",
-  "Connection": "keep-alive",
-  "Upgrade-Insecure-Requests": "1",
   "Referer": `${BASE_URL}/`
-};
+});
 var FETCH_TIMEOUT = 1e4;
 function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-  return (0, import_http.fetchHtml)(url, __spreadProps(__spreadValues({}, options), { signal: controller.signal })).finally(() => clearTimeout(timeoutId));
+  const hasAbort = typeof AbortController !== "undefined";
+  const controller = hasAbort ? new AbortController() : null;
+  const timeoutId = setTimeout(() => {
+    if (controller)
+      controller.abort();
+  }, FETCH_TIMEOUT);
+  return (0, import_http.fetchHtml)(url, hasAbort ? __spreadProps(__spreadValues({}, options), { signal: controller.signal }) : options).finally(() => clearTimeout(timeoutId));
 }
-function getServerName(url) {
-  if (url.includes("goodstream"))
-    return "GoodStream";
-  if (url.includes("hlswish") || url.includes("streamwish") || url.includes("strwish"))
-    return "StreamWish";
-  if (url.includes("voe.sx"))
-    return "VOE";
-  if (url.includes("filemoon"))
-    return "Filemoon";
-  if (url.includes("vimeos"))
-    return "Vimeos";
-  return "Online";
-}
-function b64decode(str) {
-  try {
-    if (typeof atob !== "undefined")
-      return atob(str);
-    return Buffer.from(str, "base64").toString("utf8");
-  } catch (e) {
-    return null;
-  }
-}
-function normalizeTitle(t) {
-  if (!t)
-    return "";
-  return t.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
-}
-function buildSlug(title) {
-  return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+function isYearValid(html, expectedYear) {
+  if (!expectedYear)
+    return true;
+  const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
+  const parenMatch = html.match(/\((\d{4})\)/);
+  const pageYear = dateMatch ? dateMatch[1] : parenMatch ? parenMatch[1] : null;
+  return !pageYear || pageYear === expectedYear;
 }
 function getMovieUrl(slug, expectedYear) {
   return __async(this, null, function* () {
@@ -1649,16 +1812,12 @@ function getMovieUrl(slug, expectedYear) {
           const html = yield fetchWithTimeout(url, { headers: HEADERS });
           if (!html || html.includes("404 Not Found") || !html.includes('id="btn_enlace"'))
             return null;
-          if (expectedYear) {
-            const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
-            const parenMatch = html.match(/\((\d{4})\)/);
-            const pageYear = dateMatch ? dateMatch[1] : parenMatch ? parenMatch[1] : null;
-            if (pageYear && pageYear !== expectedYear)
-              return null;
-          }
+          if (!isYearValid(html, expectedYear))
+            return null;
           console.log(`[PelisPop] \u2713 Encontrado v\xEDa slug: /pelicula/${s}/`);
           return url;
         } catch (e) {
+          console.warn(`[PelisPop] Slug /pelicula/${s}/ fall\xF3: ${e.message}`);
         }
         return null;
       }))
@@ -1676,6 +1835,7 @@ function getSeriesUrl(slug) {
       console.log(`[PelisPop] \u2713 Encontrado serie: /serie/${slug}/`);
       return url;
     } catch (e) {
+      console.warn(`[PelisPop] Serie /serie/${slug}/ fall\xF3: ${e.message}`);
       return null;
     }
   });
@@ -1689,7 +1849,7 @@ function getBaseSeriesUrl(url) {
 function searchResults(title) {
   return __async(this, null, function* () {
     try {
-      const searchUrl = `${BASE_URL}/search?s=${normalizeTitle(title).replace(/\s+/g, "+")}`;
+      const searchUrl = `${BASE_URL}/search?s=${(0, import_title.normalizeTitle)(title).replace(/\s+/g, "+")}`;
       const html = yield fetchWithTimeout(searchUrl, { headers: HEADERS });
       const movies = [];
       const series = [];
@@ -1698,45 +1858,51 @@ function searchResults(title) {
       while ((match = linkRegex.exec(html)) !== null) {
         const url = match[1];
         const type = match[2];
-        if (type === "pelicula" && !movies.includes(url))
-          movies.push(url);
+        const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+        if (type === "pelicula" && !movies.includes(fullUrl))
+          movies.push(fullUrl);
         if (type === "serie") {
-          const baseUrl = getBaseSeriesUrl(url);
+          const baseUrl = getBaseSeriesUrl(fullUrl);
           if (!series.includes(baseUrl))
             series.push(baseUrl);
         }
       }
       return { movies, series };
     } catch (e) {
-      console.log(`[PelisPop] Error en b\xFAsqueda: ${e.message}`);
+      console.warn(`[PelisPop] Error en b\xFAsqueda: ${e.message}`);
       return { movies: [], series: [] };
     }
   });
+}
+function extractIframeUrls(html) {
+  const urls = [];
+  const iframeRegex = /<iframe[^>]+src="([^"]+)"/g;
+  let match;
+  while ((match = iframeRegex.exec(html)) !== null) {
+    const src = match[1];
+    if (src && src.startsWith("http") && !src.includes("facebook") && !src.includes("google")) {
+      urls.push(src);
+    }
+  }
+  return [...new Set(urls)];
 }
 function getEmbedUrls(movieUrl) {
   return __async(this, null, function* () {
     try {
       const html = yield fetchWithTimeout(movieUrl, { headers: HEADERS });
-      const embedUrls = [];
-      const iframeRegex = /<iframe[^>]+src="([^"]+)"/g;
-      let match;
-      while ((match = iframeRegex.exec(html)) !== null) {
-        const src = match[1];
-        if (src && src.startsWith("http") && !src.includes("facebook") && !src.includes("google")) {
-          embedUrls.push(src);
-        }
-      }
+      let embedUrls = extractIframeUrls(html);
       if (embedUrls.length === 0) {
         const dataSrcRegex = /data-src="([A-Za-z0-9+/=]{20,})"/g;
+        let match;
         while ((match = dataSrcRegex.exec(html)) !== null) {
-          const decoded = b64decode(match[1]);
+          const decoded = (0, import_helpers.b64decode)(match[1]);
           if (decoded && decoded.startsWith("http"))
             embedUrls.push(decoded);
         }
       }
-      return [...new Set(embedUrls)];
+      return embedUrls;
     } catch (e) {
-      console.log(`[PelisPop] Error obteniendo embeds: ${e.message}`);
+      console.warn(`[PelisPop] Error obteniendo embeds: ${e.message}`);
       return [];
     }
   });
@@ -1749,13 +1915,12 @@ function processEmbed(embedUrl) {
         return null;
       return {
         langLabel: "Latino",
-        serverLabel: getServerName(embedUrl),
         url: result.url,
         quality: result.quality,
-        siteQuality: null,
         headers: result.headers || {}
       };
     } catch (e) {
+      console.warn(`[PelisPop] Error procesando embed: ${e.message}`);
       return null;
     }
   });
@@ -1764,23 +1929,14 @@ function getSeriesEmbedUrls(seriesUrl, season, episode) {
   return __async(this, null, function* () {
     try {
       const baseUrl = getBaseSeriesUrl(seriesUrl);
-      const episodeUrl = season && episode ? `${baseUrl}temporada/${season}/capitulo/${episode}` : baseUrl;
+      const episodeUrl = season != null && episode != null ? `${baseUrl}temporada/${season}/capitulo/${episode}` : baseUrl;
       console.log(`[PelisPop] Obteniendo episode: ${episodeUrl}`);
       const html = yield fetchWithTimeout(episodeUrl, { headers: HEADERS });
       if (!html || html.includes("404 Not Found") || html.includes("Extraviado"))
         return [];
-      const embedUrls = [];
-      const iframeRegex = /<iframe[^>]+src="([^"]+)"/g;
-      let match;
-      while ((match = iframeRegex.exec(html)) !== null) {
-        const src = match[1];
-        if (src && src.startsWith("http") && !src.includes("facebook") && !src.includes("google")) {
-          embedUrls.push(src);
-        }
-      }
-      return [...new Set(embedUrls)];
+      return extractIframeUrls(html);
     } catch (e) {
-      console.log(`[PelisPop] Error obteniendo embeds de serie: ${e.message}`);
+      console.warn(`[PelisPop] Error obteniendo embeds de serie: ${e.message}`);
       return [];
     }
   });
@@ -1789,26 +1945,30 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId || !mediaType)
       return [];
-    const isMovie = mediaType === "movie" || mediaType === "movies";
+    const isMovieType = (0, import_helpers.isMovie)(mediaType);
     console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
     try {
+      const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
       let mediaTitle = title;
       let releaseYear = null;
-      if (tmdbId) {
-        const info = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType, "es-MX");
-        if (info)
+      if (realId) {
+        const info = yield (0, import_tmdb.getTmdbInfo)(realId, mediaType, "es-MX");
+        if (info) {
           releaseYear = info.year;
+          if (!mediaTitle)
+            mediaTitle = info.title;
+        }
       }
-      if (!mediaTitle && tmdbId) {
-        mediaTitle = yield (0, import_tmdb.getTmdbTitle)(tmdbId, mediaType);
+      if (!mediaTitle && realId) {
+        mediaTitle = yield (0, import_tmdb.getTmdbTitle)(realId, mediaType);
       }
       if (!mediaTitle)
         return [];
-      const slug = buildSlug(mediaTitle);
+      const slug = (0, import_title.buildSlug)(mediaTitle);
       if (!slug)
         return [];
       let selectedUrl = null;
-      if (isMovie) {
+      if (isMovieType) {
         selectedUrl = yield getMovieUrl(slug, releaseYear);
       } else {
         selectedUrl = yield getSeriesUrl(slug);
@@ -1816,23 +1976,21 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       if (!selectedUrl) {
         console.log(`[PelisPop] Slug directo fall\xF3, intentando b\xFAsqueda para: ${mediaTitle}`);
         const search = yield searchResults(mediaTitle);
-        const results = isMovie ? search.movies : search.series;
+        const results = isMovieType ? search.movies : search.series;
         if (results.length > 0) {
-          if (releaseYear && isMovie) {
+          if (releaseYear && isMovieType) {
             for (const result of results) {
               try {
                 const html = yield fetchWithTimeout(result, { headers: HEADERS });
                 if (!html || html.includes("404 Not Found"))
                   continue;
-                const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
-                const parenMatch = html.match(/\((\d{4})\)/);
-                const pageYear = dateMatch ? dateMatch[1] : parenMatch ? parenMatch[1] : null;
-                if (!pageYear || pageYear === releaseYear) {
+                if (isYearValid(html, releaseYear)) {
                   selectedUrl = result;
-                  console.log(`[PelisPop] \u2713 Encontrado v\xEDa b\xFAsqueda: ${selectedUrl} (${pageYear || "?"})`);
+                  console.log(`[PelisPop] \u2713 Encontrado v\xEDa b\xFAsqueda: ${selectedUrl}`);
                   break;
                 }
               } catch (e) {
+                console.warn(`[PelisPop] Error verificando a\xF1o en ${result}: ${e.message}`);
               }
             }
           }
@@ -1842,9 +2000,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           }
         }
       }
-      if (!selectedUrl && tmdbId) {
-        console.log(`[PelisPop] Iniciando rescate por Alias en paralelo...`);
-        const aliases = yield (0, import_tmdb.getTmdbAliases)(tmdbId, mediaType);
+      if (!selectedUrl && realId) {
+        console.log(`[PelisPop] Iniciando rescate por Alias...`);
+        const aliases = yield (0, import_tmdb.getTmdbAliases)(realId, mediaType);
         const filteredAliases = [...new Set(aliases.filter((alias) => {
           if (!alias || alias === mediaTitle)
             return false;
@@ -1853,10 +2011,11 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         if (filteredAliases.length > 0) {
           const BATCH_SIZE = 2;
           for (let i = 0; i < filteredAliases.length; i += BATCH_SIZE) {
+            yield (0, import_helpers.sleep)(500);
             const batch = filteredAliases.slice(i, i + BATCH_SIZE);
             const batchResults = yield Promise.all(batch.map((alias) => __async(this, null, function* () {
-              const aliasSlug = buildSlug(alias);
-              if (isMovie) {
+              const aliasSlug = (0, import_title.buildSlug)(alias);
+              if (isMovieType) {
                 const urlBySlug = yield getMovieUrl(aliasSlug, releaseYear);
                 if (urlBySlug)
                   return urlBySlug;
@@ -1867,14 +2026,12 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
                       const html = yield fetchWithTimeout(result, { headers: HEADERS });
                       if (!html || html.includes("404 Not Found"))
                         continue;
-                      const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
-                      const parenMatch = html.match(/\((\d{4})\)/);
-                      const pageYear = dateMatch ? dateMatch[1] : parenMatch ? parenMatch[1] : null;
-                      if (!pageYear || pageYear === releaseYear) {
-                        console.log(`[PelisPop] \u2713 Encontrado v\xEDa alias: ${result} (${pageYear || "?"})`);
+                      if (isYearValid(html, releaseYear)) {
+                        console.log(`[PelisPop] \u2713 Encontrado v\xEDa alias: ${result}`);
                         return result;
                       }
                     } catch (e) {
+                      console.warn(`[PelisPop] Error verificando alias ${alias}: ${e.message}`);
                     }
                   }
                 }
@@ -1897,22 +2054,23 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         }
       }
       if (!selectedUrl) {
-        console.log(`[PelisPop] No se encontr\xF3${isMovie ? " la pel\xEDcula" : " la serie"}: ${mediaTitle}`);
+        console.log(`[PelisPop] No se encontr\xF3${isMovieType ? " la pel\xEDcula" : " la serie"}: ${mediaTitle}`);
         return [];
       }
       console.log(`[PelisPop] \u2713 T\xEDtulo confirmado: "${mediaTitle}"`);
       let embedUrls;
-      if (isMovie) {
+      if (isMovieType) {
         embedUrls = yield getEmbedUrls(selectedUrl);
       } else {
         embedUrls = yield getSeriesEmbedUrls(selectedUrl, season, episode);
       }
       if (embedUrls.length === 0)
         return [];
-      const streams = (yield Promise.allSettled(embedUrls.map(processEmbed))).filter((r) => r.status === "fulfilled" && r.value).map((r) => r.value);
+      const resolvedEmbeds = yield (0, import_parallel.parallelWithLimit)(embedUrls, processEmbed, 5);
+      const streams = resolvedEmbeds.filter(Boolean);
       return yield (0, import_engine.finalizeStreams)(streams, "PelisPop", mediaTitle);
     } catch (e) {
-      console.log(`[PelisPop] Error: ${e.message}`);
+      console.error(`[PelisPop] Error: ${e.message}`);
       return [];
     }
   });
