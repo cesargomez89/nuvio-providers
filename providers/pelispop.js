@@ -1,6 +1,6 @@
 /**
  * pelispop - Built from src/pelispop/
- * Generated: 2026-05-05T01:12:12.340Z
+ * Generated: 2026-05-05T05:56:40.656Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1486,7 +1486,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
+    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
       return __async(this, null, function* () {
         try {
           const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
@@ -1502,7 +1502,7 @@ var require_tmdb = __commonJS({
         } catch (e) {
           if (retries > 0) {
             yield new Promise((r) => setTimeout(r, 1e3));
-            return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
+            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
           }
           return null;
         }
@@ -1529,7 +1529,7 @@ var require_tmdb = __commonJS({
             idCache.set(cacheKey, result2);
             return result2;
           }
-          const metaRes = yield getTmdbInfo(tmdbId, mediaType);
+          const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
           const result = {
             imdbId: idRes.imdb_id,
             title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
@@ -1584,7 +1584,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
   }
 });
 
@@ -1639,7 +1639,7 @@ function normalizeTitle(t) {
 function buildSlug(title) {
   return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
-function getMovieUrl(slug) {
+function getMovieUrl(slug, expectedYear) {
   return __async(this, null, function* () {
     const slugsToTry = [slug, `${slug}-2`, `${slug}-3`, `${slug}-1`, `${slug}_2`, `${slug}_3`];
     const slugResults = yield Promise.all(
@@ -1649,6 +1649,13 @@ function getMovieUrl(slug) {
           const html = yield fetchWithTimeout(url, { headers: HEADERS });
           if (!html || html.includes("404 Not Found") || !html.includes('id="btn_enlace"'))
             return null;
+          if (expectedYear) {
+            const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
+            const parenMatch = html.match(/\((\d{4})\)/);
+            const pageYear = dateMatch ? dateMatch[1] : parenMatch ? parenMatch[1] : null;
+            if (pageYear && pageYear !== expectedYear)
+              return null;
+          }
           console.log(`[PelisPop] \u2713 Encontrado v\xEDa slug: /pelicula/${s}/`);
           return url;
         } catch (e) {
@@ -1786,6 +1793,12 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
     try {
       let mediaTitle = title;
+      let releaseYear = null;
+      if (tmdbId) {
+        const info = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType, "es-MX");
+        if (info)
+          releaseYear = info.year;
+      }
       if (!mediaTitle && tmdbId) {
         mediaTitle = yield (0, import_tmdb.getTmdbTitle)(tmdbId, mediaType);
       }
@@ -1796,7 +1809,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         return [];
       let selectedUrl = null;
       if (isMovie) {
-        selectedUrl = yield getMovieUrl(slug);
+        selectedUrl = yield getMovieUrl(slug, releaseYear);
       } else {
         selectedUrl = yield getSeriesUrl(slug);
       }
@@ -1805,8 +1818,28 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         const search = yield searchResults(mediaTitle);
         const results = isMovie ? search.movies : search.series;
         if (results.length > 0) {
-          selectedUrl = results[0];
-          console.log(`[PelisPop] \u2713 Encontrado v\xEDa b\xFAsqueda: ${selectedUrl}`);
+          if (releaseYear && isMovie) {
+            for (const result of results) {
+              try {
+                const html = yield fetchWithTimeout(result, { headers: HEADERS });
+                if (!html || html.includes("404 Not Found"))
+                  continue;
+                const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
+                const parenMatch = html.match(/\((\d{4})\)/);
+                const pageYear = dateMatch ? dateMatch[1] : parenMatch ? parenMatch[1] : null;
+                if (!pageYear || pageYear === releaseYear) {
+                  selectedUrl = result;
+                  console.log(`[PelisPop] \u2713 Encontrado v\xEDa b\xFAsqueda: ${selectedUrl} (${pageYear || "?"})`);
+                  break;
+                }
+              } catch (e) {
+              }
+            }
+          }
+          if (!selectedUrl && !releaseYear) {
+            selectedUrl = results[0];
+            console.log(`[PelisPop] \u2713 Encontrado v\xEDa b\xFAsqueda: ${selectedUrl}`);
+          }
         }
       }
       if (!selectedUrl && tmdbId) {
@@ -1824,11 +1857,28 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
             const batchResults = yield Promise.all(batch.map((alias) => __async(this, null, function* () {
               const aliasSlug = buildSlug(alias);
               if (isMovie) {
-                const urlBySlug = yield getMovieUrl(aliasSlug);
+                const urlBySlug = yield getMovieUrl(aliasSlug, releaseYear);
                 if (urlBySlug)
                   return urlBySlug;
                 const aliasResults = yield searchResults(alias);
-                return aliasResults.movies.length > 0 ? aliasResults.movies[0] : null;
+                if (aliasResults.movies.length > 0 && releaseYear) {
+                  for (const result of aliasResults.movies) {
+                    try {
+                      const html = yield fetchWithTimeout(result, { headers: HEADERS });
+                      if (!html || html.includes("404 Not Found"))
+                        continue;
+                      const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
+                      const parenMatch = html.match(/\((\d{4})\)/);
+                      const pageYear = dateMatch ? dateMatch[1] : parenMatch ? parenMatch[1] : null;
+                      if (!pageYear || pageYear === releaseYear) {
+                        console.log(`[PelisPop] \u2713 Encontrado v\xEDa alias: ${result} (${pageYear || "?"})`);
+                        return result;
+                      }
+                    } catch (e) {
+                    }
+                  }
+                }
+                return aliasResults.movies.length > 0 && !releaseYear ? aliasResults.movies[0] : null;
               } else {
                 const urlBySlug = yield getSeriesUrl(aliasSlug);
                 if (urlBySlug)
@@ -1850,6 +1900,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         console.log(`[PelisPop] No se encontr\xF3${isMovie ? " la pel\xEDcula" : " la serie"}: ${mediaTitle}`);
         return [];
       }
+      console.log(`[PelisPop] \u2713 T\xEDtulo confirmado: "${mediaTitle}"`);
       let embedUrls;
       if (isMovie) {
         embedUrls = yield getEmbedUrls(selectedUrl);

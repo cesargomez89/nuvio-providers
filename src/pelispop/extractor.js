@@ -1,7 +1,7 @@
 import { fetchHtml, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
-import { getTmdbTitle, getTmdbAliases } from '../utils/tmdb.js';
+import { getTmdbTitle, getTmdbAliases, getTmdbInfo } from '../utils/tmdb.js';
 
 const BASE_URL = "https://pelispop.mov";
 const UA3 = getSessionUA();
@@ -58,7 +58,7 @@ function buildSlug(title) {
     return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
-async function getMovieUrl(slug) {
+async function getMovieUrl(slug, expectedYear) {
     const slugsToTry = [slug, `${slug}-2`, `${slug}-3`, `${slug}-1`, `${slug}_2`, `${slug}_3`];
     const slugResults = await Promise.all(
         slugsToTry.map(async (s) => {
@@ -66,6 +66,12 @@ async function getMovieUrl(slug) {
             try {
                 const html = await fetchWithTimeout(url, { headers: HEADERS });
                 if (!html || html.includes("404 Not Found") || !html.includes('id="btn_enlace"')) return null;
+                if (expectedYear) {
+                    const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
+                    const parenMatch = html.match(/\((\d{4})\)/);
+                    const pageYear = dateMatch ? dateMatch[1] : (parenMatch ? parenMatch[1] : null);
+                    if (pageYear && pageYear !== expectedYear) return null;
+                }
                 console.log(`[PelisPop] ✓ Encontrado vía slug: /pelicula/${s}/`);
                 return url;
             } catch (e) {}
@@ -191,6 +197,11 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
     try {
         let mediaTitle = title;
+        let releaseYear = null;
+        if (tmdbId) {
+            const info = await getTmdbInfo(tmdbId, mediaType, 'es-MX');
+            if (info) releaseYear = info.year;
+        }
         if (!mediaTitle && tmdbId) {
             mediaTitle = await getTmdbTitle(tmdbId, mediaType);
         }
@@ -199,7 +210,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         if (!slug) return [];
         let selectedUrl = null;
         if (isMovie) {
-            selectedUrl = await getMovieUrl(slug);
+            selectedUrl = await getMovieUrl(slug, releaseYear);
         } else {
             selectedUrl = await getSeriesUrl(slug);
         }
@@ -208,8 +219,26 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             const search = await searchResults(mediaTitle);
             const results = isMovie ? search.movies : search.series;
             if (results.length > 0) {
-                selectedUrl = results[0];
-                console.log(`[PelisPop] ✓ Encontrado vía búsqueda: ${selectedUrl}`);
+                if (releaseYear && isMovie) {
+                    for (const result of results) {
+                        try {
+                            const html = await fetchWithTimeout(result, { headers: HEADERS });
+                            if (!html || html.includes("404 Not Found")) continue;
+                            const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
+                            const parenMatch = html.match(/\((\d{4})\)/);
+                            const pageYear = dateMatch ? dateMatch[1] : (parenMatch ? parenMatch[1] : null);
+                            if (!pageYear || pageYear === releaseYear) {
+                                selectedUrl = result;
+                                console.log(`[PelisPop] ✓ Encontrado vía búsqueda: ${selectedUrl} (${pageYear || "?"})`);
+                                break;
+                            }
+                        } catch (e) {}
+                    }
+                }
+                if (!selectedUrl && !releaseYear) {
+                    selectedUrl = results[0];
+                    console.log(`[PelisPop] ✓ Encontrado vía búsqueda: ${selectedUrl}`);
+                }
             }
         }
         if (!selectedUrl && tmdbId) {
@@ -226,10 +255,25 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                     const batchResults = await Promise.all(batch.map(async (alias) => {
                         const aliasSlug = buildSlug(alias);
                         if (isMovie) {
-                            const urlBySlug = await getMovieUrl(aliasSlug);
+                            const urlBySlug = await getMovieUrl(aliasSlug, releaseYear);
                             if (urlBySlug) return urlBySlug;
                             const aliasResults = await searchResults(alias);
-                            return aliasResults.movies.length > 0 ? aliasResults.movies[0] : null;
+                            if (aliasResults.movies.length > 0 && releaseYear) {
+                                for (const result of aliasResults.movies) {
+                                    try {
+                                        const html = await fetchWithTimeout(result, { headers: HEADERS });
+                                        if (!html || html.includes("404 Not Found")) continue;
+                                        const dateMatch = html.match(/"datePublished"\s*:\s*"(\d{4})"/);
+                                        const parenMatch = html.match(/\((\d{4})\)/);
+                                        const pageYear = dateMatch ? dateMatch[1] : (parenMatch ? parenMatch[1] : null);
+                                        if (!pageYear || pageYear === releaseYear) {
+                                            console.log(`[PelisPop] ✓ Encontrado vía alias: ${result} (${pageYear || "?"})`);
+                                            return result;
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                            return aliasResults.movies.length > 0 && !releaseYear ? aliasResults.movies[0] : null;
                         } else {
                             const urlBySlug = await getSeriesUrl(aliasSlug);
                             if (urlBySlug) return urlBySlug;
@@ -249,6 +293,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             console.log(`[PelisPop] No se encontró${isMovie ? " la película" : " la serie"}: ${mediaTitle}`);
             return [];
         }
+        console.log(`[PelisPop] ✓ Título confirmado: "${mediaTitle}"`);
         let embedUrls;
         if (isMovie) {
             embedUrls = await getEmbedUrls(selectedUrl);

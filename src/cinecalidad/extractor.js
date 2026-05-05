@@ -1,7 +1,7 @@
 import { request, fetchHtml, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
-import { getTmdbTitle, getTmdbAliases } from '../utils/tmdb.js';
+import { getTmdbTitle, getTmdbAliases, getTmdbInfo } from '../utils/tmdb.js';
 
 const BASE_URL = "https://www.cinecalidad.vg";
 const UA3 = getSessionUA();
@@ -141,18 +141,42 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     console.log(`[CineCalidad] Buscando: TMDB ${tmdbId} (${mediaType})`);
     try {
         let mediaTitle = title;
+        let releaseYear = null;
+        if (tmdbId) {
+            const info = await getTmdbInfo(tmdbId, mediaType, 'es-MX');
+            if (info) releaseYear = info.year;
+        }
         if (!mediaTitle && tmdbId) {
             mediaTitle = await getTmdbTitle(tmdbId, mediaType);
         }
         if (!mediaTitle) return [];
         const slug = buildSlug(mediaTitle);
-        let selectedUrl = await getMovieUrl(slug, null);
+        let selectedUrl = await getMovieUrl(slug, releaseYear);
         if (!selectedUrl) {
             console.log(`[CineCalidad] Slug directo falló, intentando búsqueda interna para: ${mediaTitle}`);
             const foundResults = await searchResults(mediaTitle);
             if (foundResults.length > 0) {
-                selectedUrl = foundResults[0];
-                console.log(`[CineCalidad] ✓ Encontrado vía búsqueda: ${selectedUrl}`);
+                if (releaseYear) {
+                    for (const result of foundResults) {
+                        try {
+                            const res = await request(result, { headers: HEADERS });
+                            if (!res || !res.ok) continue;
+                            const html = await res.text();
+                            if (html.includes("404 Not Found")) continue;
+                            const yearMatch = html.match(/<h1[^>]*>[^<]*\((\d{4})\)[^<]*<\/h1>/);
+                            const pageYear = yearMatch ? yearMatch[1] : null;
+                            if (!pageYear || pageYear === releaseYear) {
+                                selectedUrl = result;
+                                console.log(`[CineCalidad] ✓ Encontrado vía búsqueda: ${selectedUrl} (${pageYear || "?"})`);
+                                break;
+                            }
+                        } catch (e) {}
+                    }
+                }
+                if (!selectedUrl && !releaseYear) {
+                    selectedUrl = foundResults[0];
+                    console.log(`[CineCalidad] ✓ Encontrado vía búsqueda (fallback): ${selectedUrl}`);
+                }
             }
         }
         if (!selectedUrl && tmdbId) {
@@ -165,10 +189,26 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             if (filteredAliases.length > 0) {
                 const aliasPromises = filteredAliases.map(async (alias) => {
                     const aliasSlug = buildSlug(alias);
-                    const urlBySlug = await getMovieUrl(aliasSlug, null);
+                    const urlBySlug = await getMovieUrl(aliasSlug, releaseYear);
                     if (urlBySlug) return urlBySlug;
                     const aliasResults = await searchResults(alias);
-                    return aliasResults.length > 0 ? aliasResults[0] : null;
+                    if (aliasResults.length > 0 && releaseYear) {
+                        for (const result of aliasResults) {
+                            try {
+                                const res = await request(result, { headers: HEADERS });
+                                if (!res || !res.ok) continue;
+                                const html = await res.text();
+                                if (html.includes("404 Not Found")) continue;
+                                const yearMatch = html.match(/<h1[^>]*>[^<]*\((\d{4})\)[^<]*<\/h1>/);
+                                const pageYear = yearMatch ? yearMatch[1] : null;
+                                if (!pageYear || pageYear === releaseYear) {
+                                    console.log(`[CineCalidad] ✓ Encontrado vía alias: ${result} (${pageYear || "?"})`);
+                                    return result;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                    return aliasResults.length > 0 && !releaseYear ? aliasResults[0] : null;
                 });
                 const parallelResults = await Promise.all(aliasPromises);
                 selectedUrl = parallelResults.find((url) => url !== null);
@@ -181,6 +221,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             console.log(`[CineCalidad] No se encontró la película tras agotar alias para: ${mediaTitle}`);
             return [];
         }
+        console.log(`[CineCalidad] ✓ Título confirmado: "${mediaTitle}"`);
         const embedUrls = await getEmbedUrls(selectedUrl);
         if (embedUrls.length === 0) return [];
         const uniqueEmbeds = [...new Set(embedUrls)];

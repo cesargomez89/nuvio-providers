@@ -1,6 +1,6 @@
 /**
  * cinecalidad - Built from src/cinecalidad/
- * Generated: 2026-05-05T01:12:12.297Z
+ * Generated: 2026-05-05T05:56:40.504Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1486,7 +1486,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
+    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
       return __async(this, null, function* () {
         try {
           const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
@@ -1502,7 +1502,7 @@ var require_tmdb = __commonJS({
         } catch (e) {
           if (retries > 0) {
             yield new Promise((r) => setTimeout(r, 1e3));
-            return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
+            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
           }
           return null;
         }
@@ -1529,7 +1529,7 @@ var require_tmdb = __commonJS({
             idCache.set(cacheKey, result2);
             return result2;
           }
-          const metaRes = yield getTmdbInfo(tmdbId, mediaType);
+          const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
           const result = {
             imdbId: idRes.imdb_id,
             title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
@@ -1584,7 +1584,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
   }
 });
 
@@ -1750,19 +1750,47 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     console.log(`[CineCalidad] Buscando: TMDB ${tmdbId} (${mediaType})`);
     try {
       let mediaTitle = title;
+      let releaseYear = null;
+      if (tmdbId) {
+        const info = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType, "es-MX");
+        if (info)
+          releaseYear = info.year;
+      }
       if (!mediaTitle && tmdbId) {
         mediaTitle = yield (0, import_tmdb.getTmdbTitle)(tmdbId, mediaType);
       }
       if (!mediaTitle)
         return [];
       const slug = buildSlug(mediaTitle);
-      let selectedUrl = yield getMovieUrl(slug, null);
+      let selectedUrl = yield getMovieUrl(slug, releaseYear);
       if (!selectedUrl) {
         console.log(`[CineCalidad] Slug directo fall\xF3, intentando b\xFAsqueda interna para: ${mediaTitle}`);
         const foundResults = yield searchResults(mediaTitle);
         if (foundResults.length > 0) {
-          selectedUrl = foundResults[0];
-          console.log(`[CineCalidad] \u2713 Encontrado v\xEDa b\xFAsqueda: ${selectedUrl}`);
+          if (releaseYear) {
+            for (const result of foundResults) {
+              try {
+                const res = yield (0, import_http.request)(result, { headers: HEADERS });
+                if (!res || !res.ok)
+                  continue;
+                const html = yield res.text();
+                if (html.includes("404 Not Found"))
+                  continue;
+                const yearMatch = html.match(/<h1[^>]*>[^<]*\((\d{4})\)[^<]*<\/h1>/);
+                const pageYear = yearMatch ? yearMatch[1] : null;
+                if (!pageYear || pageYear === releaseYear) {
+                  selectedUrl = result;
+                  console.log(`[CineCalidad] \u2713 Encontrado v\xEDa b\xFAsqueda: ${selectedUrl} (${pageYear || "?"})`);
+                  break;
+                }
+              } catch (e) {
+              }
+            }
+          }
+          if (!selectedUrl && !releaseYear) {
+            selectedUrl = foundResults[0];
+            console.log(`[CineCalidad] \u2713 Encontrado v\xEDa b\xFAsqueda (fallback): ${selectedUrl}`);
+          }
         }
       }
       if (!selectedUrl && tmdbId) {
@@ -1776,11 +1804,30 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         if (filteredAliases.length > 0) {
           const aliasPromises = filteredAliases.map((alias) => __async(this, null, function* () {
             const aliasSlug = buildSlug(alias);
-            const urlBySlug = yield getMovieUrl(aliasSlug, null);
+            const urlBySlug = yield getMovieUrl(aliasSlug, releaseYear);
             if (urlBySlug)
               return urlBySlug;
             const aliasResults = yield searchResults(alias);
-            return aliasResults.length > 0 ? aliasResults[0] : null;
+            if (aliasResults.length > 0 && releaseYear) {
+              for (const result of aliasResults) {
+                try {
+                  const res = yield (0, import_http.request)(result, { headers: HEADERS });
+                  if (!res || !res.ok)
+                    continue;
+                  const html = yield res.text();
+                  if (html.includes("404 Not Found"))
+                    continue;
+                  const yearMatch = html.match(/<h1[^>]*>[^<]*\((\d{4})\)[^<]*<\/h1>/);
+                  const pageYear = yearMatch ? yearMatch[1] : null;
+                  if (!pageYear || pageYear === releaseYear) {
+                    console.log(`[CineCalidad] \u2713 Encontrado v\xEDa alias: ${result} (${pageYear || "?"})`);
+                    return result;
+                  }
+                } catch (e) {
+                }
+              }
+            }
+            return aliasResults.length > 0 && !releaseYear ? aliasResults[0] : null;
           }));
           const parallelResults = yield Promise.all(aliasPromises);
           selectedUrl = parallelResults.find((url) => url !== null);
@@ -1793,6 +1840,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         console.log(`[CineCalidad] No se encontr\xF3 la pel\xEDcula tras agotar alias para: ${mediaTitle}`);
         return [];
       }
+      console.log(`[CineCalidad] \u2713 T\xEDtulo confirmado: "${mediaTitle}"`);
       const embedUrls = yield getEmbedUrls(selectedUrl);
       if (embedUrls.length === 0)
         return [];
