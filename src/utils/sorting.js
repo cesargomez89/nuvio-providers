@@ -18,7 +18,8 @@ const SERVER_SCORE = {
   "Netu": 5,
   "GoodStream": 10,
   "StreamWish": -5,
-  "VidHide": -5
+  "VidHide": -5,
+  "Supervideo": 10
 };
 
 function sortStreamsByQuality(streams) {

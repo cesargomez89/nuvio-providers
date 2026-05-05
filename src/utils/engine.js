@@ -29,6 +29,10 @@ function normalizeServer(server, url = "", resolvedServerName = null) {
   const s = (server || "").toLowerCase();
   if (u.includes("goodstream") || s.includes("goodstream"))
     return "GoodStream";
+  if (isMirror(u, "FASTREAM") || isMirror(s, "FASTREAM"))
+    return "Fastream";
+  if (isMirror(u, "DROPCDN") || isMirror(s, "DROPCDN"))
+    return "DropCDN";
   if (u.includes("vimeos") || u.includes("vms.sh") || s.includes("vimeos"))
     return "Vimeos";
   if (isMirror(u, "VIDHIDE") || isMirror(s, "VIDHIDE"))
@@ -39,6 +43,8 @@ function normalizeServer(server, url = "", resolvedServerName = null) {
     return "VOE";
   if (isMirror(u, "FILEMOON") || isMirror(s, "FILEMOON"))
     return "Filemoon";
+  if (url && url.includes("supervideo"))
+    return "Supervideo";
   if (isMirror(u, "DOODSTREAM") || isMirror(s, "DOODSTREAM"))
     return "DoodStream";
   if (url) {

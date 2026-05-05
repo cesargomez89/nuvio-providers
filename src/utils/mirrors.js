@@ -11,11 +11,8 @@ const MIRRORS = {
     "dintezuvio",
     "acek-cdn",
     "vedonm",
-    "vidhidepro",
-    "vidhidevip",
     "masukestin",
-    "vidoza",
-    "supervideo"
+    "vidoza"
   ],
   STREAMWISH: [
     "hlswish",
@@ -54,10 +51,7 @@ const MIRRORS = {
   VOE: [
     "voe.sx",
     "voe-sx",
-    "voex.sx",
-    "marissashare",
-    "cloudwindow",
-    "marissasharecareer"
+    "voex.sx"
   ],
   FASTREAM: [
     "fastream",

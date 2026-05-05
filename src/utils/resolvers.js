@@ -2,9 +2,12 @@ const { resolve: resolveVoe } = require('../resolvers/voe.js');
 const { resolve: resolveHlswish } = require('../resolvers/hlswish.js');
 const { resolve: resolveFilemoon } = require('../resolvers/filemoon.js');
 const { resolve: resolveVidhide } = require('../resolvers/vidhide.js');
+const { resolve: resolveDoodstream } = require('../resolvers/doodstream.js');
+const { resolve: resolveDropcdn } = require('../resolvers/dropcdn.js');
 const { resolve: resolveGoodstream } = require('../resolvers/goodstream.js');
 const { resolve: resolveFastream } = require('../resolvers/fastream.js');
 const { resolve: resolveVimeos } = require('../resolvers/vimeos.js');
+const { resolve: resolveSupervideo } = require('../resolvers/supervideo.js');
 const { isMirror } = require('../utils/mirrors.js');
 const { getSessionUA } = require('../utils/http.js');
 
@@ -41,20 +44,46 @@ async function resolveEmbed(url, signal = null) {
   if (!url)
     return null;
   const urlLower = url.toLowerCase();
-  if (isMirror(urlLower, "VOE") || url.includes("voe.sx") || url.includes("voe-") || url.includes("voex.sx"))
-    return await resolveVoe(url, signal);
-  if (isMirror(urlLower, "STREAMWISH") || url.includes("streamwish") || url.includes("hlswish") || url.includes("filelions"))
-    return await resolveHlswish(url, signal);
-  if (isMirror(urlLower, "FILEMOON") || url.includes("filemoon"))
-    return await resolveFilemoon(url, signal);
-  if (isMirror(urlLower, "VIDHIDE") || url.includes("vidhide") || url.includes("vidhidepro") || url.includes("vidoza"))
-    return await resolveVidhide(url, signal);
-  if (url.includes("goodstream") || url.includes("gs.one"))
-    return await resolveGoodstream(url);
-  if (url.includes("fastream") || url.includes("fembed"))
-    return await resolveFastream(url);
-  if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh"))
-    return await resolveVimeos(url);
+  if (isMirror(urlLower, "VOE") || url.includes("voe.sx") || url.includes("voe-") || url.includes("voex.sx")) {
+    const result = await resolveVoe(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "STREAMWISH") || url.includes("streamwish") || url.includes("hlswish") || url.includes("filelions")) {
+    const result = await resolveHlswish(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "FILEMOON") || url.includes("filemoon")) {
+    const result = await resolveFilemoon(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "VIDHIDE") || url.includes("vidhide") || url.includes("vidhidepro") || url.includes("vidoza")) {
+    const result = await resolveVidhide(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "DOODSTREAM")) {
+    const result = await resolveDoodstream(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "DROPCDN")) {
+    const result = await resolveDropcdn(url);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "GOODSTREAM") || url.includes("goodstream") || url.includes("gs.one")) {
+    const result = await resolveGoodstream(url);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "FASTREAM") || url.includes("fastream") || url.includes("fembed")) {
+    const result = await resolveFastream(url);
+    if (result) return result;
+  }
+  if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh")) {
+    const result = await resolveVimeos(url);
+    if (result) return result;
+  }
+  if (url.includes("supervideo")) {
+    const result = await resolveSupervideo(url, signal);
+    if (result) return result;
+  }
   
   // Fallback: return URL with direct CDN headers for unmatched URLs
   // This ensures we don't lose valid stream URLs
