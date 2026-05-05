@@ -1,6 +1,6 @@
 /**
  * embed69 - Built from src/embed69/
- * Generated: 2026-05-05T20:09:23.169Z
+ * Generated: 2026-05-05T22:20:12.088Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1931,6 +1931,7 @@ var import_engine = __toESM(require_engine());
 var import_tmdb = __toESM(require_tmdb());
 var import_resolvers = __toESM(require_resolvers());
 var BASE_URL = "https://embed69.org";
+var RESOLVER_TIMEOUT = 4e3;
 function decodeJwtPayload(token) {
   try {
     if (!token || typeof token !== "string")
@@ -1960,18 +1961,26 @@ function applyPipingLocal(result) {
   result.url = url;
   return result;
 }
+function resolveWithTimeout(url) {
+  return __async(this, null, function* () {
+    if (!url)
+      return null;
+    return Promise.race([
+      (0, import_resolvers.resolveEmbed)(url).then((res) => res ? applyPipingLocal(res) : applyPipingLocal({ url, quality: "HD", verified: false })),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), RESOLVER_TIMEOUT))
+    ]);
+  });
+}
 function resolveEmbedLocal(url) {
   return __async(this, null, function* () {
     if (!url)
       return null;
     console.log(`[Embed69] Resolving: ${url}`);
     try {
-      const res = yield (0, import_resolvers.resolveEmbed)(url);
-      if (res && res.url)
-        return applyPipingLocal(res);
-      return applyPipingLocal({ url, quality: "HD", verified: false });
+      return yield resolveWithTimeout(url);
     } catch (err) {
-      return applyPipingLocal({ url, quality: "HD", verified: false });
+      console.log(`[Embed69] Timeout/failed: ${url.substring(0, 60)}`);
+      return null;
     }
   });
 }
@@ -2039,10 +2048,10 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         if (embeds.length === 0)
           continue;
         console.log(`[Embed69] Resolving ${embeds.length} embeds (${lang})...`);
-        const resolvedResults = yield Promise.all(
+        const resolvedResults = yield Promise.allSettled(
           embeds.map((emb) => resolveEmbedLocal(emb.url))
         );
-        const resolved = resolvedResults.filter((result) => result && result.url).map((result) => ({
+        const resolved = resolvedResults.filter((r) => r.status === "fulfilled" && r.value && r.value.url).map((r) => r.value).map((result) => ({
           serverName: result.serverName || "Server",
           audio: currentLangLabel,
           quality: result.quality || "HD",

@@ -6,6 +6,7 @@ import { getCorrectImdbId } from '../utils/tmdb.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 
 const BASE_URL = "https://embed69.org";
+const RESOLVER_TIMEOUT = 4000;
 
 function decodeJwtPayload(token) {
     try {
@@ -30,15 +31,22 @@ function applyPipingLocal(result) {
     return result;
 }
 
+async function resolveWithTimeout(url) {
+    if (!url) return null;
+    return Promise.race([
+        resolveEmbed(url).then(res => res ? applyPipingLocal(res) : applyPipingLocal({ url, quality: "HD", verified: false })),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), RESOLVER_TIMEOUT))
+    ]);
+}
+
 async function resolveEmbedLocal(url) {
     if (!url) return null;
     console.log(`[Embed69] Resolving: ${url}`);
     try {
-        const res = await resolveEmbed(url);
-        if (res && res.url) return applyPipingLocal(res);
-        return applyPipingLocal({ url, quality: "HD", verified: false });
+        return await resolveWithTimeout(url);
     } catch (err) {
-        return applyPipingLocal({ url, quality: "HD", verified: false });
+        console.log(`[Embed69] Timeout/failed: ${url.substring(0, 60)}`);
+        return null;
     }
 }
 
@@ -104,11 +112,12 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             if (embeds.length === 0) continue;
 
             console.log(`[Embed69] Resolving ${embeds.length} embeds (${lang})...`);
-            const resolvedResults = await Promise.all(
+            const resolvedResults = await Promise.allSettled(
                 embeds.map(emb => resolveEmbedLocal(emb.url))
             );
             const resolved = resolvedResults
-                .filter(result => result && result.url)
+                .filter(r => r.status === 'fulfilled' && r.value && r.value.url)
+                .map(r => r.value)
                 .map(result => ({
                     serverName: result.serverName || "Server",
                     audio: currentLangLabel,
