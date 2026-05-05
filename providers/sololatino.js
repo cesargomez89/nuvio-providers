@@ -1,6 +1,6 @@
 /**
  * sololatino - Built from src/sololatino/
- * Generated: 2026-05-05T06:24:54.068Z
+ * Generated: 2026-05-05T06:27:41.566Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1546,7 +1546,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    function getTmdbAliases(tmdbId, mediaType) {
+    function getTmdbAliases2(tmdbId, mediaType) {
       return __async(this, null, function* () {
         try {
           const titleEs = yield getTmdbTitle2(tmdbId, mediaType);
@@ -1584,7 +1584,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
   }
 });
 
@@ -1612,6 +1612,52 @@ var require_helpers = __commonJS({
       return Buffer.from(str, "utf-8").toString("base64");
     }
     module2.exports = { sleep, padEpisode, isMovie: isMovie2, cleanTmdbId: cleanTmdbId2, toDoubleBase64 };
+  }
+});
+
+// src/utils/title.js
+var require_title = __commonJS({
+  "src/utils/title.js"(exports2, module2) {
+    function normalizeTitle(t) {
+      if (!t)
+        return "";
+      return t.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    }
+    function titleMatch2(query, target, minRatio = 0.8) {
+      const q = normalizeTitle(query);
+      const t = normalizeTitle(target);
+      if (!q || !t)
+        return false;
+      if (q === t)
+        return true;
+      const qWords = q.split(" ").filter((w) => w.length > 2);
+      const tWords = t.split(" ");
+      if (qWords.length === 0)
+        return q === t;
+      const matchCount = qWords.filter((w) => tWords.includes(w)).length;
+      const ratio = matchCount / qWords.length;
+      return ratio >= minRatio;
+    }
+    function levenshtein(a, b) {
+      if (!a || !b)
+        return Math.max((a || "").length, (b || "").length);
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++)
+        matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++)
+        matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+    module2.exports = { normalizeTitle, titleMatch: titleMatch2, levenshtein };
   }
 });
 
@@ -1661,9 +1707,23 @@ var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
 var import_helpers = __toESM(require_helpers());
+var import_title = __toESM(require_title());
 var import_parallel = __toESM(require_parallel());
 var BASE = "https://sololatino.net";
 var HEADERS = __spreadProps(__spreadValues({}, (0, import_http.getStealthHeaders)()), { "Accept-Language": "es-ES,es;q=0.9,en;q=0.8" });
+function findSlugForId(html, targetId) {
+  const idIndex = html.indexOf(`data-movie-id="${targetId}"`);
+  if (idIndex === -1)
+    return null;
+  const beforeSection = html.substring(0, idIndex);
+  const hrefRegex = /<a\s+href="(https?:\/\/sololatino\.net\/(?:serie|pelicula)\/[^"]+)"/gi;
+  let match;
+  let slugUrl = null;
+  while ((match = hrefRegex.exec(beforeSection)) !== null) {
+    slugUrl = match[1];
+  }
+  return slugUrl;
+}
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId)
@@ -1671,7 +1731,6 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     console.log(`[SoloLatino] Looking for content: ${tmdbId} (${mediaType})`);
     try {
       const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
-      (0, import_http.setSessionUA)((0, import_http.getSessionUA)());
       let searchTitle = title;
       if (!searchTitle) {
         searchTitle = yield (0, import_tmdb.getTmdbTitle)(realId, mediaType);
@@ -1684,20 +1743,36 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       console.log(`[SoloLatino] Searching: ${searchUrl}`);
       const searchHtml = yield (0, import_http.fetchHtml)(searchUrl, { headers: HEADERS });
       const targetId = realId.toString();
-      const idIndex = searchHtml.indexOf(`data-movie-id="${targetId}"`);
-      if (idIndex === -1) {
-        console.log(`[SoloLatino] No match found for TMDB: ${targetId}`);
-        return [];
-      }
-      const beforeSection = searchHtml.substring(0, idIndex);
-      const hrefRegex = /<a\s+href="(https?:\/\/sololatino\.net\/(?:serie|pelicula)\/[^"]+)"/gi;
-      let hrefMatch;
-      let slugUrl = null;
-      while ((hrefMatch = hrefRegex.exec(beforeSection)) !== null) {
-        slugUrl = hrefMatch[1];
+      let slugUrl = findSlugForId(searchHtml, targetId);
+      if (!slugUrl) {
+        console.log(`[SoloLatino] No direct TMDB match for ${targetId}, trying aliases...`);
+        const aliases = yield (0, import_tmdb.getTmdbAliases)(realId, mediaType);
+        const allTitles = [searchTitle, ...aliases.filter((a) => a !== searchTitle)];
+        for (const alias of allTitles) {
+          console.log(`[SoloLatino] Trying alias: "${alias}"`);
+          const aliasSearchUrl = `${BASE}/buscar?q=${encodeURIComponent(alias)}`;
+          const aliasHtml = yield (0, import_http.fetchHtml)(aliasSearchUrl, { headers: HEADERS });
+          slugUrl = findSlugForId(aliasHtml, targetId);
+          if (slugUrl) {
+            searchTitle = alias;
+            break;
+          }
+          const linkRegex = /<a\s+href="(https?:\/\/sololatino\.net\/(?:serie|pelicula)\/[^"]+)"[^>]*>\s*([^<]+)\s*<\/a>/gi;
+          let linkMatch;
+          while ((linkMatch = linkRegex.exec(aliasHtml)) !== null) {
+            const resultTitle = linkMatch[2].trim();
+            if ((0, import_title.titleMatch)(alias, resultTitle)) {
+              slugUrl = linkMatch[1];
+              searchTitle = alias;
+              break;
+            }
+          }
+          if (slugUrl)
+            break;
+        }
       }
       if (!slugUrl) {
-        console.log(`[SoloLatino] Could not extract URL for TMDB: ${targetId}`);
+        console.log(`[SoloLatino] No match found for TMDB: ${targetId}`);
         return [];
       }
       let finalUrl = slugUrl;
