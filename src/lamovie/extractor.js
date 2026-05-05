@@ -140,8 +140,8 @@ async function getEpisodeId(seriesId, seasonNum, episodeNum) {
     }
 }
 
-async function processEmbed(embed) {
-    const resolved = await resolveEmbed(embed.url);
+async function processEmbed(embed, signal) {
+    const resolved = await resolveEmbed(embed.url, signal);
     if (!resolved || !resolved.url) {
         console.log("[LaMovie] Sin resolver para: " + embed.url);
         return null;
@@ -196,8 +196,14 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         }
 
         const embeds = data.data.embeds;
-        const results = await Promise.all(embeds.map(processEmbed));
-        const streams = results.filter(r => r);
+        const EMBED_TIMEOUT = 8000;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), EMBED_TIMEOUT);
+        const results = await Promise.allSettled(
+            embeds.map(e => processEmbed(e, controller.signal))
+        );
+        clearTimeout(timer);
+        const streams = results.map(r => r.status === 'fulfilled' ? r.value : null).filter(r => r);
 
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
         console.log(`[LaMovie] ✓ ${streams.length} streams en ${elapsed}s`);

@@ -1,6 +1,6 @@
 /**
  * pelispedia - Built from src/pelispedia/
- * Generated: 2026-05-05T22:20:12.110Z
+ * Generated: 2026-05-05T22:25:43.324Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;

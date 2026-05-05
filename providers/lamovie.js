@@ -1,6 +1,6 @@
 /**
  * lamovie - Built from src/lamovie/
- * Generated: 2026-05-05T22:20:12.099Z
+ * Generated: 2026-05-05T22:25:43.312Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -2081,9 +2081,9 @@ function getEpisodeId(seriesId, seasonNum, episodeNum) {
     }
   });
 }
-function processEmbed(embed) {
+function processEmbed(embed, signal) {
   return __async(this, null, function* () {
-    const resolved = yield (0, import_resolvers.resolveEmbed)(embed.url);
+    const resolved = yield (0, import_resolvers.resolveEmbed)(embed.url, signal);
     if (!resolved || !resolved.url) {
       console.log("[LaMovie] Sin resolver para: " + embed.url);
       return null;
@@ -2134,8 +2134,14 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         return [];
       }
       const embeds = data.data.embeds;
-      const results = yield Promise.all(embeds.map(processEmbed));
-      const streams = results.filter((r) => r);
+      const EMBED_TIMEOUT = 8e3;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), EMBED_TIMEOUT);
+      const results = yield Promise.allSettled(
+        embeds.map((e) => processEmbed(e, controller.signal))
+      );
+      clearTimeout(timer);
+      const streams = results.map((r) => r.status === "fulfilled" ? r.value : null).filter((r) => r);
       const elapsed = ((Date.now() - startTime) / 1e3).toFixed(2);
       console.log(`[LaMovie] \u2713 ${streams.length} streams en ${elapsed}s`);
       return yield (0, import_engine.finalizeStreams)(streams, "LaMovie", tmdbInfo.title);
