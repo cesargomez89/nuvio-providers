@@ -1,6 +1,6 @@
 /**
  * xupalace - Built from src/xupalace/
- * Generated: 2026-05-04T23:29:04.621Z
+ * Generated: 2026-05-05T00:35:12.495Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
