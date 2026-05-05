@@ -1,0 +1,8 @@
+{
+  "name": "PelisPop",
+  "description": "Películas y series en Latino desde PelisPop.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

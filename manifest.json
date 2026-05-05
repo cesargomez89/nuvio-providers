@@ -1,12 +1,12 @@
 {
   "name": "Latinus Mexico",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "scrapers": [
     {
       "id": "brazucaplay",
       "name": "BrazucaPlay",
       "description": "Películas y series en Português desde Brasil.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -28,7 +28,7 @@
       "id": "cinecalidad",
       "name": "CineCalidad",
       "description": "Películas en Latino desde CineCalidad.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -50,7 +50,7 @@
       "id": "cinehdplus",
       "name": "CineHDPlus",
       "description": "Películas y series en Latino HD.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -72,7 +72,7 @@
       "id": "cuevana_unbuendato",
       "name": "Cuevana",
       "description": "Películas y series en Latino (Cuevana).",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -94,7 +94,7 @@
       "id": "embed69",
       "name": "Embed69",
       "description": "Streams en Latino/Español desde Embed69.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -116,7 +116,7 @@
       "id": "fuegocine",
       "name": "FuegoCine",
       "description": "Películas en Latino desde FuegoCine.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -138,7 +138,7 @@
       "id": "hackstore2",
       "name": "HackStore",
       "description": "Películas y series en Latino desde HackStore.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -160,7 +160,7 @@
       "id": "lamovie",
       "name": "LaMovie",
       "description": "Películas y series en Latino desde LaMovie.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -182,7 +182,7 @@
       "id": "pelisgo",
       "name": "PelisGo",
       "description": "Películas en Latino desde PelisGo.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -204,7 +204,7 @@
       "id": "pelispanda",
       "name": "PelisPanda",
       "description": "Películas y series en Latino desde PelisPanda.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -226,7 +226,7 @@
       "id": "pelispedia",
       "name": "PelisPedia",
       "description": "Películas en Latino desde PelisPedia.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -248,7 +248,7 @@
       "id": "pelisplus",
       "name": "PelisPlus",
       "description": "Películas y series en Latino desde PelisPlus.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -267,10 +267,32 @@
       "supportsExternalPlayer": true
     },
     {
+      "id": "pelispop",
+      "name": "PelisPop",
+      "description": "Películas y series en Latino desde PelisPop.",
+      "version": "1.0.6",
+      "author": "cesargomez89",
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ],
+      "filename": "providers/pelispop.js",
+      "enabled": true,
+      "contentLanguage": [
+        "es"
+      ],
+      "formats": [
+        "mp4",
+        "mkv"
+      ],
+      "limited": false,
+      "supportsExternalPlayer": true
+    },
+    {
       "id": "playhubmax",
       "name": "PlayHubMax",
       "description": "Películas y series en Latino desde PlayHubMax.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -292,7 +314,7 @@
       "id": "repelishd",
       "name": "RePelisHD",
       "description": "Películas y series en Latino desde RePelisHD.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -314,7 +336,7 @@
       "id": "seriesmetro",
       "name": "SeriesMetro",
       "description": "Series en Latino desde SeriesMetro.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -336,7 +358,7 @@
       "id": "sololatino",
       "name": "SoloLatino",
       "description": "Películas y series en Latino.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -358,7 +380,7 @@
       "id": "tioplus",
       "name": "Tioplus",
       "description": "Películas y series en Latino desde Tioplus.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -380,7 +402,7 @@
       "id": "videasy",
       "name": "Videasy",
       "description": "Películas y series en Latino.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -402,7 +424,7 @@
       "id": "xupalace",
       "name": "Xupalace",
       "description": "Películas y series en Latino desde Xupalace.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",

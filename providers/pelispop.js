@@ -1,6 +1,6 @@
 /**
- * repelishd - Built from src/repelishd/
- * Generated: 2026-05-05T01:12:12.346Z
+ * pelispop - Built from src/pelispop/
+ * Generated: 2026-05-05T01:12:12.340Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -737,7 +737,7 @@ var require_hlswish = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA = getSessionUA2();
           const rawId = url.split("/").pop().replace(/\.html$/, "");
           const urlObj = new URL(url);
           const mirrors = [
@@ -760,7 +760,7 @@ var require_hlswish = __commonJS({
                 const mirrorObj = new URL(mirror);
                 const mirrorOrigin = mirrorObj.origin;
                 const resp = yield fetch(mirror, {
-                  headers: { "Referer": mirror, "User-Agent": UA2 },
+                  headers: { "Referer": mirror, "User-Agent": UA },
                   signal
                 });
                 if (!resp.ok)
@@ -772,7 +772,7 @@ var require_hlswish = __commonJS({
                   const hash = hashMatch[0];
                   const dlUrl = `${mirrorOrigin}/dl?op=view&file_code=${rawId}&hash=${hash}&embed=1&referer=&adb=1&hls4=1`;
                   const dlResp = yield fetch(dlUrl, {
-                    headers: { "User-Agent": UA2, "Referer": mirror, "X-Requested-With": "XMLHttpRequest" },
+                    headers: { "User-Agent": UA, "Referer": mirror, "X-Requested-With": "XMLHttpRequest" },
                     signal
                   });
                   if (dlResp.ok) {
@@ -822,7 +822,7 @@ var require_hlswish = __commonJS({
           const reqHeaders = {
             "Referer": validResult.mirror,
             "Origin": new URL(validResult.mirror).origin,
-            "User-Agent": UA2
+            "User-Agent": UA
           };
           const streamObj = { url: validResult.url, headers: reqHeaders };
           const validation = yield validateStream(streamObj, signal);
@@ -1162,11 +1162,11 @@ var require_goodstream = __commonJS({
     function resolve(embedUrl) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA = getSessionUA2();
           console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
           const response = yield fetch(embedUrl, {
             headers: {
-              "User-Agent": UA2,
+              "User-Agent": UA,
               "Referer": "https://goodstream.one/",
               "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
               "Accept-Language": "es-MX,es;q=0.9",
@@ -1183,7 +1183,7 @@ var require_goodstream = __commonJS({
           const refererHeaders = {
             "Referer": embedUrl,
             "Origin": "https://goodstream.one",
-            "User-Agent": UA2,
+            "User-Agent": UA,
             "Accept-Language": "es-MX,es;q=0.9"
           };
           const quality = yield detectQuality(videoUrl, refererHeaders);
@@ -1208,7 +1208,7 @@ var require_goodstream = __commonJS({
 // src/resolvers/fastream.js
 var require_fastream = __commonJS({
   "src/resolvers/fastream.js"(exports2, module2) {
-    var UA2 = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    var UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     function unpackPacker(data) {
       const match = data.match(/eval\(function\(p,a,c,k,e,d\)\{.*?\}\('([\s\S]*?)',(\d+),(\d+),'([\s\S]*?)'\.split\('\|'\)\)\)/);
       if (!match)
@@ -1227,7 +1227,7 @@ var require_fastream = __commonJS({
       return __async(this, arguments, function* (m3u8Url, headers = {}) {
         try {
           const res = yield fetch(m3u8Url, {
-            headers: __spreadValues({ "User-Agent": UA2 }, headers),
+            headers: __spreadValues({ "User-Agent": UA }, headers),
             redirect: "follow"
           });
           const data = yield res.text();
@@ -1265,7 +1265,7 @@ var require_fastream = __commonJS({
         try {
           const res = yield fetch(url, {
             headers: {
-              "User-Agent": UA2,
+              "User-Agent": UA,
               "Referer": "https://www3.seriesmetro.net/"
             },
             redirect: "follow"
@@ -1281,7 +1281,7 @@ var require_fastream = __commonJS({
           return {
             url: m3u8,
             quality,
-            headers: { "User-Agent": UA2, "Referer": "https://fastream.to/" }
+            headers: { "User-Agent": UA, "Referer": "https://fastream.to/" }
           };
         } catch (e) {
           console.error("[Fastream] Error:", e.message);
@@ -1299,12 +1299,12 @@ var require_vimeos = __commonJS({
     var { fetchHtml: fetchHtml2, fetchJson, getSessionUA: getSessionUA2 } = require_http();
     function resolve(embedUrl) {
       return __async(this, null, function* () {
-        const UA2 = getSessionUA2();
+        const UA = getSessionUA2();
         try {
           console.log("[Vimeos] Resolviendo: " + embedUrl);
           var html = yield fetchHtml2(embedUrl, {
             headers: {
-              "User-Agent": UA2,
+              "User-Agent": UA,
               "Referer": "https://vimeos.net/",
               "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
               "Accept-Language": "es-MX,es;q=0.9,en-US;q=0.8"
@@ -1317,7 +1317,7 @@ var require_vimeos = __commonJS({
             var vimeoId = vimeoIdMatch[1];
             try {
               var config = yield fetchJson("https://player.vimeo.com/video/" + vimeoId + "/config", {
-                headers: { "User-Agent": UA2, "Referer": embedUrl }
+                headers: { "User-Agent": UA, "Referer": embedUrl }
               });
               var hlsUrl = null;
               if (config && config.request && config.request.files && config.request.files.hls && config.request.files.hls.cdns && config.request.files.hls.cdns.default) {
@@ -1328,7 +1328,7 @@ var require_vimeos = __commonJS({
                   url: hlsUrl,
                   verified: true,
                   serverName: "Vimeos",
-                  headers: { "User-Agent": UA2, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
+                  headers: { "User-Agent": UA, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
                 };
               }
               var progressive = config && config.request && config.request.files ? config.request.files.progressive : null;
@@ -1340,7 +1340,7 @@ var require_vimeos = __commonJS({
                   url: best.url,
                   quality: best.quality ? best.quality + "p" : "1080p",
                   serverName: "Vimeos",
-                  headers: { "User-Agent": UA2, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
+                  headers: { "User-Agent": UA, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
                 };
               }
             } catch (e) {
@@ -1369,7 +1369,7 @@ var require_vimeos = __commonJS({
                 url: m3u8Match[1],
                 verified: true,
                 serverName: "Vimeos",
-                headers: { "User-Agent": UA2, "Referer": embedUrl }
+                headers: { "User-Agent": UA, "Referer": embedUrl }
               };
             }
           }
@@ -1396,7 +1396,7 @@ var require_resolvers = __commonJS({
     var { resolve: resolveVimeos } = require_vimeos();
     var { isMirror } = require_mirrors();
     var { getSessionUA: getSessionUA2 } = require_http();
-    var UA2 = getSessionUA2();
+    var UA = getSessionUA2();
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
@@ -1419,7 +1419,7 @@ var require_resolvers = __commonJS({
         }
         return headers;
       } catch (e) {
-        return { "User-Agent": UA2, "referer": url.split("?")[0] };
+        return { "User-Agent": UA, "referer": url.split("?")[0] };
       }
     }
     function resolveEmbed2(url, signal = null) {
@@ -1454,161 +1454,426 @@ var require_resolvers = __commonJS({
   }
 });
 
-// src/utils/helpers.js
-var require_helpers = __commonJS({
-  "src/utils/helpers.js"(exports2, module2) {
-    function sleep(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
+// src/utils/tmdb.js
+var require_tmdb = __commonJS({
+  "src/utils/tmdb.js"(exports2, module2) {
+    var { fetchJson } = require_http();
+    var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
+    var titleCache = /* @__PURE__ */ new Map();
+    var idCache = /* @__PURE__ */ new Map();
+    function getTmdbTitle2(tmdbId, mediaType, retries = 2) {
+      return __async(this, null, function* () {
+        var _a, _b, _c, _d;
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (titleCache.has(cacheKey))
+          return titleCache.get(cacheKey);
+        if (retries < 2)
+          yield new Promise((r) => setTimeout(r, 1e3));
+        const isImdb = tmdbId && tmdbId.startsWith("tt");
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const fetchUrl = isImdb ? `https://api.themoviedb.org/3/find/${tmdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id` : `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
+          const data = yield fetchJson(fetchUrl);
+          const title = isImdb ? ((_b = (_a = data[type + "_results"]) == null ? void 0 : _a[0]) == null ? void 0 : _b.title) || ((_d = (_c = data[type + "_results"]) == null ? void 0 : _c[0]) == null ? void 0 : _d.name) : data.title || data.name;
+          const result = title || null;
+          titleCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          if (retries > 0)
+            return getTmdbTitle2(tmdbId, mediaType, retries - 1);
+          titleCache.set(cacheKey, null);
+          return null;
+        }
+      });
     }
-    function padEpisode(episode) {
-      return String(episode).padStart(2, "0");
+    function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
+      return __async(this, null, function* () {
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang || "es-MX"}`;
+          const data = yield fetchJson(url);
+          return {
+            title: data.title || data.name,
+            originalTitle: data.original_title || data.original_name || null,
+            year: (data.release_date || data.first_air_date || "").split("-")[0],
+            genres: (data.genres || []).map((g) => g.id),
+            originCountries: data.origin_country || (data.production_countries || []).map((c) => c.iso_3166_1) || []
+          };
+        } catch (e) {
+          if (retries > 0) {
+            yield new Promise((r) => setTimeout(r, 1e3));
+            return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
+          }
+          return null;
+        }
+      });
     }
-    function isMovie2(mediaType) {
-      return mediaType === "movie" || mediaType === "movies";
+    function getCorrectImdbId(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        if (!tmdbId)
+          return { imdbId: null, title: "" };
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (idCache.has(cacheKey))
+          return idCache.get(cacheKey);
+        if (tmdbId.startsWith("tt")) {
+          const res = { imdbId: tmdbId, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, res);
+          return res;
+        }
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const idUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
+          const idRes = yield fetchJson(idUrl);
+          if (!idRes || !idRes.imdb_id) {
+            const result2 = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+            idCache.set(cacheKey, result2);
+            return result2;
+          }
+          const metaRes = yield getTmdbInfo(tmdbId, mediaType);
+          const result = {
+            imdbId: idRes.imdb_id,
+            title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
+            year: (metaRes == null ? void 0 : metaRes.year) || null,
+            offset: 0,
+            fromMapping: false
+          };
+          idCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, result);
+          return result;
+        }
+      });
     }
-    function cleanTmdbId2(tmdbId) {
-      return tmdbId ? tmdbId.toString().split(":")[0] : tmdbId;
+    function getTmdbAliases2(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        try {
+          const titleEs = yield getTmdbTitle2(tmdbId, mediaType);
+          const titleEn = yield (() => __async(this, null, function* () {
+            try {
+              const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+              const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
+              const data = yield fetchJson(url);
+              return data.title || data.name || null;
+            } catch (e) {
+              return null;
+            }
+          }))();
+          const aliases = [];
+          if (titleEs)
+            aliases.push(titleEs);
+          if (titleEn && titleEn !== titleEs)
+            aliases.push(titleEn);
+          try {
+            const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+            const altUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/alternative_titles?api_key=${TMDB_API_KEY}`;
+            const altData = yield fetchJson(altUrl);
+            const titles = altData.titles || altData.results || [];
+            for (const t of titles) {
+              const altTitle = t.title || t.name;
+              if (altTitle && !aliases.includes(altTitle))
+                aliases.push(altTitle);
+            }
+          } catch (e) {
+            console.warn(`[TMDB-Aliases] Alternative titles fetch failed`);
+          }
+          return aliases;
+        } catch (e) {
+          return [];
+        }
+      });
     }
-    function toDoubleBase64(str) {
-      try {
-        if (typeof btoa !== "undefined")
-          return btoa(str);
-      } catch (e) {
-      }
-      return Buffer.from(str, "utf-8").toString("base64");
-    }
-    module2.exports = { sleep, padEpisode, isMovie: isMovie2, cleanTmdbId: cleanTmdbId2, toDoubleBase64 };
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
   }
 });
 
-// src/repelishd/extractor.js
+// src/pelispop/extractor.js
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
-var import_helpers = __toESM(require_helpers());
-var BASE_URL = "https://repelishd.run";
-var SEARCH_URL = `${BASE_URL}/?story={TMDB_ID}&do=search&subaction=search`;
-var UA = (0, import_http.getSessionUA)();
+var import_tmdb = __toESM(require_tmdb());
+var BASE_URL = "https://pelispop.mov";
+var UA3 = (0, import_http.getSessionUA)();
 var HEADERS = {
-  "User-Agent": UA,
+  "User-Agent": UA3,
   "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-  "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
+  "Accept-Language": "es-MX,es;q=0.9",
+  "Connection": "keep-alive",
+  "Upgrade-Insecure-Requests": "1",
+  "Referer": `${BASE_URL}/`
 };
-function searchContent(tmdbId) {
-  return __async(this, null, function* () {
-    const url = SEARCH_URL.replace("{TMDB_ID}", tmdbId);
-    const html = yield (0, import_http.fetchHtml)(url, { headers: HEADERS });
-    const match = html.match(/<h3><a\s+href="([^"]*ver-pelicula\/[^"]+)"[^>]*>/);
-    if (!match)
-      return null;
-    return match[1];
-  });
+var FETCH_TIMEOUT = 1e4;
+function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+  return (0, import_http.fetchHtml)(url, __spreadProps(__spreadValues({}, options), { signal: controller.signal })).finally(() => clearTimeout(timeoutId));
 }
-function extractMovieEmbeds(pageUrl) {
-  return __async(this, null, function* () {
-    const html = yield (0, import_http.fetchHtml)(pageUrl, { headers: HEADERS });
-    const iframeMatch = html.match(/<iframe[^>]*src="(https?:\/\/verhdlink\.cam\/movie\/[^"]+)"/);
-    if (!iframeMatch)
-      return [];
-    const verhdUrl = iframeMatch[1];
-    const verhdHtml = yield (0, import_http.fetchHtml)(verhdUrl, {
-      headers: __spreadProps(__spreadValues({}, HEADERS), { "Referer": BASE_URL + "/" })
-    });
-    const embeds = [];
-    const mirrorMatch = verhdHtml.match(/<ul class="_player-mirrors latino[^>]*>([\s\S]*?)<\/ul>/);
-    if (mirrorMatch) {
-      const allLinks = mirrorMatch[1].matchAll(/data-link="([^"]+)"/g);
-      for (const m of allLinks) {
-        let url = m[1];
-        if (!url || url === "")
-          continue;
-        if (url.startsWith("//"))
-          url = "https:" + url;
-        embeds.push(url);
-      }
-    }
-    return [...new Set(embeds)];
-  });
+function getServerName(url) {
+  if (url.includes("goodstream"))
+    return "GoodStream";
+  if (url.includes("hlswish") || url.includes("streamwish") || url.includes("strwish"))
+    return "StreamWish";
+  if (url.includes("voe.sx"))
+    return "VOE";
+  if (url.includes("filemoon"))
+    return "Filemoon";
+  if (url.includes("vimeos"))
+    return "Vimeos";
+  return "Online";
 }
-function extractTvEmbeds(pageUrl, season, episode) {
-  return __async(this, null, function* () {
-    const html = yield (0, import_http.fetchHtml)(pageUrl, { headers: HEADERS });
-    const episodeId = `serie-${season}_${episode}`;
-    const embeds = [];
-    const epMatch = html.match(new RegExp(
-      `<a[^>]*id="${episodeId}"[^>]*data-link="([^"]+)"`
-    ));
-    if (epMatch)
-      embeds.push(epMatch[1]);
-    const droploadRe = new RegExp(
-      `<a[^>]*id="${episodeId}"[^>]*>.*?<a[^>]*data-m="dropload"[^>]*data-link="([^"]+)"`,
-      "s"
-    );
-    const dropMatch = html.match(droploadRe);
-    if (dropMatch)
-      embeds.push(dropMatch[1]);
-    return [...new Set(embeds)];
-  });
+function b64decode(str) {
+  try {
+    if (typeof atob !== "undefined")
+      return atob(str);
+    return Buffer.from(str, "base64").toString("utf8");
+  } catch (e) {
+    return null;
+  }
 }
-function extractStreams(tmdbId, mediaType, season, episode) {
+function normalizeTitle(t) {
+  if (!t)
+    return "";
+  return t.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+function buildSlug(title) {
+  return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+function getMovieUrl(slug) {
   return __async(this, null, function* () {
-    if (!tmdbId)
-      return [];
-    console.log(`[RePelisHD] Looking for: ${tmdbId} (${mediaType})`);
-    try {
-      const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
-      const s = parseInt(season || 1);
-      const e = parseInt(episode || 1);
-      const contentUrl = yield searchContent(realId);
-      if (!contentUrl) {
-        console.log(`[RePelisHD] No content found on site`);
-        return [];
-      }
-      console.log(`[RePelisHD] Found page: ${contentUrl}`);
-      let embedUrls;
-      if ((0, import_helpers.isMovie)(mediaType)) {
-        embedUrls = yield extractMovieEmbeds(contentUrl);
-      } else {
-        embedUrls = yield extractTvEmbeds(contentUrl, s, e);
-      }
-      if (!embedUrls || embedUrls.length === 0) {
-        console.log(`[RePelisHD] No embeds found`);
-        return [];
-      }
-      console.log(`[RePelisHD] Resolving ${embedUrls.length} embeds...`);
-      const results = yield Promise.all(embedUrls.map((url) => __async(this, null, function* () {
+    const slugsToTry = [slug, `${slug}-2`, `${slug}-3`, `${slug}-1`, `${slug}_2`, `${slug}_3`];
+    const slugResults = yield Promise.all(
+      slugsToTry.map((s) => __async(this, null, function* () {
+        const url = `${BASE_URL}/pelicula/${s}/`;
         try {
-          const resolved = yield (0, import_resolvers.resolveEmbed)(url);
-          if (resolved && resolved.url) {
-            return {
-              url: resolved.url,
-              serverName: resolved.serverName || "Server",
-              langLabel: "Latino",
-              quality: resolved.quality || "HD",
-              headers: resolved.headers || { "User-Agent": UA, "Referer": url }
-            };
-          }
-          return null;
-        } catch (e2) {
-          return null;
+          const html = yield fetchWithTimeout(url, { headers: HEADERS });
+          if (!html || html.includes("404 Not Found") || !html.includes('id="btn_enlace"'))
+            return null;
+          console.log(`[PelisPop] \u2713 Encontrado v\xEDa slug: /pelicula/${s}/`);
+          return url;
+        } catch (e) {
         }
-      })));
-      const validStreams = results.filter((r) => r !== null);
-      return yield (0, import_engine.finalizeStreams)(validStreams, "RePelisHD", "");
-    } catch (error) {
-      console.error(`[RePelisHD] Error: ${error.message}`);
+        return null;
+      }))
+    );
+    return slugResults.find((r) => r !== null);
+  });
+}
+function getSeriesUrl(slug) {
+  return __async(this, null, function* () {
+    const url = `${BASE_URL}/serie/${slug}/`;
+    try {
+      const html = yield fetchWithTimeout(url, { headers: HEADERS });
+      if (!html || html.includes("404 Not Found") || !html.includes("Temporada"))
+        return null;
+      console.log(`[PelisPop] \u2713 Encontrado serie: /serie/${slug}/`);
+      return url;
+    } catch (e) {
+      return null;
+    }
+  });
+}
+function getBaseSeriesUrl(url) {
+  const match = url.match(/\/serie\/([^/]+)/);
+  if (match)
+    return `${BASE_URL}/serie/${match[1]}/`;
+  return url;
+}
+function searchResults(title) {
+  return __async(this, null, function* () {
+    try {
+      const searchUrl = `${BASE_URL}/search?s=${normalizeTitle(title).replace(/\s+/g, "+")}`;
+      const html = yield fetchWithTimeout(searchUrl, { headers: HEADERS });
+      const movies = [];
+      const series = [];
+      const linkRegex = /href="([^"]+\/(pelicula|serie)\/[^"]+)"/gi;
+      let match;
+      while ((match = linkRegex.exec(html)) !== null) {
+        const url = match[1];
+        const type = match[2];
+        if (type === "pelicula" && !movies.includes(url))
+          movies.push(url);
+        if (type === "serie") {
+          const baseUrl = getBaseSeriesUrl(url);
+          if (!series.includes(baseUrl))
+            series.push(baseUrl);
+        }
+      }
+      return { movies, series };
+    } catch (e) {
+      console.log(`[PelisPop] Error en b\xFAsqueda: ${e.message}`);
+      return { movies: [], series: [] };
+    }
+  });
+}
+function getEmbedUrls(movieUrl) {
+  return __async(this, null, function* () {
+    try {
+      const html = yield fetchWithTimeout(movieUrl, { headers: HEADERS });
+      const embedUrls = [];
+      const iframeRegex = /<iframe[^>]+src="([^"]+)"/g;
+      let match;
+      while ((match = iframeRegex.exec(html)) !== null) {
+        const src = match[1];
+        if (src && src.startsWith("http") && !src.includes("facebook") && !src.includes("google")) {
+          embedUrls.push(src);
+        }
+      }
+      if (embedUrls.length === 0) {
+        const dataSrcRegex = /data-src="([A-Za-z0-9+/=]{20,})"/g;
+        while ((match = dataSrcRegex.exec(html)) !== null) {
+          const decoded = b64decode(match[1]);
+          if (decoded && decoded.startsWith("http"))
+            embedUrls.push(decoded);
+        }
+      }
+      return [...new Set(embedUrls)];
+    } catch (e) {
+      console.log(`[PelisPop] Error obteniendo embeds: ${e.message}`);
+      return [];
+    }
+  });
+}
+function processEmbed(embedUrl) {
+  return __async(this, null, function* () {
+    try {
+      const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
+      if (!result || !result.url)
+        return null;
+      return {
+        langLabel: "Latino",
+        serverLabel: getServerName(embedUrl),
+        url: result.url,
+        quality: result.quality,
+        siteQuality: null,
+        headers: result.headers || {}
+      };
+    } catch (e) {
+      return null;
+    }
+  });
+}
+function getSeriesEmbedUrls(seriesUrl, season, episode) {
+  return __async(this, null, function* () {
+    try {
+      const baseUrl = getBaseSeriesUrl(seriesUrl);
+      const episodeUrl = season && episode ? `${baseUrl}temporada/${season}/capitulo/${episode}` : baseUrl;
+      console.log(`[PelisPop] Obteniendo episode: ${episodeUrl}`);
+      const html = yield fetchWithTimeout(episodeUrl, { headers: HEADERS });
+      if (!html || html.includes("404 Not Found") || html.includes("Extraviado"))
+        return [];
+      const embedUrls = [];
+      const iframeRegex = /<iframe[^>]+src="([^"]+)"/g;
+      let match;
+      while ((match = iframeRegex.exec(html)) !== null) {
+        const src = match[1];
+        if (src && src.startsWith("http") && !src.includes("facebook") && !src.includes("google")) {
+          embedUrls.push(src);
+        }
+      }
+      return [...new Set(embedUrls)];
+    } catch (e) {
+      console.log(`[PelisPop] Error obteniendo embeds de serie: ${e.message}`);
+      return [];
+    }
+  });
+}
+function extractStreams(tmdbId, mediaType, season, episode, title) {
+  return __async(this, null, function* () {
+    if (!tmdbId || !mediaType)
+      return [];
+    const isMovie = mediaType === "movie" || mediaType === "movies";
+    console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
+    try {
+      let mediaTitle = title;
+      if (!mediaTitle && tmdbId) {
+        mediaTitle = yield (0, import_tmdb.getTmdbTitle)(tmdbId, mediaType);
+      }
+      if (!mediaTitle)
+        return [];
+      const slug = buildSlug(mediaTitle);
+      if (!slug)
+        return [];
+      let selectedUrl = null;
+      if (isMovie) {
+        selectedUrl = yield getMovieUrl(slug);
+      } else {
+        selectedUrl = yield getSeriesUrl(slug);
+      }
+      if (!selectedUrl) {
+        console.log(`[PelisPop] Slug directo fall\xF3, intentando b\xFAsqueda para: ${mediaTitle}`);
+        const search = yield searchResults(mediaTitle);
+        const results = isMovie ? search.movies : search.series;
+        if (results.length > 0) {
+          selectedUrl = results[0];
+          console.log(`[PelisPop] \u2713 Encontrado v\xEDa b\xFAsqueda: ${selectedUrl}`);
+        }
+      }
+      if (!selectedUrl && tmdbId) {
+        console.log(`[PelisPop] Iniciando rescate por Alias en paralelo...`);
+        const aliases = yield (0, import_tmdb.getTmdbAliases)(tmdbId, mediaType);
+        const filteredAliases = [...new Set(aliases.filter((alias) => {
+          if (!alias || alias === mediaTitle)
+            return false;
+          return /^[a-zA-Z0-9\s\-\:\.\,¡!¿?áéíóúÁÉÍÓÚñÑ]+$/.test(alias);
+        }))].slice(0, 5);
+        if (filteredAliases.length > 0) {
+          const BATCH_SIZE = 2;
+          for (let i = 0; i < filteredAliases.length; i += BATCH_SIZE) {
+            const batch = filteredAliases.slice(i, i + BATCH_SIZE);
+            const batchResults = yield Promise.all(batch.map((alias) => __async(this, null, function* () {
+              const aliasSlug = buildSlug(alias);
+              if (isMovie) {
+                const urlBySlug = yield getMovieUrl(aliasSlug);
+                if (urlBySlug)
+                  return urlBySlug;
+                const aliasResults = yield searchResults(alias);
+                return aliasResults.movies.length > 0 ? aliasResults.movies[0] : null;
+              } else {
+                const urlBySlug = yield getSeriesUrl(aliasSlug);
+                if (urlBySlug)
+                  return urlBySlug;
+                const aliasResults = yield searchResults(alias);
+                return aliasResults.series.length > 0 ? aliasResults.series[0] : null;
+              }
+            })));
+            selectedUrl = batchResults.find((url) => url !== null);
+            if (selectedUrl)
+              break;
+          }
+          if (selectedUrl) {
+            console.log(`[PelisPop] \u2713 Encontrado v\xEDa rescate paralelo: ${selectedUrl}`);
+          }
+        }
+      }
+      if (!selectedUrl) {
+        console.log(`[PelisPop] No se encontr\xF3${isMovie ? " la pel\xEDcula" : " la serie"}: ${mediaTitle}`);
+        return [];
+      }
+      let embedUrls;
+      if (isMovie) {
+        embedUrls = yield getEmbedUrls(selectedUrl);
+      } else {
+        embedUrls = yield getSeriesEmbedUrls(selectedUrl, season, episode);
+      }
+      if (embedUrls.length === 0)
+        return [];
+      const streams = (yield Promise.allSettled(embedUrls.map(processEmbed))).filter((r) => r.status === "fulfilled" && r.value).map((r) => r.value);
+      return yield (0, import_engine.finalizeStreams)(streams, "PelisPop", mediaTitle);
+    } catch (e) {
+      console.log(`[PelisPop] Error: ${e.message}`);
       return [];
     }
   });
 }
 
-// src/repelishd/index.js
+// src/pelispop/index.js
 function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
       return yield extractStreams(tmdbId, mediaType, season, episode);
     } catch (e) {
-      console.error(`[RePelisHD] Error: ${e.message}`);
+      console.error(`[PelisPop] Error: ${e.message}`);
       return [];
     }
   });
