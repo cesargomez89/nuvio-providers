@@ -1,6 +1,6 @@
 /**
  * sololatino - Built from src/sololatino/
- * Generated: 2026-05-05T05:56:40.715Z
+ * Generated: 2026-05-05T06:21:06.569Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -76,7 +76,7 @@ var require_http = __commonJS({
     function getSessionUA2() {
       return sessionUA || DEFAULT_CHROME_UA;
     }
-    function getStealthHeaders() {
+    function getStealthHeaders2() {
       return {
         "User-Agent": getSessionUA2(),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -144,7 +144,7 @@ var require_http = __commonJS({
       fetchJson,
       getSessionUA: getSessionUA2,
       setSessionUA: setSessionUA2,
-      getStealthHeaders,
+      getStealthHeaders: getStealthHeaders2,
       DEFAULT_UA,
       MOBILE_UA
     };
@@ -737,7 +737,7 @@ var require_hlswish = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA = getSessionUA2();
           const rawId = url.split("/").pop().replace(/\.html$/, "");
           const urlObj = new URL(url);
           const mirrors = [
@@ -760,7 +760,7 @@ var require_hlswish = __commonJS({
                 const mirrorObj = new URL(mirror);
                 const mirrorOrigin = mirrorObj.origin;
                 const resp = yield fetch(mirror, {
-                  headers: { "Referer": mirror, "User-Agent": UA2 },
+                  headers: { "Referer": mirror, "User-Agent": UA },
                   signal
                 });
                 if (!resp.ok)
@@ -772,7 +772,7 @@ var require_hlswish = __commonJS({
                   const hash = hashMatch[0];
                   const dlUrl = `${mirrorOrigin}/dl?op=view&file_code=${rawId}&hash=${hash}&embed=1&referer=&adb=1&hls4=1`;
                   const dlResp = yield fetch(dlUrl, {
-                    headers: { "User-Agent": UA2, "Referer": mirror, "X-Requested-With": "XMLHttpRequest" },
+                    headers: { "User-Agent": UA, "Referer": mirror, "X-Requested-With": "XMLHttpRequest" },
                     signal
                   });
                   if (dlResp.ok) {
@@ -822,7 +822,7 @@ var require_hlswish = __commonJS({
           const reqHeaders = {
             "Referer": validResult.mirror,
             "Origin": new URL(validResult.mirror).origin,
-            "User-Agent": UA2
+            "User-Agent": UA
           };
           const streamObj = { url: validResult.url, headers: reqHeaders };
           const validation = yield validateStream(streamObj, signal);
@@ -1004,7 +1004,7 @@ var require_filemoon = __commonJS({
 // src/resolvers/vidhide.js
 var require_vidhide = __commonJS({
   "src/resolvers/vidhide.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2, getStealthHeaders } = require_http();
+    var { getSessionUA: getSessionUA2, getStealthHeaders: getStealthHeaders2 } = require_http();
     var { validateStream } = require_m3u8();
     function unpackVidHide(script) {
       try {
@@ -1075,7 +1075,7 @@ var require_vidhide = __commonJS({
             finalUrl = new URL(url).origin + finalUrl;
           if (!finalUrl.includes("referer="))
             finalUrl += (finalUrl.includes("?") ? "&" : "?") + "referer=embed69.org";
-          const reqHeaders = __spreadProps(__spreadValues({}, getStealthHeaders()), {
+          const reqHeaders = __spreadProps(__spreadValues({}, getStealthHeaders2()), {
             "Referer": url.split("?")[0],
             "Origin": new URL(url).origin,
             "X-Requested-With": "XMLHttpRequest",
@@ -1162,11 +1162,11 @@ var require_goodstream = __commonJS({
     function resolve(embedUrl) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA = getSessionUA2();
           console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
           const response = yield fetch(embedUrl, {
             headers: {
-              "User-Agent": UA2,
+              "User-Agent": UA,
               "Referer": "https://goodstream.one/",
               "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
               "Accept-Language": "es-MX,es;q=0.9",
@@ -1183,7 +1183,7 @@ var require_goodstream = __commonJS({
           const refererHeaders = {
             "Referer": embedUrl,
             "Origin": "https://goodstream.one",
-            "User-Agent": UA2,
+            "User-Agent": UA,
             "Accept-Language": "es-MX,es;q=0.9"
           };
           const quality = yield detectQuality(videoUrl, refererHeaders);
@@ -1208,7 +1208,7 @@ var require_goodstream = __commonJS({
 // src/resolvers/fastream.js
 var require_fastream = __commonJS({
   "src/resolvers/fastream.js"(exports2, module2) {
-    var UA2 = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    var UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     function unpackPacker(data) {
       const match = data.match(/eval\(function\(p,a,c,k,e,d\)\{.*?\}\('([\s\S]*?)',(\d+),(\d+),'([\s\S]*?)'\.split\('\|'\)\)\)/);
       if (!match)
@@ -1227,7 +1227,7 @@ var require_fastream = __commonJS({
       return __async(this, arguments, function* (m3u8Url, headers = {}) {
         try {
           const res = yield fetch(m3u8Url, {
-            headers: __spreadValues({ "User-Agent": UA2 }, headers),
+            headers: __spreadValues({ "User-Agent": UA }, headers),
             redirect: "follow"
           });
           const data = yield res.text();
@@ -1265,7 +1265,7 @@ var require_fastream = __commonJS({
         try {
           const res = yield fetch(url, {
             headers: {
-              "User-Agent": UA2,
+              "User-Agent": UA,
               "Referer": "https://www3.seriesmetro.net/"
             },
             redirect: "follow"
@@ -1281,7 +1281,7 @@ var require_fastream = __commonJS({
           return {
             url: m3u8,
             quality,
-            headers: { "User-Agent": UA2, "Referer": "https://fastream.to/" }
+            headers: { "User-Agent": UA, "Referer": "https://fastream.to/" }
           };
         } catch (e) {
           console.error("[Fastream] Error:", e.message);
@@ -1299,12 +1299,12 @@ var require_vimeos = __commonJS({
     var { fetchHtml: fetchHtml2, fetchJson, getSessionUA: getSessionUA2 } = require_http();
     function resolve(embedUrl) {
       return __async(this, null, function* () {
-        const UA2 = getSessionUA2();
+        const UA = getSessionUA2();
         try {
           console.log("[Vimeos] Resolviendo: " + embedUrl);
           var html = yield fetchHtml2(embedUrl, {
             headers: {
-              "User-Agent": UA2,
+              "User-Agent": UA,
               "Referer": "https://vimeos.net/",
               "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
               "Accept-Language": "es-MX,es;q=0.9,en-US;q=0.8"
@@ -1317,7 +1317,7 @@ var require_vimeos = __commonJS({
             var vimeoId = vimeoIdMatch[1];
             try {
               var config = yield fetchJson("https://player.vimeo.com/video/" + vimeoId + "/config", {
-                headers: { "User-Agent": UA2, "Referer": embedUrl }
+                headers: { "User-Agent": UA, "Referer": embedUrl }
               });
               var hlsUrl = null;
               if (config && config.request && config.request.files && config.request.files.hls && config.request.files.hls.cdns && config.request.files.hls.cdns.default) {
@@ -1328,7 +1328,7 @@ var require_vimeos = __commonJS({
                   url: hlsUrl,
                   verified: true,
                   serverName: "Vimeos",
-                  headers: { "User-Agent": UA2, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
+                  headers: { "User-Agent": UA, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
                 };
               }
               var progressive = config && config.request && config.request.files ? config.request.files.progressive : null;
@@ -1340,7 +1340,7 @@ var require_vimeos = __commonJS({
                   url: best.url,
                   quality: best.quality ? best.quality + "p" : "1080p",
                   serverName: "Vimeos",
-                  headers: { "User-Agent": UA2, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
+                  headers: { "User-Agent": UA, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
                 };
               }
             } catch (e) {
@@ -1369,7 +1369,7 @@ var require_vimeos = __commonJS({
                 url: m3u8Match[1],
                 verified: true,
                 serverName: "Vimeos",
-                headers: { "User-Agent": UA2, "Referer": embedUrl }
+                headers: { "User-Agent": UA, "Referer": embedUrl }
               };
             }
           }
@@ -1396,16 +1396,16 @@ var require_resolvers = __commonJS({
     var { resolve: resolveVimeos } = require_vimeos();
     var { isMirror } = require_mirrors();
     var { getSessionUA: getSessionUA2 } = require_http();
-    var UA2 = getSessionUA2();
+    var UA = getSessionUA2();
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
-      const { getStealthHeaders } = require_http();
+      const { getStealthHeaders: getStealthHeaders2 } = require_http();
       const s = url.toLowerCase();
       try {
         const domain = new URL(url).hostname;
         const baseOrigin = `https://${domain}`;
-        const headers = __spreadProps(__spreadValues({}, getStealthHeaders()), {
+        const headers = __spreadProps(__spreadValues({}, getStealthHeaders2()), {
           "Referer": baseOrigin,
           "Origin": baseOrigin
         });
@@ -1419,7 +1419,7 @@ var require_resolvers = __commonJS({
         }
         return headers;
       } catch (e) {
-        return { "User-Agent": UA2, "referer": url.split("?")[0] };
+        return { "User-Agent": UA, "referer": url.split("?")[0] };
       }
     }
     function resolveEmbed2(url, signal = null) {
@@ -1461,7 +1461,7 @@ var require_tmdb = __commonJS({
     var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
     var titleCache = /* @__PURE__ */ new Map();
     var idCache = /* @__PURE__ */ new Map();
-    function getTmdbTitle(tmdbId, mediaType, retries = 2) {
+    function getTmdbTitle2(tmdbId, mediaType, retries = 2) {
       return __async(this, null, function* () {
         var _a, _b, _c, _d;
         const cacheKey = `${mediaType}_${tmdbId}`;
@@ -1480,7 +1480,7 @@ var require_tmdb = __commonJS({
           return result;
         } catch (e) {
           if (retries > 0)
-            return getTmdbTitle(tmdbId, mediaType, retries - 1);
+            return getTmdbTitle2(tmdbId, mediaType, retries - 1);
           titleCache.set(cacheKey, null);
           return null;
         }
@@ -1508,7 +1508,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    function getCorrectImdbId2(tmdbId, mediaType) {
+    function getCorrectImdbId(tmdbId, mediaType) {
       return __async(this, null, function* () {
         if (!tmdbId)
           return { imdbId: null, title: "" };
@@ -1549,7 +1549,7 @@ var require_tmdb = __commonJS({
     function getTmdbAliases(tmdbId, mediaType) {
       return __async(this, null, function* () {
         try {
-          const titleEs = yield getTmdbTitle(tmdbId, mediaType);
+          const titleEs = yield getTmdbTitle2(tmdbId, mediaType);
           const titleEn = yield (() => __async(this, null, function* () {
             try {
               const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
@@ -1584,14 +1584,14 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    module2.exports = { getTmdbTitle, getTmdbInfo, getCorrectImdbId: getCorrectImdbId2, getTmdbAliases, TMDB_API_KEY };
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
   }
 });
 
 // src/utils/helpers.js
 var require_helpers = __commonJS({
   "src/utils/helpers.js"(exports2, module2) {
-    function sleep2(ms) {
+    function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
     function padEpisode(episode) {
@@ -1611,7 +1611,7 @@ var require_helpers = __commonJS({
       }
       return Buffer.from(str, "utf-8").toString("base64");
     }
-    module2.exports = { sleep: sleep2, padEpisode, isMovie: isMovie2, cleanTmdbId: cleanTmdbId2, toDoubleBase64 };
+    module2.exports = { sleep, padEpisode, isMovie: isMovie2, cleanTmdbId: cleanTmdbId2, toDoubleBase64 };
   }
 });
 
@@ -1621,136 +1621,85 @@ var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
 var import_helpers = __toESM(require_helpers());
-var BASE_URL = "https://player.pelisserieshoy.com";
-var UA = (0, import_http.getSessionUA)();
-var HEADERS = {
-  "User-Agent": UA,
-  "Accept": "*/*",
-  "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
-  "X-Requested-With": "XMLHttpRequest",
-  "Referer": "https://sololatino.net/"
-};
-function getDirectStream(id, token, cookie, playerUrl) {
-  return __async(this, null, function* () {
-    try {
-      const body = `a=2&v=${id}&tok=${token}`;
-      const config = {
-        headers: __spreadProps(__spreadValues({}, HEADERS), { "Referer": playerUrl, "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" })
-      };
-      if (cookie)
-        config.headers["cookie"] = cookie;
-      const response = yield fetch(`${BASE_URL}/s.php`, __spreadValues({ method: "POST", body }, config));
-      const data = yield response.json();
-      if (data && data.u) {
-        let videoUrl = data.u;
-        if (data.sig) {
-          videoUrl = `${BASE_URL}/p.php?url=${encodeURIComponent(data.u)}&sig=${data.sig}`;
-        }
-        if (videoUrl.includes("/api/source/")) {
-          const domain = new URL(videoUrl).hostname;
-          const apiRes = yield fetch(videoUrl, {
-            method: "POST",
-            headers: __spreadProps(__spreadValues({}, HEADERS), { "Referer": playerUrl, "Content-Type": "application/x-www-form-urlencoded" }),
-            body: `r=https%3A%2F%2Fre.sololatino.net%2F&d=${domain}`
-          });
-          const apiData = yield apiRes.json();
-          if (apiData.success && apiData.data && apiData.data.length > 0) {
-            videoUrl = apiData.data[apiData.data.length - 1].file;
-          }
-        }
-        if (!videoUrl.startsWith("http")) {
-          videoUrl = BASE_URL + videoUrl;
-        }
-        return videoUrl;
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  });
-}
+var BASE = "https://sololatino.net";
+var HEADERS = __spreadProps(__spreadValues({}, (0, import_http.getStealthHeaders)()), { "Accept-Language": "es-ES,es;q=0.9,en;q=0.8" });
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
-    var _a;
     if (!tmdbId)
       return [];
     console.log(`[SoloLatino] Looking for content: ${tmdbId} (${mediaType})`);
     try {
       const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
-      const s = parseInt(season || 1);
-      const e = parseInt(episode || 1);
-      (0, import_http.setSessionUA)(UA);
-      const { imdbId } = yield (0, import_tmdb.getCorrectImdbId)(realId, mediaType);
-      if (!imdbId) {
-        console.log(`[SoloLatino] No IMDB ID found`);
+      (0, import_http.setSessionUA)((0, import_http.getSessionUA)());
+      let searchTitle = title;
+      if (!searchTitle) {
+        searchTitle = yield (0, import_tmdb.getTmdbTitle)(realId, mediaType);
+      }
+      if (!searchTitle) {
+        console.log(`[SoloLatino] No title found for ${realId}`);
         return [];
       }
-      const epStr = e < 10 ? `0${e}` : e;
-      const slug = (0, import_helpers.isMovie)(mediaType) ? imdbId : `${imdbId}-${s}x${epStr}`;
-      const playerUrl = `${BASE_URL}/f/${slug}`;
-      console.log(`[SoloLatino] Fetching: ${playerUrl}`);
-      const response = yield fetch(playerUrl, { headers: HEADERS });
-      const html = yield response.text();
-      const cookies = response.headers.get("set-cookie") || "";
-      const cookie = cookies.split(";").map((c) => c.split(";")[0]).join("; ");
-      const tokenMatch = html.match(/(?:let\s+token|const\s+_t|tok|_t|token)\s*.*['"]([a-f0-9]{32})['"]/);
-      if (!tokenMatch) {
-        console.log(`[SoloLatino] No token found`);
+      const searchUrl = `${BASE}/buscar?q=${encodeURIComponent(searchTitle)}`;
+      console.log(`[SoloLatino] Searching: ${searchUrl}`);
+      const searchHtml = yield (0, import_http.fetchHtml)(searchUrl, { headers: HEADERS });
+      const targetId = realId.toString();
+      const idIndex = searchHtml.indexOf(`data-movie-id="${targetId}"`);
+      if (idIndex === -1) {
+        console.log(`[SoloLatino] No match found for TMDB: ${targetId}`);
         return [];
       }
-      const token = tokenMatch[1];
-      const postH = __spreadProps(__spreadValues({}, HEADERS), { "Referer": playerUrl, "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" });
-      if (cookie)
-        postH["cookie"] = cookie;
-      yield fetch(`${BASE_URL}/s.php`, { method: "POST", body: "a=click&tok=" + token, headers: postH }).catch(() => {
-      });
-      const scanResponse = yield fetch(`${BASE_URL}/s.php`, { method: "POST", body: `a=1&tok=${token}`, headers: postH });
-      const scanData = yield scanResponse.json();
-      const uniqueServers = /* @__PURE__ */ new Map();
-      if (scanData == null ? void 0 : scanData.s) {
-        scanData.s.forEach((ser) => {
-          if (ser[1])
-            uniqueServers.set(ser[1], ser);
-        });
+      const beforeSection = searchHtml.substring(0, idIndex);
+      const hrefRegex = /<a\s+href="(https?:\/\/sololatino\.net\/(?:serie|pelicula)\/[^"]+)"/gi;
+      let hrefMatch;
+      let slugUrl = null;
+      while ((hrefMatch = hrefRegex.exec(beforeSection)) !== null) {
+        slugUrl = hrefMatch[1];
       }
-      if ((_a = scanData == null ? void 0 : scanData.langs_s) == null ? void 0 : _a.LAT) {
-        scanData.langs_s.LAT.forEach((ser) => {
-          if (ser[1])
-            uniqueServers.set(ser[1], ser);
-        });
+      if (!slugUrl) {
+        console.log(`[SoloLatino] Could not extract URL for TMDB: ${targetId}`);
+        return [];
       }
-      const servers = Array.from(uniqueServers.values()).filter((ser) => {
-        const name = ser[0];
-        return !["Seek", "Lulu"].some((x) => name.includes(x));
-      }).slice(0, 5);
-      const resultsRaw = yield Promise.all(servers.map((ser) => __async(this, null, function* () {
-        const [name, id] = ser;
-        let finalUrl = yield getDirectStream(id, token, cookie, playerUrl);
-        if (finalUrl) {
-          const finalHeaders = { "User-Agent": UA, "Referer": playerUrl, "Origin": BASE_URL };
-          try {
-            const finalRes = yield fetch(finalUrl, { method: "HEAD", headers: { "User-Agent": UA, "Referer": playerUrl }, redirect: "follow" });
-            if (finalRes.url && finalRes.url.includes("mediafire.com")) {
-              return { url: finalRes.url, serverName: `${name} - Directo`, langLabel: "Latino", quality: "1080p", verified: true, headers: { "User-Agent": UA, "Referer": "https://player.pelisserieshoy.com/" } };
-            }
-            if (finalRes.url)
-              finalUrl = finalRes.url;
-          } catch (e2) {
+      let finalUrl = slugUrl;
+      if (!(0, import_helpers.isMovie)(mediaType)) {
+        const s = parseInt(season || 1);
+        const e = parseInt(episode || 1);
+        finalUrl = finalUrl.replace(/\/$/, "") + `/temporada-${s}/episodio-${e}`;
+      }
+      console.log(`[SoloLatino] Fetching: ${finalUrl}`);
+      const pageHtml = yield (0, import_http.fetchHtml)(finalUrl, { headers: __spreadProps(__spreadValues({}, HEADERS), { "Referer": BASE }) });
+      const serverUrls = [];
+      const serverRegex = /data-server-url="([^"]+)"/g;
+      let sMatch;
+      while ((sMatch = serverRegex.exec(pageHtml)) !== null) {
+        serverUrls.push(sMatch[1]);
+      }
+      if (serverUrls.length === 0) {
+        console.log(`[SoloLatino] No server URLs found`);
+        return [];
+      }
+      console.log(`[SoloLatino] Found ${serverUrls.length} embeds, resolving...`);
+      const streams = [];
+      for (const url of serverUrls) {
+        try {
+          const resolved = yield (0, import_resolvers.resolveEmbed)(url);
+          if (resolved && resolved.url) {
+            streams.push({
+              url: resolved.url,
+              language: "Latino",
+              serverLabel: resolved.serverName || "Servidor",
+              quality: resolved.quality || "1080p",
+              headers: resolved.headers || {}
+            });
           }
-          const resolvedResult = yield (0, import_resolvers.resolveEmbed)(finalUrl);
-          return {
-            url: finalUrl,
-            serverName: ((resolvedResult == null ? void 0 : resolvedResult.serverName) ? `${name} - ${resolvedResult.serverName}` : name).replace(/ - Direct/g, ""),
-            langLabel: "Latino",
-            quality: "1080p",
-            verified: resolvedResult ? resolvedResult.verified : false,
-            headers: (resolvedResult == null ? void 0 : resolvedResult.headers) || finalHeaders
-          };
+        } catch (e) {
+          console.log(`[SoloLatino] Error resolving ${url}: ${e.message}`);
         }
-        return null;
-      })));
-      const resolved = resultsRaw.filter((r) => r !== null);
-      return yield (0, import_engine.finalizeStreams)(resolved, "SoloLatino", title || "");
+      }
+      if (streams.length === 0) {
+        console.log(`[SoloLatino] No streams could be resolved`);
+        return [];
+      }
+      return yield (0, import_engine.finalizeStreams)(streams, "SoloLatino", searchTitle);
     } catch (error) {
       console.error(`[SoloLatino] Error: ${error.message}`);
       return [];
