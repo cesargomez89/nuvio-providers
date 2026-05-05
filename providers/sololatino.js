@@ -1,6 +1,6 @@
 /**
  * sololatino - Built from src/sololatino/
- * Generated: 2026-05-05T06:30:46.407Z
+ * Generated: 2026-05-05T06:33:52.355Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -70,15 +70,15 @@ var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var sessionUA = null;
-    function setSessionUA2(ua) {
+    function setSessionUA(ua) {
       sessionUA = ua;
     }
-    function getSessionUA2() {
+    function getSessionUA() {
       return sessionUA || DEFAULT_CHROME_UA;
     }
     function getStealthHeaders2() {
       return {
-        "User-Agent": getSessionUA2(),
+        "User-Agent": getSessionUA(),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
         "Connection": "keep-alive",
@@ -92,12 +92,12 @@ var require_http = __commonJS({
         "Upgrade-Insecure-Requests": "1"
       };
     }
-    var DEFAULT_UA = getSessionUA2();
-    var MOBILE_UA = getSessionUA2();
+    var DEFAULT_UA = getSessionUA();
+    var MOBILE_UA = getSessionUA();
     function request(_0) {
       return __async(this, arguments, function* (url, options = {}) {
         const opt = options || {};
-        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA2();
+        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA();
         const headers = Object.assign({
           "User-Agent": currentUA,
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -142,8 +142,8 @@ var require_http = __commonJS({
       request,
       fetchHtml: fetchHtml2,
       fetchJson,
-      getSessionUA: getSessionUA2,
-      setSessionUA: setSessionUA2,
+      getSessionUA,
+      setSessionUA,
       getStealthHeaders: getStealthHeaders2,
       DEFAULT_UA,
       MOBILE_UA
@@ -154,7 +154,7 @@ var require_http = __commonJS({
 // src/utils/m3u8.js
 var require_m3u8 = __commonJS({
   "src/utils/m3u8.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function getQualityFromHeight(height) {
       if (!height)
         return "1080p";
@@ -228,7 +228,7 @@ var require_m3u8 = __commonJS({
           const fetchOptions = {
             method: isMp4 ? "HEAD" : "GET",
             headers: __spreadValues({
-              "User-Agent": getSessionUA2()
+              "User-Agent": getSessionUA()
             }, headers || {})
           };
           if (signal)
@@ -596,7 +596,7 @@ var require_engine = __commonJS({
 // src/resolvers/voe.js
 var require_voe = __commonJS({
   "src/resolvers/voe.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var { validateStream } = require_m3u8();
     function localAtob(input) {
       if (!input)
@@ -614,7 +614,7 @@ var require_voe = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const currentUA = getSessionUA2();
+          const currentUA = getSessionUA();
           console.log(`[VOE] TV-Resolving: ${url}`);
           const response = yield fetch(url, {
             headers: { "User-Agent": currentUA },
@@ -713,7 +713,7 @@ var require_voe = __commonJS({
 // src/resolvers/hlswish.js
 var require_hlswish = __commonJS({
   "src/resolvers/hlswish.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var { validateStream } = require_m3u8();
     function unpackEval(payload, radix, symtab) {
       const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -737,7 +737,7 @@ var require_hlswish = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const rawId = url.split("/").pop().replace(/\.html$/, "");
           const urlObj = new URL(url);
           const mirrors = [
@@ -912,8 +912,8 @@ var require_aes_gcm = __commonJS({
 var require_filemoon = __commonJS({
   "src/resolvers/filemoon.js"(exports2, module2) {
     var { decryptByse } = require_aes_gcm();
-    var { getSessionUA: getSessionUA2 } = require_http();
-    var UA_CHROME = getSessionUA2();
+    var { getSessionUA } = require_http();
+    var UA_CHROME = getSessionUA();
     function unpack(p, a, c, k, e, d) {
       while (c--)
         if (k[c])
@@ -1004,7 +1004,7 @@ var require_filemoon = __commonJS({
 // src/resolvers/vidhide.js
 var require_vidhide = __commonJS({
   "src/resolvers/vidhide.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2, getStealthHeaders: getStealthHeaders2 } = require_http();
+    var { getSessionUA, getStealthHeaders: getStealthHeaders2 } = require_http();
     var { validateStream } = require_m3u8();
     function unpackVidHide(script) {
       try {
@@ -1036,7 +1036,7 @@ var require_vidhide = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const currentUA = getSessionUA2();
+          const currentUA = getSessionUA();
           console.log(`[VidHide] TV-Resolving: ${url}`);
           const urlObj = new URL(url);
           const domain = urlObj.hostname;
@@ -1106,7 +1106,7 @@ var require_vidhide = __commonJS({
 // src/resolvers/quality.js
 var require_quality = __commonJS({
   "src/resolvers/quality.js"(exports2, module2) {
-    var { request, getSessionUA: getSessionUA2 } = require_http();
+    var { request, getSessionUA } = require_http();
     function detectQuality(_0) {
       return __async(this, arguments, function* (url, headers = {}) {
         try {
@@ -1115,7 +1115,7 @@ var require_quality = __commonJS({
           const res = yield request(url, {
             timeout: 5e3,
             headers: __spreadValues({
-              "User-Agent": getSessionUA2()
+              "User-Agent": getSessionUA()
             }, headers)
           });
           const data = yield res.text();
@@ -1158,11 +1158,11 @@ var require_quality = __commonJS({
 var require_goodstream = __commonJS({
   "src/resolvers/goodstream.js"(exports2, module2) {
     var { detectQuality } = require_quality();
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(embedUrl) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
           const response = yield fetch(embedUrl, {
             headers: {
@@ -1296,10 +1296,10 @@ var require_fastream = __commonJS({
 // src/resolvers/vimeos.js
 var require_vimeos = __commonJS({
   "src/resolvers/vimeos.js"(exports2, module2) {
-    var { fetchHtml: fetchHtml2, fetchJson, getSessionUA: getSessionUA2 } = require_http();
+    var { fetchHtml: fetchHtml2, fetchJson, getSessionUA } = require_http();
     function resolve(embedUrl) {
       return __async(this, null, function* () {
-        const UA = getSessionUA2();
+        const UA = getSessionUA();
         try {
           console.log("[Vimeos] Resolviendo: " + embedUrl);
           var html = yield fetchHtml2(embedUrl, {
@@ -1395,8 +1395,8 @@ var require_resolvers = __commonJS({
     var { resolve: resolveFastream } = require_fastream();
     var { resolve: resolveVimeos } = require_vimeos();
     var { isMirror } = require_mirrors();
-    var { getSessionUA: getSessionUA2 } = require_http();
-    var UA = getSessionUA2();
+    var { getSessionUA } = require_http();
+    var UA = getSessionUA();
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
@@ -1747,7 +1747,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       if (!slugUrl) {
         console.log(`[SoloLatino] No direct TMDB match for ${targetId}, trying aliases...`);
         const aliases = yield (0, import_tmdb.getTmdbAliases)(realId, mediaType);
-        const allTitles = [searchTitle, ...aliases.filter((a) => a !== searchTitle)];
+        const allTitles = aliases.filter((a) => a !== searchTitle);
         for (const alias of allTitles) {
           try {
             yield (0, import_helpers.sleep)(500);

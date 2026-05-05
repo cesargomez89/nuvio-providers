@@ -1,4 +1,4 @@
-import { fetchHtml, getSessionUA, setSessionUA, getStealthHeaders } from '../utils/http.js';
+import { fetchHtml, getStealthHeaders } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbTitle, getTmdbAliases } from '../utils/tmdb.js';
@@ -48,7 +48,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         if (!slugUrl) {
             console.log(`[SoloLatino] No direct TMDB match for ${targetId}, trying aliases...`);
             const aliases = await getTmdbAliases(realId, mediaType);
-            const allTitles = [searchTitle, ...aliases.filter(a => a !== searchTitle)];
+            const allTitles = aliases.filter(a => a !== searchTitle);
 
             for (const alias of allTitles) {
                 try {
