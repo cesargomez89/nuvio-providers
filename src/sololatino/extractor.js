@@ -3,6 +3,7 @@ import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbTitle } from '../utils/tmdb.js';
 import { isMovie, cleanTmdbId } from '../utils/helpers.js';
+import { parallelWithLimit } from '../utils/parallel.js';
 
 const BASE = "https://sololatino.net";
 const HEADERS = { ...getStealthHeaders(), "Accept-Language": "es-ES,es;q=0.9,en;q=0.8" };
@@ -71,23 +72,25 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
         console.log(`[SoloLatino] Found ${serverUrls.length} embeds, resolving...`);
 
-        const streams = [];
-        for (const url of serverUrls) {
+        const resolvedEmbeds = await parallelWithLimit(serverUrls, async (url) => {
             try {
                 const resolved = await resolveEmbed(url);
                 if (resolved && resolved.url) {
-                    streams.push({
+                    return {
                         url: resolved.url,
                         language: "Latino",
                         serverLabel: resolved.serverName || "Servidor",
                         quality: resolved.quality || "1080p",
                         headers: resolved.headers || {}
-                    });
+                    };
                 }
             } catch (e) {
                 console.log(`[SoloLatino] Error resolving ${url}: ${e.message}`);
             }
-        }
+            return null;
+        }, 5);
+
+        const streams = resolvedEmbeds.filter(Boolean);
 
         if (streams.length === 0) {
             console.log(`[SoloLatino] No streams could be resolved`);

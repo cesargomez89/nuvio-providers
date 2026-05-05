@@ -1,6 +1,6 @@
 /**
  * sololatino - Built from src/sololatino/
- * Generated: 2026-05-05T06:21:06.569Z
+ * Generated: 2026-05-05T06:24:54.068Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1615,12 +1615,53 @@ var require_helpers = __commonJS({
   }
 });
 
+// src/utils/parallel.js
+var require_parallel = __commonJS({
+  "src/utils/parallel.js"(exports2, module2) {
+    function parallelWithLimit2(items, handler, limit = 5) {
+      return __async(this, null, function* () {
+        const results = [];
+        for (let i = 0; i < items.length; i += limit) {
+          const batch = items.slice(i, i + limit);
+          const batchPromises = batch.map((item) => {
+            return handler(item).catch(() => null);
+          });
+          const batchResults = yield Promise.allSettled(batchPromises);
+          results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
+        }
+        return results;
+      });
+    }
+    function resolveWithLimit(items, handler, limit = 5) {
+      return __async(this, null, function* () {
+        const results = [];
+        const promises = items.map((item) => __async(this, null, function* () {
+          return yield handler(item);
+        }));
+        const settled = yield Promise.allSettled(promises);
+        settled.forEach((r) => {
+          if (r.status === "fulfilled" && r.value)
+            results.push(r.value);
+        });
+        return results;
+      });
+    }
+    function withTimeout(promise) {
+      return __async(this, null, function* () {
+        return yield promise;
+      });
+    }
+    module2.exports = { parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
+  }
+});
+
 // src/sololatino/extractor.js
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
 var import_helpers = __toESM(require_helpers());
+var import_parallel = __toESM(require_parallel());
 var BASE = "https://sololatino.net";
 var HEADERS = __spreadProps(__spreadValues({}, (0, import_http.getStealthHeaders)()), { "Accept-Language": "es-ES,es;q=0.9,en;q=0.8" });
 function extractStreams(tmdbId, mediaType, season, episode, title) {
@@ -1678,23 +1719,24 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         return [];
       }
       console.log(`[SoloLatino] Found ${serverUrls.length} embeds, resolving...`);
-      const streams = [];
-      for (const url of serverUrls) {
+      const resolvedEmbeds = yield (0, import_parallel.parallelWithLimit)(serverUrls, (url) => __async(this, null, function* () {
         try {
           const resolved = yield (0, import_resolvers.resolveEmbed)(url);
           if (resolved && resolved.url) {
-            streams.push({
+            return {
               url: resolved.url,
               language: "Latino",
               serverLabel: resolved.serverName || "Servidor",
               quality: resolved.quality || "1080p",
               headers: resolved.headers || {}
-            });
+            };
           }
         } catch (e) {
           console.log(`[SoloLatino] Error resolving ${url}: ${e.message}`);
         }
-      }
+        return null;
+      }), 5);
+      const streams = resolvedEmbeds.filter(Boolean);
       if (streams.length === 0) {
         console.log(`[SoloLatino] No streams could be resolved`);
         return [];
