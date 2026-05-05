@@ -1,6 +1,6 @@
 /**
  * sololatino - Built from src/sololatino/
- * Generated: 2026-05-05T06:27:41.566Z
+ * Generated: 2026-05-05T06:30:46.407Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1591,7 +1591,7 @@ var require_tmdb = __commonJS({
 // src/utils/helpers.js
 var require_helpers = __commonJS({
   "src/utils/helpers.js"(exports2, module2) {
-    function sleep(ms) {
+    function sleep2(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
     function padEpisode(episode) {
@@ -1611,7 +1611,7 @@ var require_helpers = __commonJS({
       }
       return Buffer.from(str, "utf-8").toString("base64");
     }
-    module2.exports = { sleep, padEpisode, isMovie: isMovie2, cleanTmdbId: cleanTmdbId2, toDoubleBase64 };
+    module2.exports = { sleep: sleep2, padEpisode, isMovie: isMovie2, cleanTmdbId: cleanTmdbId2, toDoubleBase64 };
   }
 });
 
@@ -1749,26 +1749,31 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         const aliases = yield (0, import_tmdb.getTmdbAliases)(realId, mediaType);
         const allTitles = [searchTitle, ...aliases.filter((a) => a !== searchTitle)];
         for (const alias of allTitles) {
-          console.log(`[SoloLatino] Trying alias: "${alias}"`);
-          const aliasSearchUrl = `${BASE}/buscar?q=${encodeURIComponent(alias)}`;
-          const aliasHtml = yield (0, import_http.fetchHtml)(aliasSearchUrl, { headers: HEADERS });
-          slugUrl = findSlugForId(aliasHtml, targetId);
-          if (slugUrl) {
-            searchTitle = alias;
-            break;
-          }
-          const linkRegex = /<a\s+href="(https?:\/\/sololatino\.net\/(?:serie|pelicula)\/[^"]+)"[^>]*>\s*([^<]+)\s*<\/a>/gi;
-          let linkMatch;
-          while ((linkMatch = linkRegex.exec(aliasHtml)) !== null) {
-            const resultTitle = linkMatch[2].trim();
-            if ((0, import_title.titleMatch)(alias, resultTitle)) {
-              slugUrl = linkMatch[1];
+          try {
+            yield (0, import_helpers.sleep)(500);
+            console.log(`[SoloLatino] Trying alias: "${alias}"`);
+            const aliasSearchUrl = `${BASE}/buscar?q=${encodeURIComponent(alias)}`;
+            const aliasHtml = yield (0, import_http.fetchHtml)(aliasSearchUrl, { headers: HEADERS });
+            slugUrl = findSlugForId(aliasHtml, targetId);
+            if (slugUrl) {
               searchTitle = alias;
               break;
             }
+            const linkRegex = /<a\s+href="(https?:\/\/sololatino\.net\/(?:serie|pelicula)\/[^"]+)"[^>]*>\s*([^<]+)\s*<\/a>/gi;
+            let linkMatch;
+            while ((linkMatch = linkRegex.exec(aliasHtml)) !== null) {
+              const resultTitle = linkMatch[2].trim();
+              if ((0, import_title.titleMatch)(alias, resultTitle)) {
+                slugUrl = linkMatch[1];
+                searchTitle = alias;
+                break;
+              }
+            }
+            if (slugUrl)
+              break;
+          } catch (e) {
+            console.warn(`[SoloLatino] Alias "${alias}" failed: ${e.message}`);
           }
-          if (slugUrl)
-            break;
         }
       }
       if (!slugUrl) {
