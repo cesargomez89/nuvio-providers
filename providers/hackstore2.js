@@ -1,6 +1,6 @@
 /**
  * hackstore2 - Built from src/hackstore2/
- * Generated: 2026-05-05T18:11:27.804Z
+ * Generated: 2026-05-05T20:09:23.176Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -284,7 +284,8 @@ var require_sorting = __commonJS({
       "Netu": 5,
       "GoodStream": 10,
       "StreamWish": -5,
-      "VidHide": -5
+      "VidHide": -5,
+      "Supervideo": 10
     };
     function sortStreamsByQuality(streams) {
       if (!Array.isArray(streams))
@@ -329,11 +330,8 @@ var require_mirrors = __commonJS({
         "dintezuvio",
         "acek-cdn",
         "vedonm",
-        "vidhidepro",
-        "vidhidevip",
         "masukestin",
-        "vidoza",
-        "supervideo"
+        "vidoza"
       ],
       STREAMWISH: [
         "hlswish",
@@ -372,10 +370,7 @@ var require_mirrors = __commonJS({
       VOE: [
         "voe.sx",
         "voe-sx",
-        "voex.sx",
-        "marissashare",
-        "cloudwindow",
-        "marissasharecareer"
+        "voex.sx"
       ],
       FASTREAM: [
         "fastream",
@@ -493,6 +488,10 @@ var require_engine = __commonJS({
       const s = (server || "").toLowerCase();
       if (u.includes("goodstream") || s.includes("goodstream"))
         return "GoodStream";
+      if (isMirror2(u, "FASTREAM") || isMirror2(s, "FASTREAM"))
+        return "Fastream";
+      if (isMirror2(u, "DROPCDN") || isMirror2(s, "DROPCDN"))
+        return "DropCDN";
       if (u.includes("vimeos") || u.includes("vms.sh") || s.includes("vimeos"))
         return "Vimeos";
       if (isMirror2(u, "VIDHIDE") || isMirror2(s, "VIDHIDE"))
@@ -503,6 +502,8 @@ var require_engine = __commonJS({
         return "VOE";
       if (isMirror2(u, "FILEMOON") || isMirror2(s, "FILEMOON"))
         return "Filemoon";
+      if (url && url.includes("supervideo"))
+        return "Supervideo";
       if (isMirror2(u, "DOODSTREAM") || isMirror2(s, "DOODSTREAM"))
         return "DoodStream";
       if (url) {

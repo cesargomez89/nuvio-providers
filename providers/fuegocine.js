@@ -1,6 +1,6 @@
 /**
  * fuegocine - Built from src/fuegocine/
- * Generated: 2026-05-05T18:11:27.799Z
+ * Generated: 2026-05-05T20:09:23.173Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -906,6 +906,165 @@ var require_vidhide = __commonJS({
   }
 });
 
+// src/resolvers/doodstream.js
+var require_doodstream = __commonJS({
+  "src/resolvers/doodstream.js"(exports2, module2) {
+    var { getSessionUA: getSessionUA2 } = require_http();
+    var RAND_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    function randomStr(len) {
+      let r = "";
+      for (let i = 0; i < len; i++)
+        r += RAND_CHARS.charAt(Math.floor(Math.random() * RAND_CHARS.length));
+      return r;
+    }
+    function resolve(url, signal = null) {
+      return __async(this, null, function* () {
+        try {
+          const UA = getSessionUA2();
+          const urlObj = new URL(url);
+          const domain = urlObj.origin;
+          const pathMatch = urlObj.pathname.match(/\/[ed]\/([a-z0-9]+)/i);
+          if (!pathMatch)
+            return null;
+          const videoId = pathMatch[1];
+          const embedUrl = `${domain}/e/${videoId}`;
+          const resp = yield fetch(embedUrl, {
+            signal,
+            headers: {
+              "User-Agent": UA,
+              "Referer": embedUrl,
+              "Accept": "text/html,application/xhtml+xml"
+            }
+          });
+          if (!resp.ok)
+            return null;
+          const html = yield resp.text();
+          if (html.includes("Video not found")) {
+            console.log("[DoodStream] Video not found");
+            return null;
+          }
+          const passMatch = html.match(/\/pass_md5\/[^'"]+/);
+          if (!passMatch)
+            return null;
+          const tokenMatch = html.match(/[?&]token=([a-z0-9]+)[&'"]/i);
+          if (!tokenMatch)
+            return null;
+          const token = tokenMatch[1];
+          const passUrl = `${domain}${passMatch[0]}`;
+          const passResp = yield fetch(passUrl, {
+            signal,
+            headers: { "User-Agent": UA, "Referer": embedUrl }
+          });
+          if (!passResp.ok)
+            return null;
+          const baseUrl = (yield passResp.text()).trim();
+          if (!baseUrl || baseUrl.length < 10)
+            return null;
+          const expiry = Date.now() * 1e3;
+          const finalUrl = `${baseUrl}${randomStr(10)}?token=${token}&expiry=${expiry}`;
+          return {
+            url: finalUrl,
+            quality: "1080p",
+            serverName: "DoodStream",
+            headers: {
+              "User-Agent": UA,
+              "Referer": domain,
+              "Origin": domain
+            }
+          };
+        } catch (e) {
+          console.error(`[DoodStream] Error: ${e.message}`);
+          return null;
+        }
+      });
+    }
+    module2.exports = { resolve };
+  }
+});
+
+// src/utils/packer.js
+var require_packer = __commonJS({
+  "src/utils/packer.js"(exports2, module2) {
+    function unpackPacker(html) {
+      const match = html.match(
+        /eval\(function\(p,a,c,k,e,d\)\{.*?\}\s*\('([\s\S]*?)',\s*(\d+),\s*(\d+),\s*'([\s\S]*?)'\.split\('\|'\)/
+      );
+      if (!match)
+        return null;
+      let [, p, a, c, k] = match;
+      a = parseInt(a);
+      c = parseInt(c);
+      k = k.split("|");
+      while (c--) {
+        if (k[c])
+          p = p.replace(new RegExp("\\b" + c.toString(a) + "\\b", "g"), k[c]);
+      }
+      return p;
+    }
+    module2.exports = { unpackPacker };
+  }
+});
+
+// src/resolvers/dropcdn.js
+var require_dropcdn = __commonJS({
+  "src/resolvers/dropcdn.js"(exports2, module2) {
+    var { unpackPacker } = require_packer();
+    var { getSessionUA: getSessionUA2 } = require_http();
+    function resolve(url, signal = null) {
+      return __async(this, null, function* () {
+        try {
+          const UA = getSessionUA2();
+          const domain = new URL(url).origin;
+          const resp = yield fetch(url, {
+            signal,
+            headers: {
+              "User-Agent": UA,
+              "Referer": domain,
+              "Accept": "text/html,application/xhtml+xml"
+            }
+          });
+          if (!resp.ok)
+            return null;
+          const html = yield resp.text();
+          const unpacked = unpackPacker(html);
+          if (!unpacked) {
+            const directMatch = html.match(/file:\s*["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
+            if (!directMatch)
+              return null;
+            return {
+              url: directMatch[1],
+              quality: "1080p",
+              serverName: "DropCDN",
+              headers: {
+                "User-Agent": UA,
+                "Referer": domain,
+                "Origin": domain
+              }
+            };
+          }
+          const fileMatch = unpacked.match(/file\s*:\s*["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
+          if (!fileMatch)
+            return null;
+          return {
+            url: fileMatch[1],
+            quality: "1080p",
+            serverName: "DropCDN",
+            headers: {
+              "User-Agent": UA,
+              "Referer": domain,
+              "Origin": domain
+            }
+          };
+        } catch (e) {
+          console.error(`[DropCDN] Error: ${e.message}`);
+          return null;
+        }
+      });
+    }
+    module2.exports = { resolve };
+  }
+});
+
 // src/resolvers/quality.js
 var require_quality = __commonJS({
   "src/resolvers/quality.js"(exports2, module2) {
@@ -1012,20 +1171,7 @@ var require_goodstream = __commonJS({
 var require_fastream = __commonJS({
   "src/resolvers/fastream.js"(exports2, module2) {
     var UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-    function unpackPacker(data) {
-      const match = data.match(/eval\(function\(p,a,c,k,e,d\)\{.*?\}\('([\s\S]*?)',(\d+),(\d+),'([\s\S]*?)'\.split\('\|'\)\)\)/);
-      if (!match)
-        return null;
-      let [, p, a, c, k] = match;
-      a = parseInt(a);
-      c = parseInt(c);
-      k = k.split("|");
-      while (c--) {
-        if (k[c])
-          p = p.replace(new RegExp("\\b" + c.toString(a) + "\\b", "g"), k[c]);
-      }
-      return p;
-    }
+    var { unpackPacker } = require_packer();
     function detectQuality(_0) {
       return __async(this, arguments, function* (m3u8Url, headers = {}) {
         try {
@@ -1187,6 +1333,61 @@ var require_vimeos = __commonJS({
   }
 });
 
+// src/resolvers/supervideo.js
+var require_supervideo = __commonJS({
+  "src/resolvers/supervideo.js"(exports2, module2) {
+    var { getSessionUA: getSessionUA2, getStealthHeaders } = require_http();
+    var { unpackPacker } = require_packer();
+    var { validateStream } = require_m3u8();
+    function resolve(url, signal = null) {
+      return __async(this, null, function* () {
+        var _a, _b;
+        try {
+          const UA = getSessionUA2();
+          console.log(`[Supervideo] Resolving: ${url}`);
+          const resp = yield fetch(url, {
+            signal,
+            headers: {
+              "User-Agent": UA,
+              "Referer": url
+            }
+          });
+          if (!resp.ok)
+            return null;
+          const html = yield resp.text();
+          const unpacked = unpackPacker(html);
+          if (!unpacked)
+            return null;
+          const fileMatch = unpacked.match(/file\s*:\s*["']([^"']+?\.m3u8[^"']*)["']/i);
+          if (!fileMatch)
+            return null;
+          const streamUrl = fileMatch[1];
+          const headers = __spreadProps(__spreadValues({}, getStealthHeaders()), {
+            "Referer": url.split("?")[0],
+            "Origin": new URL(url).origin,
+            "X-Requested-With": "XMLHttpRequest",
+            "User-Agent": UA
+          });
+          const streamObj = { url: streamUrl, headers };
+          const validation = yield validateStream(streamObj, signal);
+          return {
+            url: streamUrl,
+            quality: (validation == null ? void 0 : validation.quality) || "1080p",
+            verified: (_a = validation == null ? void 0 : validation.verified) != null ? _a : true,
+            isReal: (_b = validation == null ? void 0 : validation.isReal) != null ? _b : false,
+            serverName: "Supervideo",
+            headers
+          };
+        } catch (e) {
+          console.error(`[Supervideo] Error: ${e.message}`);
+          return null;
+        }
+      });
+    }
+    module2.exports = { resolve };
+  }
+});
+
 // src/utils/mirrors.js
 var require_mirrors = __commonJS({
   "src/utils/mirrors.js"(exports2, module2) {
@@ -1203,11 +1404,8 @@ var require_mirrors = __commonJS({
         "dintezuvio",
         "acek-cdn",
         "vedonm",
-        "vidhidepro",
-        "vidhidevip",
         "masukestin",
-        "vidoza",
-        "supervideo"
+        "vidoza"
       ],
       STREAMWISH: [
         "hlswish",
@@ -1246,10 +1444,7 @@ var require_mirrors = __commonJS({
       VOE: [
         "voe.sx",
         "voe-sx",
-        "voex.sx",
-        "marissashare",
-        "cloudwindow",
-        "marissasharecareer"
+        "voex.sx"
       ],
       FASTREAM: [
         "fastream",
@@ -1342,9 +1537,12 @@ var require_resolvers = __commonJS({
     var { resolve: resolveHlswish } = require_hlswish();
     var { resolve: resolveFilemoon } = require_filemoon();
     var { resolve: resolveVidhide } = require_vidhide();
+    var { resolve: resolveDoodstream } = require_doodstream();
+    var { resolve: resolveDropcdn } = require_dropcdn();
     var { resolve: resolveGoodstream } = require_goodstream();
     var { resolve: resolveFastream } = require_fastream();
     var { resolve: resolveVimeos } = require_vimeos();
+    var { resolve: resolveSupervideo } = require_supervideo();
     var { isMirror } = require_mirrors();
     var { getSessionUA: getSessionUA2 } = require_http();
     var UA = getSessionUA2();
@@ -1378,20 +1576,56 @@ var require_resolvers = __commonJS({
         if (!url)
           return null;
         const urlLower = url.toLowerCase();
-        if (isMirror(urlLower, "VOE") || url.includes("voe.sx") || url.includes("voe-") || url.includes("voex.sx"))
-          return yield resolveVoe(url, signal);
-        if (isMirror(urlLower, "STREAMWISH") || url.includes("streamwish") || url.includes("hlswish") || url.includes("filelions"))
-          return yield resolveHlswish(url, signal);
-        if (isMirror(urlLower, "FILEMOON") || url.includes("filemoon"))
-          return yield resolveFilemoon(url, signal);
-        if (isMirror(urlLower, "VIDHIDE") || url.includes("vidhide") || url.includes("vidhidepro") || url.includes("vidoza"))
-          return yield resolveVidhide(url, signal);
-        if (url.includes("goodstream") || url.includes("gs.one"))
-          return yield resolveGoodstream(url);
-        if (url.includes("fastream") || url.includes("fembed"))
-          return yield resolveFastream(url);
-        if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh"))
-          return yield resolveVimeos(url);
+        if (isMirror(urlLower, "VOE") || url.includes("voe.sx") || url.includes("voe-") || url.includes("voex.sx")) {
+          const result = yield resolveVoe(url, signal);
+          if (result)
+            return result;
+        }
+        if (isMirror(urlLower, "STREAMWISH") || url.includes("streamwish") || url.includes("hlswish") || url.includes("filelions")) {
+          const result = yield resolveHlswish(url, signal);
+          if (result)
+            return result;
+        }
+        if (isMirror(urlLower, "FILEMOON") || url.includes("filemoon")) {
+          const result = yield resolveFilemoon(url, signal);
+          if (result)
+            return result;
+        }
+        if (isMirror(urlLower, "VIDHIDE") || url.includes("vidhide") || url.includes("vidhidepro") || url.includes("vidoza")) {
+          const result = yield resolveVidhide(url, signal);
+          if (result)
+            return result;
+        }
+        if (isMirror(urlLower, "DOODSTREAM")) {
+          const result = yield resolveDoodstream(url, signal);
+          if (result)
+            return result;
+        }
+        if (isMirror(urlLower, "DROPCDN")) {
+          const result = yield resolveDropcdn(url);
+          if (result)
+            return result;
+        }
+        if (isMirror(urlLower, "GOODSTREAM") || url.includes("goodstream") || url.includes("gs.one")) {
+          const result = yield resolveGoodstream(url);
+          if (result)
+            return result;
+        }
+        if (isMirror(urlLower, "FASTREAM") || url.includes("fastream") || url.includes("fembed")) {
+          const result = yield resolveFastream(url);
+          if (result)
+            return result;
+        }
+        if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh")) {
+          const result = yield resolveVimeos(url);
+          if (result)
+            return result;
+        }
+        if (url.includes("supervideo")) {
+          const result = yield resolveSupervideo(url, signal);
+          if (result)
+            return result;
+        }
         const headers = getDirectCdnHeaders(url);
         return {
           url,
@@ -1427,7 +1661,8 @@ var require_sorting = __commonJS({
       "Netu": 5,
       "GoodStream": 10,
       "StreamWish": -5,
-      "VidHide": -5
+      "VidHide": -5,
+      "Supervideo": 10
     };
     function sortStreamsByQuality(streams) {
       if (!Array.isArray(streams))
@@ -1488,6 +1723,10 @@ var require_engine = __commonJS({
       const s = (server || "").toLowerCase();
       if (u.includes("goodstream") || s.includes("goodstream"))
         return "GoodStream";
+      if (isMirror(u, "FASTREAM") || isMirror(s, "FASTREAM"))
+        return "Fastream";
+      if (isMirror(u, "DROPCDN") || isMirror(s, "DROPCDN"))
+        return "DropCDN";
       if (u.includes("vimeos") || u.includes("vms.sh") || s.includes("vimeos"))
         return "Vimeos";
       if (isMirror(u, "VIDHIDE") || isMirror(s, "VIDHIDE"))
@@ -1498,6 +1737,8 @@ var require_engine = __commonJS({
         return "VOE";
       if (isMirror(u, "FILEMOON") || isMirror(s, "FILEMOON"))
         return "Filemoon";
+      if (url && url.includes("supervideo"))
+        return "Supervideo";
       if (isMirror(u, "DOODSTREAM") || isMirror(s, "DOODSTREAM"))
         return "DoodStream";
       if (url) {
