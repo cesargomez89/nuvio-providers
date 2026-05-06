@@ -13,6 +13,15 @@ const { resolve: resolveLulustream } = require('../resolvers/lulustream.js');
 const { resolve: resolveOkru } = require('../resolvers/okru.js');
 const { resolve: resolveEmbed69 } = require('../resolvers/embed69.js');
 const { resolve: resolveXupalace } = require('../resolvers/xupalace.js');
+const { resolve: resolveMixdrop } = require('../resolvers/mixdrop.js');
+const { resolve: resolveVerhdlink } = require('../resolvers/verhdlink.js');
+const { resolve: resolveStreamtape } = require('../resolvers/streamtape.js');
+const { resolve: resolvePlayhydrax } = require('../resolvers/playhydrax.js');
+const { resolve: resolveSololatino } = require('../resolvers/sololatino.js');
+const { resolve: resolveKrakenfiles } = require('../resolvers/krakenfiles.js');
+const { resolve: resolveUnlimplay } = require('../resolvers/unlimplay.js');
+const { resolve: resolveVibuxer } = require('../resolvers/vibuxer.js');
+const { resolve: resolveEmturbovid } = require('../resolvers/emturbovid.js');
 const { isMirror } = require('../utils/mirrors.js');
 const { getSessionUA } = require('../utils/http.js');
 
@@ -107,6 +116,42 @@ async function resolveEmbed(url, signal = null) {
   }
   if (url.includes("xupalace.org") || url.includes("xupalace")) {
     const result = await resolveXupalace(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("mixdrop") || url.includes("m1xdrop")) {
+    const result = await resolveMixdrop(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("verhdlink")) {
+    const result = await resolveVerhdlink(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("streamtape") || url.includes("bysejikuar")) {
+    const result = await resolveStreamtape(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("playhydrax")) {
+    const result = await resolvePlayhydrax(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("sololatino.xyz")) {
+    const result = await resolveSololatino(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("krakenfiles")) {
+    const result = await resolveKrakenfiles(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("unlimplay")) {
+    const result = await resolveUnlimplay(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("vibuxer")) {
+    const result = await resolveVibuxer(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("emturbovid") || url.includes("turbovidhls")) {
+    const result = await resolveEmturbovid(url, signal);
     if (result) return result;
   }
   

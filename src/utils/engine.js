@@ -100,6 +100,8 @@ async function finalizeStreams(streams, providerName, mediaTitle) {
   for (const s of validatedStreams) {
     if (!s)
       continue;
+    if (s.verified === false)
+      continue;
     const rawLang = normalizeLanguage(s.lang || s.Audio || s.langLabel || s.language || s.audio || "Latino");
     const l = rawLang.toLowerCase();
     const isLatino = l.includes("latino") || l.includes("español");

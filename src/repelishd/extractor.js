@@ -92,6 +92,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
                         serverName: resolved.serverName || "Server",
                         langLabel: "Latino",
                         quality: resolved.quality || "HD",
+                        verified: resolved.verified,
                         headers: resolved.headers || { "User-Agent": UA, "Referer": url }
                     };
                 }
