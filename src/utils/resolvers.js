@@ -8,6 +8,9 @@ const { resolve: resolveGoodstream } = require('../resolvers/goodstream.js');
 const { resolve: resolveFastream } = require('../resolvers/fastream.js');
 const { resolve: resolveVimeos } = require('../resolvers/vimeos.js');
 const { resolve: resolveSupervideo } = require('../resolvers/supervideo.js');
+const { resolve: resolvePixeldrain } = require('../resolvers/pixeldrain.js');
+const { resolve: resolveLulustream } = require('../resolvers/lulustream.js');
+const { resolve: resolveOkru } = require('../resolvers/okru.js');
 const { isMirror } = require('../utils/mirrors.js');
 const { getSessionUA } = require('../utils/http.js');
 
@@ -82,6 +85,18 @@ async function resolveEmbed(url, signal = null) {
   }
   if (url.includes("supervideo")) {
     const result = await resolveSupervideo(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "PIXELDRAIN")) {
+    const result = await resolvePixeldrain(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "LULUSTREAM")) {
+    const result = await resolveLulustream(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "OKRU")) {
+    const result = await resolveOkru(url, signal);
     if (result) return result;
   }
   
