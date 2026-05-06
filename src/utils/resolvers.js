@@ -11,6 +11,8 @@ const { resolve: resolveSupervideo } = require('../resolvers/supervideo.js');
 const { resolve: resolvePixeldrain } = require('../resolvers/pixeldrain.js');
 const { resolve: resolveLulustream } = require('../resolvers/lulustream.js');
 const { resolve: resolveOkru } = require('../resolvers/okru.js');
+const { resolve: resolveEmbed69 } = require('../resolvers/embed69.js');
+const { resolve: resolveXupalace } = require('../resolvers/xupalace.js');
 const { isMirror } = require('../utils/mirrors.js');
 const { getSessionUA } = require('../utils/http.js');
 
@@ -97,6 +99,14 @@ async function resolveEmbed(url, signal = null) {
   }
   if (isMirror(urlLower, "OKRU")) {
     const result = await resolveOkru(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("embed69.org") || url.includes("embed69")) {
+    const result = await resolveEmbed69(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("xupalace.org") || url.includes("xupalace")) {
+    const result = await resolveXupalace(url, signal);
     if (result) return result;
   }
   

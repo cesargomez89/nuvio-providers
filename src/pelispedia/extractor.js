@@ -70,44 +70,6 @@ export async function extractPlayerEmbeds(url) {
     }
 }
 
-async function resolveEmbed69(embedUrl) {
-    try {
-        const html = await fetchHtml(embedUrl, { headers: { Referer: BASE + "/" } });
-        const jwtRegex = /eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/g;
-        const matches = html.match(jwtRegex) || [];
-        const uniqueTokens = [...new Set(matches)];
-        const results = [];
-        
-        for (const token of uniqueTokens) {
-            if (token.length < 50) continue;
-            try {
-                const parts = token.split(".");
-                if (parts.length < 2) continue;
-                let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-                payload += "=".repeat((4 - payload.length % 4) % 4);
-                const decoded = atob(payload);
-                const payloadObj = JSON.parse(decoded);
-                
-                if (payloadObj.link) {
-                    const resolved = await resolveEmbed(payloadObj.link);
-                    if (resolved && resolved.url) {
-                        results.push({
-                            ...resolved,
-                            servername: resolved.servername || "Server"
-                        });
-                    }
-                }
-            } catch (e) {
-                // Skip invalid tokens
-            }
-        }
-        return results;
-    } catch (e) {
-        console.error("[PelisPedia] Embed69 error:", e.message);
-        return [];
-    }
-}
-
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId && !title) return [];
     
@@ -162,11 +124,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                 let currentUrl = embed.url;
                 let resolved = null;
                 
-                if (currentUrl.includes("embed69")) {
-                    resolved = await resolveEmbed69(currentUrl);
-                } else {
-                    resolved = await resolveEmbed(currentUrl);
-                }
+                resolved = await resolveEmbed(currentUrl);
                 
                 if (resolved) {
                     const results = Array.isArray(resolved) ? resolved : [resolved];
