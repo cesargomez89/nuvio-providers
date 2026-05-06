@@ -10,21 +10,48 @@ async function resolve(url, signal = null) {
     const resp = await fetch(url, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": url
+        ...getStealthHeaders(),
+        "Referer": new URL(url).origin + "/",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7"
       }
     });
-    if (!resp.ok) return null;
+    if (!resp.ok) {
+      console.log(`[Supervideo] HTTP ${resp.status}: headers insufficient`);
+      return null;
+    }
 
     const html = await resp.text();
     const unpacked = unpackPacker(html);
-    if (!unpacked) return null;
+    if (!unpacked) {
+      const directFile = html.match(/file\s*:\s*["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
+      if (directFile) {
+        const streamUrl = directFile[1];
+        const headers = {
+          ...getStealthHeaders(),
+          "Referer": url.split("?")[0],
+          "Origin": new URL(url).origin,
+          "X-Requested-With": "XMLHttpRequest",
+          "User-Agent": UA
+        };
+        const streamObj = { url: streamUrl, headers };
+        const validation = await validateStream(streamObj, signal);
+        return {
+          url: streamUrl,
+          quality: validation?.quality || "1080p",
+          verified: validation?.verified ?? true,
+          isReal: validation?.isReal ?? false,
+          serverName: "Supervideo",
+          headers
+        };
+      }
+      return null;
+    }
 
     const fileMatch = unpacked.match(/file\s*:\s*["']([^"']+?\.m3u8[^"']*)["']/i);
     if (!fileMatch) return null;
 
     const streamUrl = fileMatch[1];
-
     const headers = {
       ...getStealthHeaders(),
       "Referer": url.split("?")[0],
@@ -32,7 +59,6 @@ async function resolve(url, signal = null) {
       "X-Requested-With": "XMLHttpRequest",
       "User-Agent": UA
     };
-
     const streamObj = { url: streamUrl, headers };
     const validation = await validateStream(streamObj, signal);
 

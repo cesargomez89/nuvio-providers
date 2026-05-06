@@ -11,11 +11,18 @@ async function resolve(url, signal = null) {
       headers: {
         "User-Agent": UA,
         "Referer": domain,
-        "Accept": "text/html,application/xhtml+xml"
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "es-US,es;q=0.9"
       }
     });
     if (!resp.ok) return null;
     const html = await resp.text();
+
+    // Check for "file expired" or "deleted" indicators
+    if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
+      console.log(`[DropCDN] File expired or deleted at ${url}`);
+      return null;
+    }
 
     const unpacked = unpackPacker(html);
     if (!unpacked) {
