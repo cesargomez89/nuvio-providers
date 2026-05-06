@@ -27,6 +27,14 @@ const { getSessionUA } = require('../utils/http.js');
 
 const UA = getSessionUA();
 
+const DEAD_DOMAINS = [
+  "supervideo",
+  "voe.sx",
+  "mixdrop",
+  "verhdlink",
+  "waaw.to"
+];
+
 function getDirectCdnHeaders(url) {
   if (!url)
     return null;
@@ -58,6 +66,8 @@ async function resolveEmbed(url, signal = null) {
   if (!url)
     return null;
   const urlLower = url.toLowerCase();
+  if (DEAD_DOMAINS.some(d => urlLower.includes(d)))
+    return null;
   if (isMirror(urlLower, "VOE") || url.includes("voe.sx") || url.includes("voe-") || url.includes("voex.sx")) {
     const result = await resolveVoe(url, signal);
     if (result) return result;
