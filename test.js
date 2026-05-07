@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const PROVIDER_TIMEOUT = 30000;
+
 class Semaphore {
   constructor(max) { this.max = max; this.current = 0; this.queue = []; }
   acquire() {
@@ -38,8 +40,6 @@ function buildTmdbCache(configs) {
 }
 
 const originalConsoleLog = console.log;
-const originalConsoleWarn = console.warn;
-const originalConsoleError = console.error;
 const logLines = [];
 const allCapturedProviderLogs = [];
 
@@ -97,13 +97,21 @@ async function testProvider(filename, tmdbCache, sem) {
       try {
         const result = await sem.run(async () => {
           const startTime = Date.now();
-          const s = await mod.getStreams(
-            config.tmdbId,
-            config.mediaType,
-            config.season || null,
-            config.episode || null
-          );
-          return { streams: s, elapsed: Date.now() - startTime };
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT);
+          try {
+            const s = await mod.getStreams(
+              config.tmdbId,
+              config.mediaType,
+              config.season || null,
+              config.episode || null
+            );
+            clearTimeout(timeoutId);
+            return { streams: s, elapsed: Date.now() - startTime };
+          } catch (e) {
+            clearTimeout(timeoutId);
+            throw e;
+          }
         });
         streams = result.streams;
         elapsed = result.elapsed;
@@ -168,8 +176,8 @@ async function main() {
   logBoth(`Testing ${providerFiles.length} providers (${testConfigs.length} configs each)...\n`);
 
   const tmdbCache = buildTmdbCache(testConfigs);
-  const sem = new Semaphore(2);
-  const results = await runWithConcurrency(providerFiles, f => testProvider(f, tmdbCache, sem), 4, 50);
+  const sem = new Semaphore(6);
+  const results = await runWithConcurrency(providerFiles, f => testProvider(f, tmdbCache, sem), 10, 50);
 
   logBoth('\n─────────────────────────────────────────────');
 
