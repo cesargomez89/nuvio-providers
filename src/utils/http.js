@@ -1,4 +1,5 @@
 const DEFAULT_CHROME_UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+const DEFAULT_TIMEOUT = 8000;
 
 let sessionUA = null;
 
@@ -47,6 +48,9 @@ async function request(url, options = {}) {
       headers
     });
 
+    if (opt.signal)
+      fetchOptions.signal = opt.signal;
+
     const response = await fetch(url, fetchOptions);
 
     if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
@@ -74,13 +78,28 @@ async function fetchJson(url, options) {
   return await res.json();
 }
 
+async function fetchWithTimeout(url, timeout = DEFAULT_TIMEOUT, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  try {
+    const result = await request(url, { ...options, signal: controller.signal });
+    clearTimeout(timeoutId);
+    return result;
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
+}
+
 module.exports = {
   request,
   fetchHtml,
   fetchJson,
+  fetchWithTimeout,
   getSessionUA,
   setSessionUA,
   getStealthHeaders,
   DEFAULT_UA,
-  MOBILE_UA
+  MOBILE_UA,
+  DEFAULT_TIMEOUT
 };

@@ -89,19 +89,19 @@ async function resolveEmbed(url, signal = null) {
     if (result) return result;
   }
   if (isMirror(urlLower, "DROPCDN")) {
-    const result = await resolveDropcdn(url);
+    const result = await resolveDropcdn(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, "GOODSTREAM") || url.includes("goodstream") || url.includes("gs.one")) {
-    const result = await resolveGoodstream(url);
+    const result = await resolveGoodstream(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, "FASTREAM") || url.includes("fastream") || url.includes("fembed")) {
-    const result = await resolveFastream(url);
+    const result = await resolveFastream(url, signal);
     if (result) return result;
   }
   if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh")) {
-    const result = await resolveVimeos(url);
+    const result = await resolveVimeos(url, signal);
     if (result) return result;
   }
   if (url.includes("supervideo")) {

@@ -1,8 +1,0 @@
-{
-  "name": "SeriesMetro",
-  "description": "Series en Latino desde SeriesMetro.",
-  "author": "cesargomez89",
-  "supportedTypes": ["movie", "tv"],
-  "contentLanguage": ["es"],
-  "formats": ["mp4", "mkv"]
-}

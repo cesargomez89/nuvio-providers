@@ -2,7 +2,7 @@
  * <Name> Extractor
  * Site-specific logic for finding video streams.
  */
-import { fetchHtml, fetchJson, getSessionUA } from '../utils/http.js';
+import { fetchHtml, fetchJson, fetchWithTimeout, getSessionUA, DEFAULT_TIMEOUT } from '../utils/http.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { getTmdbInfo } from '../utils/tmdb.js';
@@ -16,8 +16,15 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
     // 2. Construct the search or video URL
     // const url = `https://example.com/search/${tmdbId}`;
 
-    // 3. Fetch content
-    // const html = await fetchHtml(url);
+    // 3. Fetch content (with automatic 8s timeout)
+    // const html = await fetchWithTimeout(url);
+
+    //    Or pass a custom timeout + signal for propagation:
+    // const controller = new AbortController();
+    // const html = await fetchWithTimeout(url, 8000, { signal: controller.signal });
+
+    //    Resolve embeds with signal propagation:
+    // const resolved = await resolveEmbed(embedUrl, controller.signal);
 
     // 4. Parse with Cheerio
     // const $ = cheerio.load(html);

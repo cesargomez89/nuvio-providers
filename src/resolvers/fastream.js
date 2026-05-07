@@ -1,9 +1,10 @@
 const UA = "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 const { unpackPacker } = require('../utils/packer.js');
 
-async function detectQuality(m3u8Url, headers = {}) {
+async function detectQuality(m3u8Url, headers = {}, signal = null) {
   try {
     const res = await fetch(m3u8Url, {
+      signal,
       headers: { "User-Agent": UA, ...headers },
       redirect: "follow"
     });
@@ -36,9 +37,10 @@ async function detectQuality(m3u8Url, headers = {}) {
   }
 }
 
-async function resolve(url) {
+async function resolve(url, signal = null) {
   try {
     const res = await fetch(url, {
+      signal,
       headers: {
         "User-Agent": UA,
         "Referer": "https://www3.seriesmetro.net/"
@@ -52,7 +54,7 @@ async function resolve(url) {
     const m3u8 = unpacked.match(/file:"(https?:\/\/[^"]+\.m3u8[^"]*)"/)?.[1];
     if (!m3u8)
       return null;
-    const quality = await detectQuality(m3u8, { "Referer": "https://fastream.to/" });
+    const quality = await detectQuality(m3u8, { "Referer": "https://fastream.to/" }, signal);
     return {
       url: m3u8,
       quality,

@@ -1,10 +1,11 @@
 const { fetchHtml, fetchJson, getSessionUA } = require('../utils/http.js');
 
-async function resolve(embedUrl) {
+async function resolve(embedUrl, signal = null) {
   const UA = getSessionUA();
   try {
     console.log("[Vimeos] Resolviendo: " + embedUrl);
     var html = await fetchHtml(embedUrl, {
+      signal,
       headers: {
         "User-Agent": UA,
         "Referer": "https://vimeos.net/",
@@ -19,6 +20,7 @@ async function resolve(embedUrl) {
       var vimeoId = vimeoIdMatch[1];
       try {
         var config = await fetchJson("https://player.vimeo.com/video/" + vimeoId + "/config", {
+          signal,
           headers: { "User-Agent": UA, "Referer": embedUrl }
         });
         var hlsUrl = null;

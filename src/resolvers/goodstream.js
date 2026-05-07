@@ -1,11 +1,12 @@
 const { detectQuality } = require('./quality.js');
 const { getSessionUA } = require('../utils/http.js');
 
-async function resolve(embedUrl) {
+async function resolve(embedUrl, signal = null) {
   try {
     const UA = getSessionUA();
     console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
     const response = await fetch(embedUrl, {
+      signal,
       headers: {
         "User-Agent": UA,
         "Referer": "https://goodstream.one/",
