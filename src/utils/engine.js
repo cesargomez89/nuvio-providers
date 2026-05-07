@@ -11,7 +11,7 @@ function normalizeLanguage(lang) {
     return "Latino";
   }
   if (l.includes("esp") || l.includes("cas") || l.includes("spa") || l.includes("cast") || l === "esp") {
-    return "Español";
+    return "Castellano";
   }
   if (l.includes("sub") || l.includes("vose") || l === "sub") {
     return "Subtitulado";
@@ -104,7 +104,7 @@ async function finalizeStreams(streams, providerName, mediaTitle) {
       continue;
     const rawLang = normalizeLanguage(s.lang || s.Audio || s.langLabel || s.language || s.audio || "Latino");
     const l = rawLang.toLowerCase();
-    const isLatino = l.includes("latino") || l.includes("español");
+    const isLatino = l.includes("latino") || l.includes("castellano");
     if (!isLatino && providerName !== "FuegoCine")
       continue;
     const server = normalizeServer(s.serverLabel || s.serverName || s.servername, s.url, s.serverName);
