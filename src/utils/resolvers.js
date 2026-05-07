@@ -22,6 +22,17 @@ const { resolve: resolveKrakenfiles } = require('../resolvers/krakenfiles.js');
 const { resolve: resolveUnlimplay } = require('../resolvers/unlimplay.js');
 const { resolve: resolveVibuxer } = require('../resolvers/vibuxer.js');
 const { resolve: resolveEmturbovid } = require('../resolvers/emturbovid.js');
+const { resolve: resolveBuzzheavier } = require('../resolvers/buzzheavier.js');
+const { resolve: resolveTplayer } = require('../resolvers/tplayer.js');
+const { resolve: resolveVidsrc } = require('../resolvers/vidsrc.js');
+const { resolve: resolveEmbedseek } = require('../resolvers/embedseek.js');
+const { resolve: resolveVidnest } = require('../resolvers/vidnest.js');
+const { resolve: resolveVidsonic } = require('../resolvers/vidsonic.js');
+const { resolve: resolveBarmonrey } = require('../resolvers/barmonrey.js');
+const { resolve: resolveVidmoly } = require('../resolvers/vidmoly.js');
+const { resolve: resolveRpmvid } = require('../resolvers/rpmvid.js');
+const { resolve: resolvePlaymogo } = require('../resolvers/playmogo.js');
+const { resolve: resolveGeneric } = require('../resolvers/generic_fuegocine.js');
 const { isMirror } = require('../utils/mirrors.js');
 const { getSessionUA } = require('../utils/http.js');
 
@@ -60,6 +71,19 @@ function getDirectCdnHeaders(url) {
   } catch (e) {
     return { "User-Agent": UA, "referer": url.split("?")[0] };
   }
+}
+
+function applyPiping(result) {
+  if (!result || !result.url) return result;
+  let url = result.url;
+  const s = url.toLowerCase();
+  const isDirectFile = s.includes("pixeldrain") || s.includes("buzzheavier") || s.includes("tplayer") || result.isDirect;
+  const anchor = isDirectFile ? "#.mp4" : "";
+  if (anchor && !url.includes(".m3u8") && !url.includes(".mp4")) {
+    url = `${url}${anchor}`;
+  }
+  result.url = url;
+  return result;
 }
 
 async function resolveEmbed(url, signal = null) {
@@ -110,7 +134,7 @@ async function resolveEmbed(url, signal = null) {
   }
   if (isMirror(urlLower, "PIXELDRAIN")) {
     const result = await resolvePixeldrain(url, signal);
-    if (result) return result;
+    if (result) return applyPiping(result);
   }
   if (isMirror(urlLower, "LULUSTREAM")) {
     const result = await resolveLulustream(url, signal);
@@ -164,16 +188,58 @@ async function resolveEmbed(url, signal = null) {
     const result = await resolveEmturbovid(url, signal);
     if (result) return result;
   }
+  if (url.includes("buzzheavier") || url.includes("bzh.sh")) {
+    const result = await resolveBuzzheavier(url, signal);
+    if (result) return applyPiping(result);
+  }
+  if (url.includes("tplayer.pelisgo.online")) {
+    const result = await resolveTplayer(url, signal);
+    if (result) return applyPiping(result);
+  }
+  if (url.includes("vidsrc") || url.includes("moviesapi.to") || url.includes("moviesapi.club")) {
+    const result = await resolveVidsrc(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("embedseek") || url.includes("seekplays") || url.includes("seekstreaming")) {
+    const result = await resolveEmbedseek(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "VIDNEST")) {
+    const result = await resolveVidnest(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "VIDSONIC")) {
+    const result = await resolveVidsonic(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "BARMONREY")) {
+    const result = await resolveBarmonrey(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "VIDMOLY")) {
+    const result = await resolveVidmoly(url, signal);
+    if (result) return result;
+  }
+  if (isMirror(urlLower, "UPNS")) {
+    const result = await resolveRpmvid(url, signal);
+    if (result) return result;
+  }
+  if (url.includes("playmogo")) {
+    const result = await resolvePlaymogo(url, signal);
+    if (result) return applyPiping(result);
+  }
+  if (isMirror(urlLower, "UNLIMPLAY") || isMirror(urlLower, "KRAKENFILES")) {
+    const result = await resolveGeneric(url, signal);
+    if (result) return result;
+  }
   
-  // Fallback: return URL with direct CDN headers for unmatched URLs
-  // This ensures we don't lose valid stream URLs
   const headers = getDirectCdnHeaders(url);
-  return {
+  return applyPiping({
     url,
     quality: "SD",
     verified: false,
     headers
-  };
+  });
 }
 
-module.exports = { resolveEmbed, getDirectCdnHeaders };
+module.exports = { resolveEmbed, getDirectCdnHeaders, applyPiping };

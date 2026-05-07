@@ -11,6 +11,9 @@ const MIRRORS = {
     "dintezuvio",
     "acek-cdn",
     "vedonm",
+    "vidhidepro",
+    "vidhidevip",
+    "supervideo",
     "masukestin",
     "vidoza"
   ],
@@ -51,7 +54,10 @@ const MIRRORS = {
   VOE: [
     "voe.sx",
     "voe-sx",
-    "voex.sx"
+    "voex.sx",
+    "marissashare",
+    "cloudwindow",
+    "marissasharecareer"
   ],
   FASTREAM: [
     "fastream",
@@ -78,7 +84,8 @@ const MIRRORS = {
     "luluvdo",
     "luluvids",
     "pondy",
-    "lulupuv"
+    "lulupuv",
+    "luluvid"
   ],
   SEEKSTREAMING: [
     "seekplays",
@@ -125,6 +132,29 @@ const MIRRORS = {
     "all3do.com",
     "doply.net",
     "dsvplay.com"
+  ],
+  VIDNEST: [
+    "vidnest.io",
+    "vidnest.live"
+  ],
+  VIDSONIC: [
+    "vidsonic.net"
+  ],
+  BARMONREY: [
+    "barmonrey.com"
+  ],
+  VIDMOLY: [
+    "vidmoly.biz",
+    "vidmoly.to"
+  ],
+  UNLIMPLAY: [
+    "unlimplay.com"
+  ],
+  KRAKENFILES: [
+    "krakenfiles.com"
+  ],
+  UPNS: [
+    "upns.online"
   ]
 };
 
