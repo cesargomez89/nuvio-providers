@@ -215,7 +215,6 @@ Providers have access to these modules via `require()`:
 |--------|-------|
 | `cheerio-without-node-native` | HTML parsing |
 | `crypto-js` | Encryption/decryption |
-| `axios` | HTTP requests |
 
 Native `fetch` and `console` are also available globally.
 

@@ -36,7 +36,6 @@ npm start                  # Start local dev server (serves providers/ and manif
 |--------|-------|
 | `cheerio-without-node-native` | HTML parsing |
 | `crypto-js` | Encryption/decryption |
-| `axios` | HTTP requests |
 | `fetch` | Native global |
 | `console` | Native global |
 
