@@ -4,7 +4,8 @@ const RAND_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567
 
 function randomStr(len) {
   let r = '';
-  for (let i = 0; i < len; i++) r += RAND_CHARS.charAt(Math.floor(Math.random() * RAND_CHARS.length));
+  for (let i = 0; i < len; i++)
+    r += RAND_CHARS.charAt(Math.floor(Math.random() * RAND_CHARS.length));
   return r;
 }
 
@@ -23,16 +24,16 @@ async function resolve(url, signal = null) {
     const resp = await fetch(embedUrl, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": embedUrl,
-        "Accept": "text/html,application/xhtml+xml"
-      }
+        'User-Agent': UA,
+        Referer: embedUrl,
+        Accept: 'text/html,application/xhtml+xml',
+      },
     });
     if (!resp.ok) return null;
     const html = await resp.text();
 
-    if (html.includes("Video not found")) {
-      console.log("[DoodStream] Video not found");
+    if (html.includes('Video not found')) {
+      console.log('[DoodStream] Video not found');
       return null;
     }
 
@@ -46,7 +47,7 @@ async function resolve(url, signal = null) {
     const passUrl = `${domain}${passMatch[0]}`;
     const passResp = await fetch(passUrl, {
       signal,
-      headers: { "User-Agent": UA, "Referer": embedUrl }
+      headers: { 'User-Agent': UA, Referer: embedUrl },
     });
     if (!passResp.ok) return null;
     const baseUrl = (await passResp.text()).trim();
@@ -57,13 +58,13 @@ async function resolve(url, signal = null) {
 
     return {
       url: finalUrl,
-      quality: "1080p",
-      serverName: "DoodStream",
+      quality: '1080p',
+      serverName: 'DoodStream',
       headers: {
-        "User-Agent": UA,
-        "Referer": domain,
-        "Origin": domain
-      }
+        'User-Agent': UA,
+        Referer: domain,
+        Origin: domain,
+      },
     };
   } catch (e) {
     console.error(`[DoodStream] Error: ${e.message}`);

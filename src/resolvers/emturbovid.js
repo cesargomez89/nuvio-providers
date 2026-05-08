@@ -8,15 +8,15 @@ async function resolve(url, signal = null) {
     const resp = await fetch(url, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": domain + "/",
-        "Accept": "text/html,application/xhtml+xml"
-      }
+        'User-Agent': UA,
+        Referer: domain + '/',
+        Accept: 'text/html,application/xhtml+xml',
+      },
     });
     if (!resp.ok) return null;
     const html = await resp.text();
 
-    if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
+    if (html.includes('expired') || html.includes('deleted') || html.includes('not found')) {
       console.log(`[Emturbovid] File expired/deleted at ${url}`);
       return null;
     }
@@ -25,9 +25,9 @@ async function resolve(url, signal = null) {
     if (fileMatch) {
       return {
         url: fileMatch[1],
-        quality: "1080p",
-        serverName: "Emturbovid",
-        headers: { "User-Agent": UA, "Referer": domain + "/" }
+        quality: '1080p',
+        serverName: 'Emturbovid',
+        headers: { 'User-Agent': UA, Referer: domain + '/' },
       };
     }
 
@@ -35,9 +35,9 @@ async function resolve(url, signal = null) {
     if (videoMatch) {
       return {
         url: videoMatch[1],
-        quality: "1080p",
-        serverName: "Emturbovid",
-        headers: { "User-Agent": UA, "Referer": domain + "/" }
+        quality: '1080p',
+        serverName: 'Emturbovid',
+        headers: { 'User-Agent': UA, Referer: domain + '/' },
       };
     }
 

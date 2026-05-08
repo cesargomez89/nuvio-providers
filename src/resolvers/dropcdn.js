@@ -9,17 +9,17 @@ async function resolve(url, signal = null) {
     const resp = await fetch(url, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": domain,
-        "Accept": "text/html,application/xhtml+xml",
-        "Accept-Language": "es-US,es;q=0.9"
-      }
+        'User-Agent': UA,
+        Referer: domain,
+        Accept: 'text/html,application/xhtml+xml',
+        'Accept-Language': 'es-US,es;q=0.9',
+      },
     });
     if (!resp.ok) return null;
     const html = await resp.text();
 
     // Check for "file expired" or "deleted" indicators
-    if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
+    if (html.includes('expired') || html.includes('deleted') || html.includes('not found')) {
       console.log(`[DropCDN] File expired or deleted at ${url}`);
       return null;
     }
@@ -30,13 +30,13 @@ async function resolve(url, signal = null) {
       if (!directMatch) return null;
       return {
         url: directMatch[1],
-        quality: "1080p",
-        serverName: "DropCDN",
+        quality: '1080p',
+        serverName: 'DropCDN',
         headers: {
-          "User-Agent": UA,
-          "Referer": domain,
-          "Origin": domain
-        }
+          'User-Agent': UA,
+          Referer: domain,
+          Origin: domain,
+        },
       };
     }
 
@@ -45,13 +45,13 @@ async function resolve(url, signal = null) {
 
     return {
       url: fileMatch[1],
-      quality: "1080p",
-      serverName: "DropCDN",
+      quality: '1080p',
+      serverName: 'DropCDN',
       headers: {
-        "User-Agent": UA,
-        "Referer": domain,
-        "Origin": domain
-      }
+        'User-Agent': UA,
+        Referer: domain,
+        Origin: domain,
+      },
     };
   } catch (e) {
     console.error(`[DropCDN] Error: ${e.message}`);

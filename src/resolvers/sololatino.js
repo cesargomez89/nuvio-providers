@@ -8,10 +8,10 @@ async function resolve(url, signal = null) {
     const resp = await fetch(url, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": domain + "/",
-        "Accept": "text/html,application/xhtml+xml"
-      }
+        'User-Agent': UA,
+        Referer: domain + '/',
+        Accept: 'text/html,application/xhtml+xml',
+      },
     });
     if (!resp.ok) return null;
     const html = await resp.text();
@@ -26,9 +26,9 @@ async function resolve(url, signal = null) {
     if (fileMatch) {
       return {
         url: fileMatch[1],
-        quality: "1080p",
-        serverName: "Sololatino",
-        headers: { "User-Agent": UA, "Referer": domain + "/" }
+        quality: '1080p',
+        serverName: 'Sololatino',
+        headers: { 'User-Agent': UA, Referer: domain + '/' },
       };
     }
 

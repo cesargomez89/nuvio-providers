@@ -16,10 +16,10 @@ async function resolve(url, signal = null) {
     const resp = await fetch(url, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": "https://m1xdrop.click/",
-        "Accept": "text/html,application/xhtml+xml"
-      }
+        'User-Agent': UA,
+        Referer: 'https://m1xdrop.click/',
+        Accept: 'text/html,application/xhtml+xml',
+      },
     });
     if (!resp.ok) return null;
     const html = await resp.text();
@@ -29,13 +29,13 @@ async function resolve(url, signal = null) {
 
     return {
       url: videoUrl,
-      quality: "1080p",
-      serverName: "Mixdrop",
+      quality: '1080p',
+      serverName: 'Mixdrop',
       headers: {
-        "User-Agent": UA,
-        "Referer": "https://m1xdrop.click/",
-        "Origin": "https://m1xdrop.click"
-      }
+        'User-Agent': UA,
+        Referer: 'https://m1xdrop.click/',
+        Origin: 'https://m1xdrop.click',
+      },
     };
   } catch (e) {
     console.error(`[Mixdrop] Error: ${e.message}`);

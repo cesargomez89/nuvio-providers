@@ -11,10 +11,10 @@ async function resolve(url, signal = null) {
       signal,
       headers: {
         ...getStealthHeaders(),
-        "Referer": new URL(url).origin + "/",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7"
-      }
+        Referer: new URL(url).origin + '/',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'es-US,es;q=0.9,en-US;q=0.8,en;q=0.7',
+      },
     });
     if (!resp.ok) {
       console.log(`[Supervideo] HTTP ${resp.status}: headers insufficient`);
@@ -29,20 +29,20 @@ async function resolve(url, signal = null) {
         const streamUrl = directFile[1];
         const headers = {
           ...getStealthHeaders(),
-          "Referer": url.split("?")[0],
-          "Origin": new URL(url).origin,
-          "X-Requested-With": "XMLHttpRequest",
-          "User-Agent": UA
+          Referer: url.split('?')[0],
+          Origin: new URL(url).origin,
+          'X-Requested-With': 'XMLHttpRequest',
+          'User-Agent': UA,
         };
         const streamObj = { url: streamUrl, headers };
         const validation = await validateStream(streamObj, signal);
         return {
           url: streamUrl,
-          quality: validation?.quality || "1080p",
+          quality: validation?.quality || '1080p',
           verified: validation?.verified ?? true,
           isReal: validation?.isReal ?? false,
-          serverName: "Supervideo",
-          headers
+          serverName: 'Supervideo',
+          headers,
         };
       }
       return null;
@@ -54,21 +54,21 @@ async function resolve(url, signal = null) {
     const streamUrl = fileMatch[1];
     const headers = {
       ...getStealthHeaders(),
-      "Referer": url.split("?")[0],
-      "Origin": new URL(url).origin,
-      "X-Requested-With": "XMLHttpRequest",
-      "User-Agent": UA
+      Referer: url.split('?')[0],
+      Origin: new URL(url).origin,
+      'X-Requested-With': 'XMLHttpRequest',
+      'User-Agent': UA,
     };
     const streamObj = { url: streamUrl, headers };
     const validation = await validateStream(streamObj, signal);
 
     return {
       url: streamUrl,
-      quality: validation?.quality || "1080p",
+      quality: validation?.quality || '1080p',
       verified: validation?.verified ?? true,
       isReal: validation?.isReal ?? false,
-      serverName: "Supervideo",
-      headers
+      serverName: 'Supervideo',
+      headers,
     };
   } catch (e) {
     console.error(`[Supervideo] Error: ${e.message}`);

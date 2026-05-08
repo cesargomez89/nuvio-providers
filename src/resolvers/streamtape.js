@@ -7,24 +7,24 @@ async function resolve(url, signal = null) {
     const resp = await fetch(url, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": "https://streamtape.com/",
-        "Accept": "text/html,application/xhtml+xml"
-      }
+        'User-Agent': UA,
+        Referer: 'https://streamtape.com/',
+        Accept: 'text/html,application/xhtml+xml',
+      },
     });
     if (!resp.ok) return null;
     const html = await resp.text();
 
     const innerMatch = html.match(/innerHTML\s*=\s*["']([^"']+?)["']/i);
     if (innerMatch) {
-      const decoded = innerMatch[1].replace(/\\/g, "");
+      const decoded = innerMatch[1].replace(/\\/g, '');
       const urlMatch = decoded.match(/(https?:\/\/[^"'\s]+\.(?:m3u8|mp4)[^"'\s]*)/i);
       if (urlMatch) {
         return {
           url: urlMatch[1],
-          quality: "1080p",
-          serverName: "Streamtape",
-          headers: { "User-Agent": UA, "Referer": url }
+          quality: '1080p',
+          serverName: 'Streamtape',
+          headers: { 'User-Agent': UA, Referer: url },
         };
       }
     }
@@ -33,9 +33,9 @@ async function resolve(url, signal = null) {
     if (fileMatch) {
       return {
         url: fileMatch[1],
-        quality: "1080p",
-        serverName: "Streamtape",
-        headers: { "User-Agent": UA, "Referer": url }
+        quality: '1080p',
+        serverName: 'Streamtape',
+        headers: { 'User-Agent': UA, Referer: url },
       };
     }
 

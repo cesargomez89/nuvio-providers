@@ -3,9 +3,10 @@ async function resolve(embedUrl, signal = null) {
     const response = await fetch(embedUrl, {
       signal,
       headers: {
-        "Referer": "https://www.fuegocine.com/",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-      }
+        Referer: 'https://www.fuegocine.com/',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      },
     });
     if (!response.ok) return null;
     const html = await response.text();
@@ -13,20 +14,20 @@ async function resolve(embedUrl, signal = null) {
     if (m3u8) {
       return {
         url: m3u8[0],
-        quality: "HD",
-        serverName: "Server",
+        quality: 'HD',
+        serverName: 'Server',
         verified: true,
-        headers: { "Referer": embedUrl }
+        headers: { Referer: embedUrl },
       };
     }
     const mp4 = html.match(/https?:\/\/[^"'\s]+\.mp4[^"'\s]*/i);
     if (mp4) {
       return {
         url: mp4[0],
-        quality: "HD",
-        serverName: "Server",
+        quality: 'HD',
+        serverName: 'Server',
         verified: true,
-        headers: { "Referer": embedUrl }
+        headers: { Referer: embedUrl },
       };
     }
     return null;

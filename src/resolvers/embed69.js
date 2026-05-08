@@ -6,9 +6,11 @@ function decodeJwtPayload(token) {
     const parts = token.split('.');
     if (parts.length < 2) return null;
     let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    payload += '='.repeat((4 - payload.length % 4) % 4);
+    payload += '='.repeat((4 - (payload.length % 4)) % 4);
     return JSON.parse(atob(payload));
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 async function resolve(url, signal = null) {
@@ -17,10 +19,10 @@ async function resolve(url, signal = null) {
     const resp = await fetch(url, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": "https://embed69.org/",
-        "Accept": "text/html,application/xhtml+xml"
-      }
+        'User-Agent': UA,
+        Referer: 'https://embed69.org/',
+        Accept: 'text/html,application/xhtml+xml',
+      },
     });
     if (!resp.ok) return null;
     const html = await resp.text();
@@ -30,8 +32,10 @@ async function resolve(url, signal = null) {
     if (dataLinkMatch) {
       let rawData;
       try {
-        rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
-      } catch { return null; }
+        rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, '/'));
+      } catch {
+        return null;
+      }
       const items = Array.isArray(rawData) ? rawData : Object.values(rawData);
 
       for (const item of items) {
@@ -54,9 +58,9 @@ async function resolve(url, signal = null) {
     if (fileMatch) {
       return {
         url: fileMatch[1],
-        quality: "1080p",
-        serverName: "Embed69",
-        headers: { "User-Agent": UA, "Referer": url }
+        quality: '1080p',
+        serverName: 'Embed69',
+        headers: { 'User-Agent': UA, Referer: url },
       };
     }
 

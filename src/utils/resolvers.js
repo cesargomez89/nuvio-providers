@@ -38,17 +38,10 @@ const { getSessionUA } = require('../utils/http.js');
 
 const UA = getSessionUA();
 
-const DEAD_DOMAINS = [
-  "supervideo",
-  "voe.sx",
-  "mixdrop",
-  "verhdlink",
-  "waaw.to"
-];
+const DEAD_DOMAINS = ['supervideo', 'voe.sx', 'mixdrop', 'verhdlink', 'waaw.to'];
 
 function getDirectCdnHeaders(url) {
-  if (!url)
-    return null;
+  if (!url) return null;
   const { getStealthHeaders } = require('../utils/http.js');
   const s = url.toLowerCase();
   try {
@@ -56,20 +49,20 @@ function getDirectCdnHeaders(url) {
     const baseOrigin = `https://${domain}`;
     const headers = {
       ...getStealthHeaders(),
-      "Referer": baseOrigin,
-      "Origin": baseOrigin
+      Referer: baseOrigin,
+      Origin: baseOrigin,
     };
-    if (isMirror(s, "FILEMOON") || isMirror(s, "VIDHIDE")) {
-      headers["X-Requested-With"] = "XMLHttpRequest";
-      headers["x-embed-origin"] = domain;
-      if (isMirror(s, "FILEMOON")) {
-        headers["x-embed-origin"] = "ww3.gnulahd.nu";
-        headers["x-embed-parent"] = baseOrigin;
+    if (isMirror(s, 'FILEMOON') || isMirror(s, 'VIDHIDE')) {
+      headers['X-Requested-With'] = 'XMLHttpRequest';
+      headers['x-embed-origin'] = domain;
+      if (isMirror(s, 'FILEMOON')) {
+        headers['x-embed-origin'] = 'ww3.gnulahd.nu';
+        headers['x-embed-parent'] = baseOrigin;
       }
     }
     return headers;
   } catch {
-    return { "User-Agent": UA, "referer": url.split("?")[0] };
+    return { 'User-Agent': UA, referer: url.split('?')[0] };
   }
 }
 
@@ -77,9 +70,13 @@ function applyPiping(result) {
   if (!result || !result.url) return result;
   let url = result.url;
   const s = url.toLowerCase();
-  const isDirectFile = s.includes("pixeldrain") || s.includes("buzzheavier") || s.includes("tplayer") || result.isDirect;
-  const anchor = isDirectFile ? "#.mp4" : "";
-  if (anchor && !url.includes(".m3u8") && !url.includes(".mp4")) {
+  const isDirectFile =
+    s.includes('pixeldrain') ||
+    s.includes('buzzheavier') ||
+    s.includes('tplayer') ||
+    result.isDirect;
+  const anchor = isDirectFile ? '#.mp4' : '';
+  if (anchor && !url.includes('.m3u8') && !url.includes('.mp4')) {
     url = `${url}${anchor}`;
   }
   result.url = url;
@@ -87,158 +84,171 @@ function applyPiping(result) {
 }
 
 async function resolveEmbed(url, signal = null) {
-  if (!url)
-    return null;
+  if (!url) return null;
   const urlLower = url.toLowerCase();
-  if (DEAD_DOMAINS.some(d => urlLower.includes(d)))
-    return null;
-  if (isMirror(urlLower, "VOE") || url.includes("voe.sx") || url.includes("voe-") || url.includes("voex.sx")) {
+  if (DEAD_DOMAINS.some((d) => urlLower.includes(d))) return null;
+  if (
+    isMirror(urlLower, 'VOE') ||
+    url.includes('voe.sx') ||
+    url.includes('voe-') ||
+    url.includes('voex.sx')
+  ) {
     const result = await resolveVoe(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "STREAMWISH") || url.includes("streamwish") || url.includes("hlswish") || url.includes("filelions")) {
+  if (
+    isMirror(urlLower, 'STREAMWISH') ||
+    url.includes('streamwish') ||
+    url.includes('hlswish') ||
+    url.includes('filelions')
+  ) {
     const result = await resolveHlswish(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "FILEMOON") || url.includes("filemoon")) {
+  if (isMirror(urlLower, 'FILEMOON') || url.includes('filemoon')) {
     const result = await resolveFilemoon(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "VIDHIDE") || url.includes("vidhide") || url.includes("vidhidepro") || url.includes("vidoza")) {
+  if (
+    isMirror(urlLower, 'VIDHIDE') ||
+    url.includes('vidhide') ||
+    url.includes('vidhidepro') ||
+    url.includes('vidoza')
+  ) {
     const result = await resolveVidhide(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "DOODSTREAM")) {
+  if (isMirror(urlLower, 'DOODSTREAM')) {
     const result = await resolveDoodstream(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "DROPCDN")) {
+  if (isMirror(urlLower, 'DROPCDN')) {
     const result = await resolveDropcdn(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "GOODSTREAM") || url.includes("goodstream") || url.includes("gs.one")) {
+  if (isMirror(urlLower, 'GOODSTREAM') || url.includes('goodstream') || url.includes('gs.one')) {
     const result = await resolveGoodstream(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "FASTREAM") || url.includes("fastream") || url.includes("fembed")) {
+  if (isMirror(urlLower, 'FASTREAM') || url.includes('fastream') || url.includes('fembed')) {
     const result = await resolveFastream(url, signal);
     if (result) return result;
   }
-  if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh")) {
+  if (url.includes('vimeos') || url.includes('vimeo') || url.includes('vms.sh')) {
     const result = await resolveVimeos(url, signal);
     if (result) return result;
   }
-  if (url.includes("supervideo")) {
+  if (url.includes('supervideo')) {
     const result = await resolveSupervideo(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "PIXELDRAIN")) {
+  if (isMirror(urlLower, 'PIXELDRAIN')) {
     const result = await resolvePixeldrain(url, signal);
     if (result) return applyPiping(result);
   }
-  if (isMirror(urlLower, "LULUSTREAM")) {
+  if (isMirror(urlLower, 'LULUSTREAM')) {
     const result = await resolveLulustream(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "OKRU")) {
+  if (isMirror(urlLower, 'OKRU')) {
     const result = await resolveOkru(url, signal);
     if (result) return result;
   }
-  if (url.includes("embed69.org") || url.includes("embed69")) {
+  if (url.includes('embed69.org') || url.includes('embed69')) {
     const result = await resolveEmbed69(url, signal);
     if (result) return result;
   }
-  if (url.includes("xupalace.org") || url.includes("xupalace")) {
+  if (url.includes('xupalace.org') || url.includes('xupalace')) {
     const result = await resolveXupalace(url, signal);
     if (result) return result;
   }
-  if (url.includes("mixdrop") || url.includes("m1xdrop")) {
+  if (url.includes('mixdrop') || url.includes('m1xdrop')) {
     const result = await resolveMixdrop(url, signal);
     if (result) return result;
   }
-  if (url.includes("verhdlink")) {
+  if (url.includes('verhdlink')) {
     const result = await resolveVerhdlink(url, signal);
     if (result) return result;
   }
-  if (url.includes("streamtape") || url.includes("bysejikuar")) {
+  if (url.includes('streamtape') || url.includes('bysejikuar')) {
     const result = await resolveStreamtape(url, signal);
     if (result) return result;
   }
-  if (url.includes("playhydrax")) {
+  if (url.includes('playhydrax')) {
     const result = await resolvePlayhydrax(url, signal);
     if (result) return result;
   }
-  if (url.includes("sololatino.xyz")) {
+  if (url.includes('sololatino.xyz')) {
     const result = await resolveSololatino(url, signal);
     if (result) return result;
   }
-  if (url.includes("krakenfiles")) {
+  if (url.includes('krakenfiles')) {
     const result = await resolveKrakenfiles(url, signal);
     if (result) return result;
   }
-  if (url.includes("unlimplay")) {
+  if (url.includes('unlimplay')) {
     const result = await resolveUnlimplay(url, signal);
     if (result) return result;
   }
-  if (url.includes("vibuxer")) {
+  if (url.includes('vibuxer')) {
     const result = await resolveVibuxer(url, signal);
     if (result) return result;
   }
-  if (url.includes("emturbovid") || url.includes("turbovidhls")) {
+  if (url.includes('emturbovid') || url.includes('turbovidhls')) {
     const result = await resolveEmturbovid(url, signal);
     if (result) return result;
   }
-  if (url.includes("buzzheavier") || url.includes("bzh.sh")) {
+  if (url.includes('buzzheavier') || url.includes('bzh.sh')) {
     const result = await resolveBuzzheavier(url, signal);
     if (result) return applyPiping(result);
   }
-  if (url.includes("tplayer.pelisgo.online")) {
+  if (url.includes('tplayer.pelisgo.online')) {
     const result = await resolveTplayer(url, signal);
     if (result) return applyPiping(result);
   }
-  if (url.includes("vidsrc") || url.includes("moviesapi.to") || url.includes("moviesapi.club")) {
+  if (url.includes('vidsrc') || url.includes('moviesapi.to') || url.includes('moviesapi.club')) {
     const result = await resolveVidsrc(url, signal);
     if (result) return result;
   }
-  if (url.includes("embedseek") || url.includes("seekplays") || url.includes("seekstreaming")) {
+  if (url.includes('embedseek') || url.includes('seekplays') || url.includes('seekstreaming')) {
     const result = await resolveEmbedseek(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "VIDNEST")) {
+  if (isMirror(urlLower, 'VIDNEST')) {
     const result = await resolveVidnest(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "VIDSONIC")) {
+  if (isMirror(urlLower, 'VIDSONIC')) {
     const result = await resolveVidsonic(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "BARMONREY")) {
+  if (isMirror(urlLower, 'BARMONREY')) {
     const result = await resolveBarmonrey(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "VIDMOLY")) {
+  if (isMirror(urlLower, 'VIDMOLY')) {
     const result = await resolveVidmoly(url, signal);
     if (result) return result;
   }
-  if (isMirror(urlLower, "UPNS")) {
+  if (isMirror(urlLower, 'UPNS')) {
     const result = await resolveRpmvid(url, signal);
     if (result) return result;
   }
-  if (url.includes("playmogo")) {
+  if (url.includes('playmogo')) {
     const result = await resolvePlaymogo(url, signal);
     if (result) return applyPiping(result);
   }
-  if (isMirror(urlLower, "UNLIMPLAY") || isMirror(urlLower, "KRAKENFILES")) {
+  if (isMirror(urlLower, 'UNLIMPLAY') || isMirror(urlLower, 'KRAKENFILES')) {
     const result = await resolveGeneric(url, signal);
     if (result) return result;
   }
-  
+
   const headers = getDirectCdnHeaders(url);
   return applyPiping({
     url,
-    quality: "SD",
+    quality: 'SD',
     verified: false,
-    headers
+    headers,
   });
 }
 

@@ -3,11 +3,11 @@ async function parallelWithLimit(items, handler, limit = 5) {
 
   for (let i = 0; i < items.length; i += limit) {
     const batch = items.slice(i, i + limit);
-    const batchPromises = batch.map(item => {
+    const batchPromises = batch.map((item) => {
       return handler(item).catch(() => null);
     });
     const batchResults = await Promise.allSettled(batchPromises);
-    results.push(...batchResults.map(r => r.status === 'fulfilled' ? r.value : null));
+    results.push(...batchResults.map((r) => (r.status === 'fulfilled' ? r.value : null)));
   }
 
   return results;
@@ -21,7 +21,7 @@ async function resolveWithLimit(items, handler) {
   });
 
   const settled = await Promise.allSettled(promises);
-  settled.forEach(r => {
+  settled.forEach((r) => {
     if (r.status === 'fulfilled' && r.value) results.push(r.value);
   });
 

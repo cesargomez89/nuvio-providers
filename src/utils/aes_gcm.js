@@ -1,10 +1,9 @@
-const _CryptoJS = typeof CryptoJS !== "undefined" ? CryptoJS : null;
+const _CryptoJS = typeof CryptoJS !== 'undefined' ? CryptoJS : null;
 
 function parseB64(b64) {
-  if (!b64 || !_CryptoJS)
-    return null;
+  if (!b64 || !_CryptoJS) return null;
   try {
-    const normalized = b64.replace(/-/g, "+").replace(/_/g, "/");
+    const normalized = b64.replace(/-/g, '+').replace(/_/g, '/');
     return _CryptoJS.enc.Base64.parse(normalized);
   } catch {
     return null;
@@ -13,28 +12,26 @@ function parseB64(b64) {
 
 function decryptGCM(keyWA, ivWA, ciphertextWithTagWA) {
   try {
-    if (!keyWA || !ivWA || !ciphertextWithTagWA || !_CryptoJS)
-      return null;
+    if (!keyWA || !ivWA || !ciphertextWithTagWA || !_CryptoJS) return null;
     const tagSizeWords = 4;
-    const ciphertextWords = ciphertextWithTagWA.words.slice(0, ciphertextWithTagWA.words.length - tagSizeWords);
+    const ciphertextWords = ciphertextWithTagWA.words.slice(
+      0,
+      ciphertextWithTagWA.words.length - tagSizeWords
+    );
     const ciphertextWA = _CryptoJS.lib.WordArray.create(
       ciphertextWords,
       ciphertextWithTagWA.sigBytes - 16
     );
     let counterWA = ivWA.clone();
     counterWA.concat(_CryptoJS.lib.WordArray.create([2], 4));
-    const decrypted = _CryptoJS.AES.decrypt(
-      { ciphertext: ciphertextWA },
-      keyWA,
-      {
-        iv: counterWA,
-        mode: _CryptoJS.mode.CTR,
-        padding: _CryptoJS.pad.NoPadding
-      }
-    );
+    const decrypted = _CryptoJS.AES.decrypt({ ciphertext: ciphertextWA }, keyWA, {
+      iv: counterWA,
+      mode: _CryptoJS.mode.CTR,
+      padding: _CryptoJS.pad.NoPadding,
+    });
     return decrypted.toString(_CryptoJS.enc.Utf8);
   } catch (e) {
-    console.error("[AES-GCM] Error:", e.message);
+    console.error('[AES-GCM] Error:', e.message);
     return null;
   }
 }
@@ -46,14 +43,13 @@ function decryptByse(playback) {
     let keyWA = parseB64(playback.key_parts[0]);
     for (let i = 1; i < playback.key_parts.length; i++) {
       const part = parseB64(playback.key_parts[i]);
-      if (part)
-        keyWA.concat(part);
+      if (part) keyWA.concat(part);
     }
     const ivWA = parseB64(playback.iv);
     const ciphertextWithTagWA = parseB64(playback.payload);
     return decryptGCM(keyWA, ivWA, ciphertextWithTagWA);
   } catch (e) {
-    console.error("[Byse] Failed:", e.message);
+    console.error('[Byse] Failed:', e.message);
     return null;
   }
 }

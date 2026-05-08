@@ -6,10 +6,10 @@ async function resolve(url, signal = null) {
     const resp = await fetch(url, {
       signal,
       headers: {
-        "User-Agent": UA,
-        "Referer": "https://ok.ru/",
-        "Accept": "text/html,application/xhtml+xml"
-      }
+        'User-Agent': UA,
+        Referer: 'https://ok.ru/',
+        Accept: 'text/html,application/xhtml+xml',
+      },
     });
     if (!resp.ok) return null;
     const html = await resp.text();
@@ -19,9 +19,9 @@ async function resolve(url, signal = null) {
     if (dataSrcMatch) {
       return {
         url: dataSrcMatch[1],
-        quality: "1080p",
-        serverName: "OKru",
-        headers: { "User-Agent": UA, "Referer": url }
+        quality: '1080p',
+        serverName: 'OKru',
+        headers: { 'User-Agent': UA, Referer: url },
       };
     }
 
@@ -30,9 +30,9 @@ async function resolve(url, signal = null) {
     if (metaMatch) {
       return {
         url: metaMatch[1],
-        quality: "1080p",
-        serverName: "OKru",
-        headers: { "User-Agent": UA, "Referer": url }
+        quality: '1080p',
+        serverName: 'OKru',
+        headers: { 'User-Agent': UA, Referer: url },
       };
     }
 
@@ -41,9 +41,9 @@ async function resolve(url, signal = null) {
     if (jsonldMatch) {
       return {
         url: jsonldMatch[1],
-        quality: "1080p",
-        serverName: "OKru",
-        headers: { "User-Agent": UA, "Referer": url }
+        quality: '1080p',
+        serverName: 'OKru',
+        headers: { 'User-Agent': UA, Referer: url },
       };
     }
 

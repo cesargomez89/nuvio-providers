@@ -10,35 +10,39 @@ async function resolve(embedUrl, signal = null) {
     const apiUrl = `${baseUrl}/api/resolve/${fileId}`;
     const baseHeaders = {
       ...getStealthHeaders(),
-      "Referer": embedUrl,
-      "Origin": baseUrl,
-      "X-Requested-With": "XMLHttpRequest"
+      Referer: embedUrl,
+      Origin: baseUrl,
+      'X-Requested-With': 'XMLHttpRequest',
     };
     const embedResp = await fetch(embedUrl, { signal, headers: baseHeaders });
-    let cookies = "";
+    let cookies = '';
     try {
-      const raw = embedResp.headers.get("set-cookie");
-      if (raw) cookies = raw.split(",").map(c => c.split(";")[0].trim()).join("; ");
+      const raw = embedResp.headers.get('set-cookie');
+      if (raw)
+        cookies = raw
+          .split(',')
+          .map((c) => c.split(';')[0].trim())
+          .join('; ');
     } catch {}
-    if (cookies) baseHeaders["Cookie"] = cookies;
+    if (cookies) baseHeaders['Cookie'] = cookies;
     const apiResp = await fetch(apiUrl, { signal, headers: baseHeaders });
     if (!apiResp.ok) return null;
     const data = await apiResp.json();
     if (!data || !data.success || !data.streamUrl) return null;
-    const streamUrl = data.streamUrl.startsWith("http")
+    const streamUrl = data.streamUrl.startsWith('http')
       ? data.streamUrl
       : `${baseUrl}${data.streamUrl}`;
     return {
       url: streamUrl,
       isDirect: true,
       verified: true,
-      serverName: "Tplayer",
+      serverName: 'Tplayer',
       headers: {
-        "User-Agent": baseHeaders["User-Agent"],
-        "Referer": embedUrl,
-        "Origin": baseUrl,
-        "Cookie": cookies
-      }
+        'User-Agent': baseHeaders['User-Agent'],
+        Referer: embedUrl,
+        Origin: baseUrl,
+        Cookie: cookies,
+      },
     };
   } catch (e) {
     console.error(`[TPlayer] Error: ${e.message}`);

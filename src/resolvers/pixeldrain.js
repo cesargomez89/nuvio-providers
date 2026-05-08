@@ -9,13 +9,13 @@ async function resolve(url) {
     const directUrl = `https://pixeldrain.com/api/file/${fileId}`;
     return {
       url: directUrl,
-      quality: "1080p",
-      serverName: "Pixeldrain",
+      quality: '1080p',
+      serverName: 'Pixeldrain',
       headers: {
-        "User-Agent": UA,
-        "Referer": "https://pixeldrain.com/",
-        "Origin": "https://pixeldrain.com"
-      }
+        'User-Agent': UA,
+        Referer: 'https://pixeldrain.com/',
+        Origin: 'https://pixeldrain.com',
+      },
     };
   } catch (e) {
     console.error(`[Pixeldrain] Error: ${e.message}`);

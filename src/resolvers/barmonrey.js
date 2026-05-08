@@ -2,7 +2,7 @@ async function resolve(embedUrl, signal = null) {
   try {
     const response = await fetch(embedUrl, {
       signal,
-      headers: { "Referer": "https://www.fuegocine.com/" }
+      headers: { Referer: 'https://www.fuegocine.com/' },
     });
     if (!response.ok) return null;
     const html = await response.text();
@@ -10,10 +10,10 @@ async function resolve(embedUrl, signal = null) {
     if (m3u8) {
       return {
         url: m3u8[0],
-        quality: "HD",
-        serverName: "Barmonrey",
+        quality: 'HD',
+        serverName: 'Barmonrey',
         verified: true,
-        headers: { "Referer": embedUrl }
+        headers: { Referer: embedUrl },
       };
     }
     return null;
