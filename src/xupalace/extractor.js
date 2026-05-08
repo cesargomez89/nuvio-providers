@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { getTmdbTitle, getCorrectImdbId } from '../utils/tmdb.js';
 import { padEpisode } from '../utils/helpers.js';
 import { resolveEmbed } from '../utils/resolvers.js';
@@ -41,10 +40,11 @@ async function getEmbeds(slug, mediaType, season, episode) {
         const path = mediaType === "movie" || mediaType === "movies" 
             ? `/video/${slug}/` 
             : `/video/${slug}-${season}x${padEpisode(episode)}/`;
-        const { data: html } = await axios.get(`${BASE_URL}${path}`, {
-            timeout: 4500,
+        const response = await fetch(`${BASE_URL}${path}`, {
+            signal: AbortSignal.timeout(4500),
             headers: HTML_HEADERS
         });
+        const html = await response.text();
         const matches = [...html.matchAll(/go_to_playerVast\('(https?:\/\/[^']+)'[^)]+\)[^<]*data-lang="(\d+)"/g)];
         if (matches.length === 0) {
             const fallback = [...html.matchAll(/go_to_playerVast\('(https?:\/\/[^']+)'/g)];

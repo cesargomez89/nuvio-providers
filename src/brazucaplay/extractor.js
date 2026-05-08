@@ -1,4 +1,4 @@
-import { fetchJson, setSessionUA, getSessionUA } from '../utils/http.js';
+import { fetchJson, setSessionUA, CINEBY_HEADERS } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { getTmdbInfo, getCorrectImdbId } from '../utils/tmdb.js';
 
@@ -6,13 +6,6 @@ const API_DEC = "https://enc-dec.app/api/dec-videasy";
 
 const SERVERS = {
     "Gekko": { url: "https://api2.videasy.net/cuevana/sources-with-title", label: "Cuevana" }
-};
-
-const CINEBY_HEADERS = {
-    "Accept": "*/*",
-    "Origin": "https://cineby.sc",
-    "Referer": "https://cineby.sc/",
-    "User-Agent": getSessionUA()
 };
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {

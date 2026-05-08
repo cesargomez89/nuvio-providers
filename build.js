@@ -27,8 +27,7 @@ const EXTERNAL_MODULES = [
     'cheerio-without-node-native',
     'react-native-cheerio',
     'cheerio',
-    'crypto-js',
-    'axios'
+    'crypto-js'
 ];
 
 // Default metadata for providers without metadata.json

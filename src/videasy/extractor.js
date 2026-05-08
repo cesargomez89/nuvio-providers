@@ -1,4 +1,4 @@
-import { fetchJson, getSessionUA } from '../utils/http.js';
+import { fetchJson, getSessionUA, CINEBY_HEADERS } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { getTmdbInfo, getCorrectImdbId } from '../utils/tmdb.js';
 
@@ -9,13 +9,6 @@ const SERVERS = {
     "Gekko": { url: "https://api2.videasy.net/cuevana/sources-with-title", label: "Cuevana", lang: "Latino" },
     "Vimeos": { url: "https://api.videasy.net/vimeos/sources-with-title", label: "Vimeos", lang: "Latino" },
     "Raze": { url: "https://api.videasy.net/superflix/sources-with-title", label: "Superflix", lang: "Latino" }
-};
-
-const CINEBY_HEADERS = {
-    "Accept": "*/*",
-    "Origin": "https://cineby.sc",
-    "Referer": "https://cineby.sc/",
-    "User-Agent": getSessionUA()
 };
 
 const ANDROID_HEADERS = {
