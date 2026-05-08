@@ -4,18 +4,33 @@ const path = require('path');
 const PROVIDER_TIMEOUT = 30000;
 
 class Semaphore {
-  constructor(max) { this.max = max; this.current = 0; this.queue = []; }
+  constructor(max) {
+    this.max = max;
+    this.current = 0;
+    this.queue = [];
+  }
   acquire() {
-    return new Promise(resolve => {
-      if (this.current < this.max) { this.current++; resolve(); }
-      else { this.queue.push(resolve); }
+    return new Promise((resolve) => {
+      if (this.current < this.max) {
+        this.current++;
+        resolve();
+      } else {
+        this.queue.push(resolve);
+      }
     });
   }
   release() {
     if (this.queue.length > 0) this.queue.shift()();
     else this.current--;
   }
-  async run(fn) { await this.acquire(); try { return await fn(); } finally { this.release(); } }
+  async run(fn) {
+    await this.acquire();
+    try {
+      return await fn();
+    } finally {
+      this.release();
+    }
+  }
 }
 
 const args = process.argv.slice(2);
@@ -52,22 +67,26 @@ function logFileOnly(msg) {
   logLines.push(msg);
 }
 
-console.log = function(...args) {
+console.log = function (...args) {
   allCapturedProviderLogs.push(args.join(' '));
 };
 
-console.warn = function(...args) {
+console.warn = function (...args) {
   allCapturedProviderLogs.push('[WARN] ' + args.join(' '));
 };
 
-console.error = function(...args) {
+console.error = function (...args) {
   allCapturedProviderLogs.push('[ERROR] ' + args.join(' '));
 };
 
-let providerFiles = fs.readdirSync(providersDir).filter(f => f.endsWith('.js') && !f.startsWith('_'));
+let providerFiles = fs
+  .readdirSync(providersDir)
+  .filter((f) => f.endsWith('.js') && !f.startsWith('_'));
 
 if (targetProvider) {
-  providerFiles = providerFiles.filter(f => f.replace('.js', '').toLowerCase() === targetProvider);
+  providerFiles = providerFiles.filter(
+    (f) => f.replace('.js', '').toLowerCase() === targetProvider
+  );
   logBoth(`Testing specific provider: ${targetProvider}\n`);
 }
 
@@ -86,7 +105,16 @@ async function testProvider(filename, tmdbCache, sem) {
     if (!mod.getStreams) {
       logBoth(`${name.padEnd(15)} - SKIP (no getStreams)`);
       logFileOnly(`[${name}] SKIP - No getStreams export`);
-      return { name, status: 'skip', error: null, movieStreams: 0, tvStreams: 0, time: 0, details: [], mismatches: 0 };
+      return {
+        name,
+        status: 'skip',
+        error: null,
+        movieStreams: 0,
+        tvStreams: 0,
+        time: 0,
+        details: [],
+        mismatches: 0,
+      };
     }
 
     const configPromises = testConfigs.map(async (config) => {
@@ -119,7 +147,7 @@ async function testProvider(filename, tmdbCache, sem) {
         error = e.message;
       }
 
-      const streamDetails = streams.map(s => ({
+      const streamDetails = streams.map((s) => ({
         quality: s.quality || 'SD',
         url: s.url || '',
         title: s.title || s.name || '',
@@ -148,14 +176,34 @@ async function testProvider(filename, tmdbCache, sem) {
 
     const providerElapsed = Date.now() - providerStart;
     const timeSec = (providerElapsed / 1000).toFixed(1);
-    logBoth(`${name.padEnd(15)} ✓  ${String(movieStreams).padStart(2)}M/${String(tvStreams).padStart(2)}TV ${timeSec}s`);
+    logBoth(
+      `${name.padEnd(15)} ✓  ${String(movieStreams).padStart(2)}M/${String(tvStreams).padStart(2)}TV ${timeSec}s`
+    );
 
     logFileOnly(`[${name}] OK (${providerElapsed}ms) - ${movieStreams + tvStreams} streams`);
-    return { name, status: 'ok', error: null, movieStreams, tvStreams, time: providerElapsed, details: detailedResults, mismatches: 0 };
+    return {
+      name,
+      status: 'ok',
+      error: null,
+      movieStreams,
+      tvStreams,
+      time: providerElapsed,
+      details: detailedResults,
+      mismatches: 0,
+    };
   } catch (e) {
     logBoth(`${name.padEnd(15)} ✗ FAIL: ${e.message}`);
     logFileOnly(`[${name}] FAIL: ${e.message}`);
-    return { name, status: 'fail', error: e.message, movieStreams: 0, tvStreams: 0, time: 0, details: [], mismatches: 0 };
+    return {
+      name,
+      status: 'fail',
+      error: e.message,
+      movieStreams: 0,
+      tvStreams: 0,
+      time: 0,
+      details: [],
+      mismatches: 0,
+    };
   }
 }
 
@@ -163,10 +211,10 @@ async function runWithConcurrency(items, fn, concurrency = 5, delayMs = 100) {
   const results = [];
   for (let i = 0; i < items.length; i += concurrency) {
     const batch = items.slice(i, i + concurrency);
-    const batchResults = await Promise.all(batch.map(item => fn(item)));
+    const batchResults = await Promise.all(batch.map((item) => fn(item)));
     results.push(...batchResults);
     if (i + concurrency < items.length) {
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
   return results;
@@ -177,17 +225,23 @@ async function main() {
 
   const tmdbCache = buildTmdbCache(testConfigs);
   const sem = new Semaphore(6);
-  const results = await runWithConcurrency(providerFiles, f => testProvider(f, tmdbCache, sem), 10, 50);
+  const results = await runWithConcurrency(
+    providerFiles,
+    (f) => testProvider(f, tmdbCache, sem),
+    10,
+    50
+  );
 
   logBoth('\n─────────────────────────────────────────────');
 
   logFileOnly('');
   logFileOnly('# Test Configurations');
   logFileOnly('');
-  testConfigs.forEach(c => {
-    const label = c.mediaType === 'movie'
-      ? `- Movie \`${c.tmdbId}\``
-      : `- TV \`${c.tmdbId}\` S\`${c.season}\`E\`${c.episode}\``;
+  testConfigs.forEach((c) => {
+    const label =
+      c.mediaType === 'movie'
+        ? `- Movie \`${c.tmdbId}\``
+        : `- TV \`${c.tmdbId}\` S\`${c.season}\`E\`${c.episode}\``;
     logFileOnly(`  ${label}`);
   });
   logFileOnly('');
@@ -203,9 +257,10 @@ async function main() {
       for (const detail of provider.details) {
         const config = detail.config;
 
-        const typeLabel = config.mediaType === 'movie'
-          ? `Movie \`${config.tmdbId}\``
-          : `TV \`${config.tmdbId}\` S\`${config.season}\`E\`${config.episode}\``;
+        const typeLabel =
+          config.mediaType === 'movie'
+            ? `Movie \`${config.tmdbId}\``
+            : `TV \`${config.tmdbId}\` S\`${config.season}\`E\`${config.episode}\``;
 
         logFileOnly(`### ${typeLabel} — TMDB ID: ${config.tmdbId}`);
         logFileOnly('');
@@ -236,16 +291,20 @@ async function main() {
     }
   }
 
-  const passed = results.filter(r => r.status === 'ok').length;
-  const failed = results.filter(r => r.status === 'fail').length;
-  const skipped = results.filter(r => r.status === 'skip').length;
+  const passed = results.filter((r) => r.status === 'ok').length;
+  const failed = results.filter((r) => r.status === 'fail').length;
+  const skipped = results.filter((r) => r.status === 'skip').length;
   const totalMovieStreams = results.reduce((sum, r) => sum + r.movieStreams, 0);
   const totalTvStreams = results.reduce((sum, r) => sum + r.tvStreams, 0);
 
   logFileOnly('# Results Summary');
   logFileOnly('');
-  logFileOnly(`- **Providers:** ${results.length} | ✅ Passed: ${passed} | ❌ Failed: ${failed} | ⏭ Skipped: ${skipped}`);
-  logFileOnly(`- **Streams:** ${totalMovieStreams + totalTvStreams} total (${totalMovieStreams} movie, ${totalTvStreams} TV)`);
+  logFileOnly(
+    `- **Providers:** ${results.length} | ✅ Passed: ${passed} | ❌ Failed: ${failed} | ⏭ Skipped: ${skipped}`
+  );
+  logFileOnly(
+    `- **Streams:** ${totalMovieStreams + totalTvStreams} total (${totalMovieStreams} movie, ${totalTvStreams} TV)`
+  );
   logFileOnly('');
 
   logFileOnly('### Provider Details');
@@ -259,10 +318,12 @@ async function main() {
     return b.time - a.time;
   });
 
-  sortedResults.forEach(r => {
+  sortedResults.forEach((r) => {
     const total = r.movieStreams + r.tvStreams;
     const status = r.status === 'ok' ? '✅' : r.status === 'fail' ? '❌' : '⏭';
-    logFileOnly(`| ${status} | ${r.name} | ${r.movieStreams} | ${r.tvStreams} | ${total} | ${(r.time / 1000).toFixed(1)}s |`);
+    logFileOnly(
+      `| ${status} | ${r.name} | ${r.movieStreams} | ${r.tvStreams} | ${total} | ${(r.time / 1000).toFixed(1)}s |`
+    );
   });
 
   logFileOnly('');
@@ -282,14 +343,16 @@ async function main() {
 
   if (failed > 0) {
     logBoth('\nFailed providers:');
-    results.filter(r => r.status === 'fail').forEach(r => {
-      logBoth(`  ✗ ${r.name}: ${r.error}`);
-    });
+    results
+      .filter((r) => r.status === 'fail')
+      .forEach((r) => {
+        logBoth(`  ✗ ${r.name}: ${r.error}`);
+      });
     process.exit(1);
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   originalConsoleLog('Unhandled error in main():', err);
   process.exit(1);
 });

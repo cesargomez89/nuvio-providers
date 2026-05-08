@@ -56,6 +56,14 @@ npm start                  # Start local dev server (serves providers/ and manif
 }
 ```
 
+## Code Quality
+
+```bash
+npm run lint        # Check for issues
+npm run lint:fix    # Auto-fix auto-fixable issues
+npm run format      # Format all code with Prettier
+```
+
 ## Testing
 
 1. **Local**: Run `node test.js` to test all providers, or `node test.js <provider>` to test a specific provider

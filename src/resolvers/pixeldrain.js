@@ -1,6 +1,6 @@
 const { getSessionUA } = require('../utils/http.js');
 
-async function resolve(url, signal = null) {
+async function resolve(url) {
   try {
     const UA = getSessionUA();
     const pathMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9]+)/i);

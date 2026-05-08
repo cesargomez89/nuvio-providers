@@ -20,7 +20,7 @@ async function getRedirectUrl(serverEncoded, referer) {
             if (netuIdMatch) finalUrl = "https://netu.to" + netuIdMatch[1];
         }
         return finalUrl;
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
@@ -108,7 +108,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                         }));
                     }
                 }
-            } catch (err) {}
+            } catch {}
             return [];
         });
 

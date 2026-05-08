@@ -44,7 +44,7 @@ function getProviderMetadata(providerName) {
     if (fs.existsSync(metadataPath)) {
         try {
             return JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
-        } catch (e) {
+        } catch {
             console.warn(`⚠️  Invalid metadata.json for ${providerName}, using defaults`);
         }
     }
@@ -57,7 +57,7 @@ function getCurrentVersion() {
         try {
             const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
             return manifest.version || '1.0.0';
-        } catch (e) {
+        } catch {
             return '1.0.0';
         }
     }
@@ -136,7 +136,7 @@ async function buildProvider(providerName, options = {}) {
     }
 
     try {
-        const result = await esbuild.build({
+        await esbuild.build({
             entryPoints: [entryPoint],
             bundle: true,
             outfile: outFile,

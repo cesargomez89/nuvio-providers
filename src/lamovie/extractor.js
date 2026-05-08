@@ -1,4 +1,4 @@
-import { fetchJson, fetchHtml, getSessionUA } from '../utils/http.js';
+import { fetchJson, fetchHtml } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbInfo } from '../utils/tmdb.js';
@@ -159,7 +159,7 @@ async function processEmbed(embed, signal) {
     };
 }
 
-export async function extractStreams(tmdbId, mediaType, season, episode, title) {
+export async function extractStreams(tmdbId, mediaType, season, episode) {
     if (!tmdbId || !mediaType) return [];
     const startTime = Date.now();
     const resolvedType = mediaType === "series" ? "tv" : mediaType || "movie";

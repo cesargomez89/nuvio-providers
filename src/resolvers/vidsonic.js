@@ -48,7 +48,7 @@ async function resolve(embedUrl, signal = null) {
       }
     }
     return null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

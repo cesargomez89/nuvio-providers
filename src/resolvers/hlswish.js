@@ -25,7 +25,6 @@ async function resolve(url, signal = null) {
   try {
     const UA = getSessionUA();
     const rawId = url.split("/").pop().replace(/\.html$/, "");
-    const urlObj = new URL(url);
     const mirrors = [
       `https://hanerix.com/e/${rawId}`,
       `https://embedwish.com/e/${rawId}`,
@@ -89,7 +88,7 @@ async function resolve(url, signal = null) {
               m3u8Url = mirrorOrigin + m3u8Url;
             resolveRace({ url: m3u8Url, mirror });
           }
-        } catch (e) {
+        } catch {
         } finally {
           pending--;
           if (pending === 0 && !resolved)
@@ -122,7 +121,7 @@ async function resolve(url, signal = null) {
       serverName: "StreamWish",
       headers: reqHeaders
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 }

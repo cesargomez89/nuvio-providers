@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "description": "Providers for Nuvio Streaming",
     "scripts": {
+        "lint": "eslint src/ build.js test.js server.js",
+        "lint:fix": "eslint src/ build.js test.js server.js --fix",
+        "format": "prettier --write \"src/**/*.js\" \"*.js\"",
         "build": "node build.js",
         "build:watch": "nodemon --watch src -e js,json --exec 'node build.js'",
         "build:provider": "node build.js",
@@ -13,7 +16,11 @@
         "cheerio-without-node-native": "^0.20.2",
         "crypto-js": "^4.2.0",
         "esbuild": "^0.20.0",
-        "nodemon": "^3.0.0"
+        "eslint": "^10.3.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.5",
+        "nodemon": "^3.0.0",
+        "prettier": "^3.8.3"
     },
     "keywords": [
         "nuvio",

@@ -1,4 +1,4 @@
-import { fetchJson, getSessionUA, CINEBY_HEADERS } from '../utils/http.js';
+import { getSessionUA, CINEBY_HEADERS } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { getTmdbInfo, getCorrectImdbId } from '../utils/tmdb.js';
 
@@ -66,15 +66,15 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                     }
                 }
                 return localResults;
-            } catch (err) {
+            } catch {
                 return [];
             }
         });
 
         const allResults = await Promise.all(serverPromises);
         const flattened = allResults.flat();
-        return await finalizeStreams(flattened, "VidEasy Latino", "");
-    } catch (error) {
+        return await finalizeStreams(flattened, "VidEasy Latino");
+    } catch {
         return [];
     }
 }

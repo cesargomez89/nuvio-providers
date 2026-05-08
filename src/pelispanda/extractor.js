@@ -71,7 +71,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, provide
                     validateStream(streamData).catch(() => streamData),
                     new Promise((resolve) => setTimeout(() => resolve(streamData), 4500))
                 ]);
-            } catch (e) {
+            } catch {
                 return null;
             }
         });

@@ -72,7 +72,6 @@ function generateIV(hostname, hash) {
   let b = "";
   for (let i = 1; i < 10; i++)
     b += String.fromCharCode(i + g);
-  const re = "111";
   const pe = 3 * o.charCodeAt(0);
   const tt = 111 + s.length;
   const k = tt + 4;

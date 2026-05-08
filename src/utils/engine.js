@@ -52,13 +52,13 @@ function normalizeServer(server, url = "", resolvedServerName = null) {
       const domainParts = new URL(url).hostname.replace("www.", "").split(".");
       const mainName = domainParts.length > 1 ? domainParts[domainParts.length - 2] : domainParts[0];
       return mainName.charAt(0).toUpperCase() + mainName.slice(1);
-    } catch (e) {
+    } catch {
     }
   }
   return server || "Servidor";
 }
 
-async function finalizeStreams(streams, providerName, mediaTitle) {
+async function finalizeStreams(streams, providerName) {
   if (!Array.isArray(streams) || streams.length === 0)
     return [];
   console.log(`[Engine] PROCESANDO STREAMS - Bitrate Global v7.6.0`);
@@ -83,12 +83,12 @@ async function finalizeStreams(streams, providerName, mediaTitle) {
             const validated = await validateStream(s, controller.signal);
             clearTimeout(timeoutId);
             return validated;
-          } catch (e) {
+          } catch {
             clearTimeout(timeoutId);
             return { ...s, verified: false, isReal: false };
           }
         }
-      } catch (e) {
+      } catch {
       }
       return s;
     }));

@@ -47,7 +47,7 @@ async function resolve(embedUrl, signal = null) {
             headers: { "User-Agent": UA, "Referer": "https://player.vimeo.com/", "Accept-Language": "es-MX,es;q=0.9" }
           };
         }
-      } catch (e) {
+      } catch {
       }
     }
     var packMatch = html.match(/eval\(function\(p,a,c,k,e,[dr]\)\{[\s\S]+?\}\('([\s\S]+?)',(\d+),(\d+),'([\s\S]+?)'\.split\('\|'\)/);

@@ -78,7 +78,7 @@ function crsdiv(a, decId) {
       return Array.from(decoded).map(ch => String.fromCharCode(ch.charCodeAt(0) - shift)).join("");
     }
     return null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

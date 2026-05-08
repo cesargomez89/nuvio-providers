@@ -68,7 +68,7 @@ function getDirectCdnHeaders(url) {
       }
     }
     return headers;
-  } catch (e) {
+  } catch {
     return { "User-Agent": UA, "referer": url.split("?")[0] };
   }
 }

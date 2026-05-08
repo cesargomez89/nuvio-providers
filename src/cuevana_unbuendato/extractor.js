@@ -1,10 +1,9 @@
 import { fetchJson, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
-import { isMirror } from '../utils/mirrors.js';
-import { isMovie, cleanTmdbId } from '../utils/helpers.js';
+import { isMovie } from '../utils/helpers.js';
 
-export async function extractStreams(tmdbId, mediaType, season, episode, title, year) {
+export async function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId)
         return [];
     const rawId = typeof tmdbId === "string" && tmdbId.includes(":")
@@ -45,7 +44,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title, 
                             };
                         }
                         return null;
-                    }).catch((e) => null)
+                    }).catch(() => null)
                 );
             }
         }

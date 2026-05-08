@@ -33,7 +33,7 @@ async function searchContents(q) {
     try {
         const data = await fetchJson(`${PHM_API}/US/en/contents?q=${encodeURIComponent(q)}`, { headers: API_HEADERS });
         return data.data || [];
-    } catch (e) { return []; }
+    } catch { return []; }
 }
 
 async function getSources(type, uuid) {
@@ -42,13 +42,13 @@ async function getSources(type, uuid) {
         if (!data.data) return [];
         const sources = decryptSources(data.data);
         return sources.filter(s => s.languages?.includes("es"));
-    } catch (e) { return []; }
+    } catch { return []; }
 }
 
 async function getContentDetail(uuid) {
     try {
         return await fetchJson(`${PHM_API}/en/contents/${uuid}`, { headers: API_HEADERS });
-    } catch (e) { return {}; }
+    } catch { return {}; }
 }
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
@@ -88,7 +88,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                     quality: "1080p",
                     headers: result?.headers || { "User-Agent": UA, "Referer": "https://www.playhubmax.com/" }
                 };
-            } catch (e) { return null; }
+            } catch { return null; }
         }));
         const filtered = streams.filter(r => r !== null);
         return await finalizeStreams(filtered, "PlayHubMax", mediaTitle);

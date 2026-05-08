@@ -43,7 +43,7 @@ async function resolveEmbedLocal(url) {
   console.log(`[Embed69] Resolving: ${url}`);
   try {
     return await resolveWithTimeout(url);
-  } catch (err) {
+  } catch {
     console.log(`[Embed69] Timeout/failed: ${url.substring(0, 60)}`);
     return null;
   }

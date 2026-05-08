@@ -65,7 +65,7 @@ async function getEmbeds(slug, mediaType, season, episode) {
             }
         }
         return hasData ? byLang : null;
-    } catch (e) {
+    } catch {
         return null;
     }
 }
@@ -111,7 +111,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                                 headers: result.headers || {}
                             };
                         }
-                    } catch (e) {
+                    } catch {
                     }
                     return null;
                 })
@@ -124,7 +124,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
             }
         }
         return await finalizeStreams(allStreams, "XuPalace", mediaTitle);
-    } catch (e) {
+    } catch {
         return [];
     }
 }

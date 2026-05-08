@@ -32,7 +32,7 @@ async function detectQuality(m3u8Url, headers = {}, signal = null) {
     if (bestHeight >= 480)
       return "480p";
     return bestHeight > 0 ? `${bestHeight}p` : "1080p";
-  } catch (e) {
+  } catch {
     return "1080p";
   }
 }

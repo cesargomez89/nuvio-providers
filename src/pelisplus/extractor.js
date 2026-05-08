@@ -1,4 +1,4 @@
-import { fetchText, fetchJson, fetchHtml, BASE_URL } from './http.js';
+import { fetchText, fetchJson, BASE_URL } from './http.js';
 import { isMovie } from '../utils/helpers.js';
 import { getTmdbTitle, getTmdbAliases } from '../utils/tmdb.js';
 import { resolveEmbed } from '../utils/resolvers.js';
@@ -80,7 +80,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                     }
                 }
                 return matches;
-            } catch (e) {
+            } catch {
                 return [];
             }
         });
@@ -197,7 +197,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                             });
                         }
                     }
-                } catch (e) {}
+                } catch {}
             }
         }
 
@@ -255,22 +255,22 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                     candidates.push(result);
                     if (candidates.length >= TARGET_COUNT) {
                         isFinished = true;
-                        try { controller.abort(); } catch (e) {}
+                        try { controller.abort(); } catch {}
                     }
                 }
                 
                 return result;
-            } catch (e) {
+            } catch {
                 return null;
             }
         };
 
         let timeoutId;
         const STREAM_LIMIT = 3;
-        const timeoutPromise = new Promise((resolve) => {
+        new Promise((resolve) => {
             timeoutId = setTimeout(() => {
                 isFinished = true;
-                try { controller.abort(); } catch (e) {}
+                try { controller.abort(); } catch {}
                 resolve();
             }, 10000);
         });

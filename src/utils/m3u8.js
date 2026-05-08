@@ -103,7 +103,7 @@ async function validateStream(stream, signal = null) {
     };
     VALIDATION_CACHE.set(url, resultData);
     return { ...stream, ...resultData };
-  } catch (error) {
+  } catch {
     const info = parseBestQuality("", url);
     const resultData = { quality: info.quality, verified: true, isReal: false };
     VALIDATION_CACHE.set(url, resultData);

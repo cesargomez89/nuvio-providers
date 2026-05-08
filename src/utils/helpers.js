@@ -17,10 +17,10 @@ function cleanTmdbId(tmdbId) {
 function toDoubleBase64(str) {
     try {
         if (typeof btoa !== "undefined") return btoa(str);
-    } catch (e) {}
+    } catch {}
     try {
         if (typeof Buffer !== "undefined") return Buffer.from(str, 'utf-8').toString('base64');
-    } catch (e) {}
+    } catch {}
     const bytes = [];
     for (let i = 0; i < str.length; i++) {
         let c = str.charCodeAt(i);
@@ -43,10 +43,10 @@ function toDoubleBase64(str) {
 function b64decode(str) {
     try {
         if (typeof atob !== "undefined") return atob(str);
-    } catch (e) {}
+    } catch {}
     try {
         if (typeof Buffer !== "undefined") return Buffer.from(str, 'base64').toString('utf8');
-    } catch (e) {}
+    } catch {}
     try {
         const s = str.replace(/[\s]/g, '');
         if (s.length % 4 !== 0) return null;
@@ -64,7 +64,7 @@ function b64decode(str) {
             }
         }
         return r;
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
 module.exports = { sleep, padEpisode, isMovie, cleanTmdbId, toDoubleBase64, b64decode };

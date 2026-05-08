@@ -1,7 +1,7 @@
-import { fetchHtml, fetchJson, getStealthHeaders } from '../utils/http.js';
+import { getStealthHeaders } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
-import { getCorrectImdbId, getTmdbTitle } from '../utils/tmdb.js';
+import { getCorrectImdbId } from '../utils/tmdb.js';
 
 const BASE = "https://pelisgo.online";
 const WHITELIST = ["Magi", "Filemoon", "Pixeldrain"];
@@ -23,7 +23,7 @@ function fetchWithTimeout(url, options = {}, timeout = 6000) {
             clearTimeout(id);
             return res;
         })
-        .catch(e => {
+        .catch(() => {
             clearTimeout(id);
             return { text: () => "", json: () => ({}), ok: false, status: 404 };
         });
@@ -148,7 +148,7 @@ async function getOnlineStreams(rawHtml) {
                     quality: (resEmbed ? resEmbed.quality : quality) || "1080p",
                     headers: (resEmbed ? resEmbed.headers : null) || getPelisGoHeaders(directUrl)
                 };
-            } catch (e) {
+            } catch {
                 return null;
             }
         })());
@@ -208,7 +208,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         
         const streams = await getOnlineStreams(html);
         return await finalizeStreams(streams, "PelisGo", mediaTitle);
-    } catch (e) {
+    } catch {
         console.error(`[PelisGo] Error: ${e.message}`);
         return [];
     }

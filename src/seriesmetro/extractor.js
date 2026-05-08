@@ -44,7 +44,7 @@ async function findContentUrl(tmdbInfo, mediaType) {
             if (data && (data.includes("trembed=") || data.includes("data-post="))) {
                 return { url, html: data };
             }
-        } catch (e) {}
+        } catch {}
         return null;
     };
 
@@ -70,7 +70,7 @@ async function findContentUrl(tmdbInfo, mediaType) {
                 if (res) return res;
             }
         }
-    } catch (e) {}
+    } catch {}
 
     const secondaryTerms = aliases.filter(a => !searchTerms.includes(a)).slice(0, 2);
     for (const term of secondaryTerms) {
@@ -98,7 +98,7 @@ async function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
             const m = u.match(/temporada-(\d+)-capitulo-(\d+)/);
             return m && parseInt(m[1]) === season && parseInt(m[2]) === episode;
         }) || null;
-    } catch (e) {
+    } catch {
         return null;
     }
 }
@@ -154,7 +154,7 @@ async function extractStreamsFromPage(pageUrl, referer) {
                         headers: result.headers || getBaseHeaders()
                     };
                 }
-            } catch (e) {}
+            } catch {}
             return null;
         };
 
@@ -162,7 +162,7 @@ async function extractStreamsFromPage(pageUrl, referer) {
         const results = await parallelWithLimit(batch, resolveTask, 5);
         return results.filter(Boolean);
 
-    } catch (e) {
+    } catch {
         return [];
     }
 }

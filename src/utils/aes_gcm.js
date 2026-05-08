@@ -6,7 +6,7 @@ function parseB64(b64) {
   try {
     const normalized = b64.replace(/-/g, "+").replace(/_/g, "/");
     return _CryptoJS.enc.Base64.parse(normalized);
-  } catch (e) {
+  } catch {
     return null;
   }
 }

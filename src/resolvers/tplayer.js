@@ -19,7 +19,7 @@ async function resolve(embedUrl, signal = null) {
     try {
       const raw = embedResp.headers.get("set-cookie");
       if (raw) cookies = raw.split(",").map(c => c.split(";")[0].trim()).join("; ");
-    } catch (e) {}
+    } catch {}
     if (cookies) baseHeaders["Cookie"] = cookies;
     const apiResp = await fetch(apiUrl, { signal, headers: baseHeaders });
     if (!apiResp.ok) return null;

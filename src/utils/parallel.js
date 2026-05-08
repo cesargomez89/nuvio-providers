@@ -13,7 +13,7 @@ async function parallelWithLimit(items, handler, limit = 5) {
   return results;
 }
 
-async function resolveWithLimit(items, handler, limit = 5) {
+async function resolveWithLimit(items, handler) {
   const results = [];
 
   const promises = items.map(async (item) => {

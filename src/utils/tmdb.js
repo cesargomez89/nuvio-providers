@@ -24,7 +24,7 @@ async function getTmdbTitle(tmdbId, mediaType, retries = 2) {
     const result = title || null;
     titleCache.set(cacheKey, result);
     return result;
-  } catch (e) {
+  } catch {
     if (retries > 0) return getTmdbTitle(tmdbId, mediaType, retries - 1);
     titleCache.set(cacheKey, null);
     return null;
@@ -43,7 +43,7 @@ async function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
       genres: (data.genres || []).map(g => g.id),
       originCountries: data.origin_country || (data.production_countries || []).map(c => c.iso_3166_1) || []
     };
-  } catch (e) {
+  } catch {
     if (retries > 0) {
       await new Promise(r => setTimeout(r, 1000));
       return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
@@ -82,7 +82,7 @@ async function getCorrectImdbId(tmdbId, mediaType) {
     };
     idCache.set(cacheKey, result);
     return result;
-  } catch (e) {
+  } catch {
     const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
     idCache.set(cacheKey, result);
     return result;
@@ -98,7 +98,7 @@ async function getTmdbAliases(tmdbId, mediaType) {
         const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
         const data = await fetchJson(url);
         return data.title || data.name || null;
-      } catch (e) { return null; }
+      } catch { return null; }
     })();
 
     const aliases = [];
@@ -114,10 +114,10 @@ async function getTmdbAliases(tmdbId, mediaType) {
         const altTitle = t.title || t.name;
         if (altTitle && !aliases.includes(altTitle)) aliases.push(altTitle);
       }
-    } catch (e) { console.warn(`[TMDB-Aliases] Alternative titles fetch failed`); }
+    } catch { console.warn(`[TMDB-Aliases] Alternative titles fetch failed`); }
 
     return aliases;
-  } catch (e) {
+  } catch {
     return [];
   }
 }

@@ -3,7 +3,7 @@ const { getSessionUA } = require('../utils/http.js');
 
 const UA_CHROME = getSessionUA();
 
-function unpack(p, a, c, k, e, d) {
+function unpack(p, a, c, k) {
   while (c--)
     if (k[c])
       p = p.replace(new RegExp("\\b" + c.toString(a) + "\\b", "g"), k[c]);
@@ -44,7 +44,7 @@ async function resolve(url, signal = null) {
                   console.log("[Filemoon] ❌ URL de video caducada (404).");
                   return null;
                 }
-              } catch (ve) {
+              } catch {
               }
               return {
                 url: directUrl,

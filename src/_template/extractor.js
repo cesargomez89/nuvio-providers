@@ -2,13 +2,7 @@
  * <Name> Extractor
  * Site-specific logic for finding video streams.
  */
-import { fetchHtml, fetchJson, fetchWithTimeout, getSessionUA, DEFAULT_TIMEOUT } from '../utils/http.js';
-import { resolveEmbed } from '../utils/resolvers.js';
-import { finalizeStreams } from '../utils/engine.js';
-import { getTmdbInfo } from '../utils/tmdb.js';
-import cheerio from 'cheerio-without-node-native';
-
-export async function extractStreams(tmdbId, mediaType, season, episode) {
+export async function extractStreams() {
     // 1. Fetch TMDB metadata if needed
     // const info = await getTmdbInfo(tmdbId, mediaType);
     // const title = info?.title || "";

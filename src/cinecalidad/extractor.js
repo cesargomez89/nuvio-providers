@@ -32,7 +32,7 @@ async function getMovieUrl(slug, expectedYear) {
                     console.log(`[CineCalidad] ✓ Encontrado vía slug: /pelicula/${s}/ (${year || "?"})`);
                     return url;
                 }
-            } catch (e) {}
+            } catch {}
             return null;
         })
     );
@@ -58,7 +58,7 @@ async function searchResults(title) {
     }
 }
 
-function isKnownEmbed(url) {
+function isKnownEmbed() {
     return true;
 }
 
@@ -88,7 +88,7 @@ async function getEmbedUrls(movieUrl) {
                     }
                     if (!finalUrl && decoded.includes("/e/")) finalUrl = decoded;
                     if (finalUrl && finalUrl.startsWith("http")) embedUrls.add(finalUrl);
-                } catch (e) {}
+                } catch {}
             }));
         }
         return [...embedUrls];
@@ -108,14 +108,13 @@ async function processEmbed(embedUrl) {
             quality: result.quality,
             headers: result.headers || {}
         };
-    } catch (e) {
+    } catch {
         return null;
     }
 }
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId || !mediaType || mediaType === "tv") return [];
-    const startTime = Date.now();
     console.log(`[CineCalidad] Buscando: TMDB ${tmdbId} (${mediaType})`);
     try {
         let mediaTitle = title;
@@ -148,7 +147,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                                 console.log(`[CineCalidad] ✓ Encontrado vía búsqueda: ${selectedUrl} (${pageYear || "?"})`);
                                 break;
                             }
-                        } catch (e) {}
+                        } catch {}
                     }
                 }
                 if (!selectedUrl && !releaseYear) {
@@ -183,7 +182,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                                     console.log(`[CineCalidad] ✓ Encontrado vía alias: ${result} (${pageYear || "?"})`);
                                     return result;
                                 }
-                            } catch (e) {}
+} catch {}
                         }
                     }
                     return aliasResults.length > 0 && !releaseYear ? aliasResults[0] : null;

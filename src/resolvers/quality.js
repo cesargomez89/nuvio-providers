@@ -38,7 +38,7 @@ async function detectQuality(url, headers = {}) {
       return `${maxRes}p`;
     }
     return "1080p";
-  } catch (e) {
+  } catch {
     return "1080p";
   }
 }

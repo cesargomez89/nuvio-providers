@@ -1,26 +1,10 @@
-import { fetchJson, fetchHtml, getSessionUA, setSessionUA, getStealthHeaders } from '../utils/http.js';
+import { fetchJson, getSessionUA, getStealthHeaders } from '../utils/http.js';
 import { validateStream } from '../utils/m3u8.js';
-import { finalizeStreams, normalizeLanguage } from '../utils/engine.js';
+import { finalizeStreams } from '../utils/engine.js';
 import { isMirror } from '../utils/mirrors.js';
-import { getCorrectImdbId, getTmdbInfo, getTmdbTitle, getTmdbAliases } from '../utils/tmdb.js';
+import { getTmdbInfo, getTmdbAliases } from '../utils/tmdb.js';
 
 const BASE_URL = "https://hackstore.mx";
-const TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
-
-const COMMON_HEADERS = {
-    "User-Agent": getSessionUA(),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-    "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
-    "Cache-Control": "no-cache",
-    "Sec-Ch-Ua": '"Not.A/Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-    "Sec-Ch-Ua-Mobile": "?1",
-    "Sec-Ch-Ua-Platform": '"Android"',
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Sec-Fetch-User": "?1",
-    "Upgrade-Insecure-Requests": "1"
-};
 
 function localAtob(input) {
     if (!input) return "";
@@ -101,7 +85,6 @@ async function resolveStreamWish(url, signal = null) {
     try {
         const UA = getSessionUA();
         const rawId = url.split("/").pop().replace(/\.html$/, "");
-        const urlObj = new URL(url);
         const mirrors = [
             `https://hanerix.com/e/${rawId}`,
             `https://embedwish.com/e/${rawId}`,
@@ -131,7 +114,7 @@ async function resolveStreamWish(url, signal = null) {
                         if (m3u8Url.startsWith("/")) m3u8Url = mirrorOrigin + m3u8Url;
                         resolveRace({ url: m3u8Url, mirror });
                     }
-                } catch (e) {} finally {
+                } catch {} finally {
                     pending--;
                     if (pending === 0 && !resolved) resolveRace(null);
                 }
@@ -141,16 +124,15 @@ async function resolveStreamWish(url, signal = null) {
         if (!validResult) return null;
         const reqHeaders = { "Referer": validResult.mirror, "Origin": new URL(validResult.mirror).origin, "User-Agent": UA };
         return { url: validResult.url, quality: "Auto", serverName: "StreamWish", headers: reqHeaders };
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
 function unpackVidHide(script) {
     try {
         const match = script.match(/eval\(function\(p,a,c,k,e,[rd]\)\{.*?\}\s*\('([\s\S]*?)',\s*(\d+),\s*(\d+),\s*'([\s\S]*?)'\.split\('\|'\)/);
         if (!match) return null;
-        let [, p, a, c, k] = match;
+        let [, p, a, , k] = match;
         a = parseInt(a);
-        c = parseInt(c);
         k = k.split("|");
         const chars = "0123456789abcdefghijklmnopqrstuvwxyz";
         const decode = (l, s) => {
@@ -162,7 +144,7 @@ function unpackVidHide(script) {
             const s = parseInt(l, 36);
             return s < k.length && k[s] ? k[s] : decode(s, a);
         });
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
 async function resolveVidHide(url, signal = null) {
@@ -197,12 +179,7 @@ async function resolveVidHide(url, signal = null) {
         if (!finalUrl.startsWith("http")) finalUrl = new URL(url).origin + finalUrl;
         const reqHeaders = { ...getStealthHeaders(), "Referer": url.split("?")[0], "Origin": new URL(url).origin, "User-Agent": currentUA };
         return { url: finalUrl, quality, serverName: "VidHide", headers: reqHeaders };
-    } catch (e) { return null; }
-}
-
-function unpack(p, a, c, k, e, d) {
-    while (c--) if (k[c]) p = p.replace(new RegExp("\\b" + c.toString(a) + "\\b", "g"), k[c]);
-    return p;
+    } catch { return null; }
 }
 
 async function resolveFilemoon(url, signal = null) {
@@ -239,9 +216,9 @@ async function resolveFilemoon(url, signal = null) {
                     }
                 }
             }
-        } catch (e) { console.log(`[HackStore2-Filemoon] Shield Fallback: ${e.message}`); }
+        } catch (err) { console.log(`[HackStore2-Filemoon] Shield Fallback: ${err.message}`); }
         return null;
-    } catch (error) { return null; }
+    } catch { return null; }
 }
 
 async function resolveEmbed(url, hint = "") {
@@ -305,7 +282,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                 if (res && res.data && res.data._id) {
                     return { slug, id: res.data._id };
                 }
-            } catch (e) {}
+            } catch {}
             return null;
         }));
         
@@ -356,7 +333,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                     serverName: resolved.serverName || p.server || "Online",
                     headers: resolved.headers || {}
                 };
-            } catch (e) { return null; }
+            } catch { return null; }
         });
         
         const candidates = (await Promise.all(streamPromises)).filter(Boolean);

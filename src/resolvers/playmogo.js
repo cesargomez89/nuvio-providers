@@ -1,6 +1,6 @@
 const { DEFAULT_UA } = require('../utils/http.js');
 
-async function resolve(url, signal = null) {
+async function resolve(url) {
   try {
     console.log("[Playmogo] Resolving: " + url);
     return {

@@ -59,7 +59,7 @@ function extractSvLinks(html) {
         quality,
         url: decoded
       });
-    } catch (e) {}
+    } catch {}
   }
   return links;
 }
@@ -189,8 +189,8 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     });
     
     return await finalizeStreams(streams, "FuegoCine", mediaTitle);
-  } catch (e) {
-    console.error(`[FuegoCine Nitro v4] Error: ${e.message}`);
+  } catch (err) {
+    console.error(`[FuegoCine Nitro v4] Error: ${err.message}`);
     return [];
   }
 }

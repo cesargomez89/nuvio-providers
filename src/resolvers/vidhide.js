@@ -6,9 +6,9 @@ function unpackVidHide(script) {
     const match = script.match(/eval\(function\(p,a,c,k,e,[rd]\)\{.*?\}\s*\('([\s\S]*?)',\s*(\d+),\s*(\d+),\s*'([\s\S]*?)'\.split\('\|'\)/);
     if (!match)
       return null;
-    let [full, p, a, c, k] = match;
+    let [, p, a, c, k] = match;
     a = parseInt(a);
-    c = parseInt(c);
+    parseInt(c);
     k = k.split("|");
     const chars = "0123456789abcdefghijklmnopqrstuvwxyz";
     const decode = (l, s) => {
@@ -24,7 +24,7 @@ function unpackVidHide(script) {
       return s < k.length && k[s] ? k[s] : decode(s, a);
     });
     return unpacked;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
