@@ -5,7 +5,7 @@ import { getCorrectImdbId } from '../utils/tmdb.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 
 const BASE_URL = 'https://embed69.org';
-const RESOLVER_TIMEOUT = 8000;
+const RESOLVER_TIMEOUT = 10000;
 
 function decodeJwtPayload(token) {
   try {
