@@ -1,18 +1,18 @@
 {
   "name": "Latinus Mexico",
-  "version": "1.0.29",
+  "version": "1.0.47",
   "scrapers": [
     {
-      "id": "lamovie",
-      "name": "LaMovie",
-      "description": "Películas y series en Latino desde LaMovie.",
-      "version": "1.0.29",
+      "id": "detodopeliculas",
+      "name": "DeTodoPeliculas",
+      "description": "Películas y series en Latino desde DeTodoPeliculas.",
+      "version": "1.0.47",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
         "tv"
       ],
-      "filename": "providers/lamovie.js",
+      "filename": "providers/detodopeliculas.js",
       "enabled": true,
       "contentLanguage": [
         "es"

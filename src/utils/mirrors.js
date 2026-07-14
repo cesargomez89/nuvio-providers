@@ -100,7 +100,7 @@ const MIRRORS = {
   VIDMOLY: ['vidmoly.biz', 'vidmoly.to'],
   UNLIMPLAY: ['unlimplay.com'],
   KRAKENFILES: ['krakenfiles.com'],
-  UPNS: ['upns.online'],
+  UPNS: ['upns.online', 'upns.pro', 'pelisplus.upns.pro'],
 };
 
 function isMirror(url, groupName) {

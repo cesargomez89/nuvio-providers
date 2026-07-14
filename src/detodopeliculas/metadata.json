@@ -1,0 +1,8 @@
+{
+  "name": "DeTodoPeliculas",
+  "description": "Películas y series en Latino desde DeTodoPeliculas.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

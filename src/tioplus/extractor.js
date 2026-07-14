@@ -107,7 +107,6 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     while ((sMatch = serverRegex.exec(mediaHtml)) !== null) {
       const enc = sMatch[1];
       const rawServerName = sMatch[2].split('-')[0].trim();
-      if (rawServerName !== 'Earnvids' && rawServerName !== 'Plus') continue;
       let lang = 'LAT';
       if (mediaHtml.includes('audio Latino') || mediaHtml.includes('Español Latino')) lang = 'LAT';
       else if (mediaHtml.includes('audio Castellano') || mediaHtml.includes('Español España'))
