@@ -1,6 +1,6 @@
 /**
  * sololatino - Built from src/sololatino/
- * Generated: 2026-07-14T06:25:34.765Z
+ * Generated: 2026-07-14T06:55:33.862Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3784,9 +3784,13 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         }
       }
       if (!slugUrl) {
-        const fallbackMatch = searchHtml.match(/<a\s+href="(https?:\/\/sololatino\.net\/(?:serie|pelicula)\/[^"]+)"[^>]*>[\s\S]*?alt="([^"]+)"/i);
+        const fallbackMatch = searchHtml.match(
+          /<a\s+href="(https?:\/\/sololatino\.net\/(?:serie|pelicula)\/[^"]+)"[^>]*>[\s\S]*?alt="([^"]+)"/i
+        );
         if (fallbackMatch) {
-          console.log(`[SoloLatino] Using first search result as fallback: ${fallbackMatch[2]} -> ${fallbackMatch[1]}`);
+          console.log(
+            `[SoloLatino] Using first search result as fallback: ${fallbackMatch[2]} -> ${fallbackMatch[1]}`
+          );
           slugUrl = fallbackMatch[1];
         }
       }
@@ -3825,10 +3829,10 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
             headers: {
               "User-Agent": HEADERS["User-Agent"],
               "Content-Type": "application/json",
-              "Accept": "application/json",
+              Accept: "application/json",
               "X-XSRF-TOKEN": xsrfToken,
-              "Cookie": cookieJar,
-              "Referer": finalUrl
+              Cookie: cookieJar,
+              Referer: finalUrl
             },
             body: JSON.stringify({ t: token })
           });

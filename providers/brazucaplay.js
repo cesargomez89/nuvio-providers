@@ -1,6 +1,833 @@
 /**
  * brazucaplay - Built from src/brazucaplay/
- * Generated: 2026-05-08T04:24:32.211Z
+ * Generated: 2026-07-14T06:55:33.755Z
  */
-var le=Object.create;var k=Object.defineProperty,ue=Object.defineProperties,de=Object.getOwnPropertyDescriptor,fe=Object.getOwnPropertyDescriptors,me=Object.getOwnPropertyNames,P=Object.getOwnPropertySymbols,pe=Object.getPrototypeOf,F=Object.prototype.hasOwnProperty,he=Object.prototype.propertyIsEnumerable;var V=(t,e,o)=>e in t?k(t,e,{enumerable:!0,configurable:!0,writable:!0,value:o}):t[e]=o,m=(t,e)=>{for(var o in e||(e={}))F.call(e,o)&&V(t,o,e[o]);if(P)for(var o of P(e))he.call(e,o)&&V(t,o,e[o]);return t},S=(t,e)=>ue(t,fe(e));var R=(t,e)=>()=>(e||t((e={exports:{}}).exports,e),e.exports);var ge=(t,e,o,n)=>{if(e&&typeof e=="object"||typeof e=="function")for(let s of me(e))!F.call(t,s)&&s!==o&&k(t,s,{get:()=>e[s],enumerable:!(n=de(e,s))||n.enumerable});return t};var x=(t,e,o)=>(o=t!=null?le(pe(t)):{},ge(e||!t||!t.__esModule?k(o,"default",{value:t,enumerable:!0}):o,t));var u=(t,e,o)=>new Promise((n,s)=>{var a=i=>{try{c(o.next(i))}catch(l){s(l)}},r=i=>{try{c(o.throw(i))}catch(l){s(l)}},c=i=>i.done?n(i.value):Promise.resolve(i.value).then(a,r);c((o=o.apply(t,e)).next())});var I=R((Be,W)=>{var ve="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",ye={Accept:"*/*",Origin:"https://cineby.sc",Referer:"https://cineby.sc/","User-Agent":T()},z=null;function Ae(t){z=t}function T(){return z||ve}function we(){return{"User-Agent":T(),Accept:"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7","Accept-Language":"es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",Connection:"keep-alive","sec-ch-ua":'"Not.A/Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',"sec-ch-ua-mobile":"?0","sec-ch-ua-platform":'"Windows"',"Sec-Fetch-Dest":"document","Sec-Fetch-Mode":"navigate","Sec-Fetch-Site":"none","Sec-Fetch-User":"?1","Upgrade-Insecure-Requests":"1"}}var Ee=T(),Se=T();function b(o){return u(this,arguments,function*(t,e={}){let n=e||{},s=n.headers&&n.headers["User-Agent"]?n.headers["User-Agent"]:T(),a=Object.assign({"User-Agent":s,Accept:"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8","Accept-Language":"es-MX,es;q=0.9,en;q=0.8"},n.headers);try{let r=Object.assign({redirect:n.redirect||"follow",skipSizeCheck:!0},n,{headers:a});n.signal&&(r.signal=n.signal);let c=yield fetch(t,r);if(n.redirect==="manual"&&(c.status===301||c.status===302)){let i=c.headers.get("location");return console.log(`[HTTP] Redirecci\xF3n detectada (Manual): ${i}`),{status:c.status,redirectUrl:i,ok:!1}}return!c.ok&&!n.ignoreErrors&&console.warn("[HTTP] Error "+c.status+" en "+t),c}catch(r){throw console.error("[HTTP] Error en "+t+": "+r.message),r}})}function Re(t,e){return u(this,null,function*(){return yield(yield b(t,e)).text()})}function Te(t,e){return u(this,null,function*(){return yield(yield b(t,e)).json()})}function Ue(n){return u(this,arguments,function*(t,e=8e3,o={}){let s=new AbortController,a=setTimeout(()=>s.abort(),e);try{let r=yield b(t,S(m({},o),{signal:s.signal}));return clearTimeout(a),r}catch(r){throw clearTimeout(a),r}})}W.exports={request:b,fetchHtml:Re,fetchJson:Te,fetchWithTimeout:Ue,getSessionUA:T,setSessionUA:Ae,getStealthHeaders:we,CINEBY_HEADERS:ye,DEFAULT_UA:Ee,MOBILE_UA:Se,DEFAULT_TIMEOUT:8e3}});var Y=R((Ve,G)=>{var{getSessionUA:De}=I();function q(t){if(!t)return"1080p";let e=parseInt(t);return e>=2160?"4K":e>=1440?"1440p":e>=1080?"1080p":e>=720?"720p":e>=480?"480p":e>=360?"360p":"1080p"}function K(t,e=""){let o=0,n=0;if(t){let r=t.split(`
-`);for(let c of r){if(c.includes("RESOLUTION=")){let i=c.match(/RESOLUTION=\d+x(\d+)/i);if(i){let l=parseInt(i[1]);l>o&&(o=l)}}if(c.includes("BANDWIDTH=")){let i=c.match(/BANDWIDTH=(\d+)/i);if(i){let l=parseInt(i[1]);l>n&&(n=l)}}}}let s="1080p",a=!1;if(o>0)s=q(o);else{let r=e.match(/([_-]|\/)(\d{3,4})([pP]|(\.m3u8))?/);if(r){let c=parseInt(r[2]);c>=360&&c<=4320&&(s=q(c))}}return o>0&&(a=!0),n>=2e6&&(a=!0),{quality:s,isReal:a}}var M=new Map;function Me(t,e=null){return u(this,null,function*(){if(!t||!t.url)return t;let{url:o,headers:n}=t,s=o.toLowerCase().includes(".mp4");if(M.has(o))return m(m({},t),M.get(o));try{let a={method:s?"HEAD":"GET",headers:m({"User-Agent":De()},n||{})};e&&(a.signal=e);let r=yield fetch(o,a);if(!r.ok)return S(m({},t),{verified:!1});if(s){let d={verified:!0,quality:t.quality||"1080p",isReal:!0};return M.set(o,d),m(m({},t),d)}let c=yield r.text(),i=K(c,o),l={verified:!0,quality:i.quality,isReal:i.isReal};return M.set(o,l),m(m({},t),l)}catch(a){let c={quality:K("",o).quality,verified:!0,isReal:!1};return M.set(o,c),m(m({},t),c)}})}G.exports={validateStream:Me,getQualityFromHeight:q}});var J=R((ze,X)=>{var j={"4K":100,"1440p":90,"1080p":80,"720p":70,"480p":60,"360p":50,"240p":40,Auto:30,Unknown:0},Q={VOE:10,Filemoon:10,Tplayer:10,Vimeos:10,Netu:5,GoodStream:10,StreamWish:-5,VidHide:-5,Supervideo:10};function Oe(t){return Array.isArray(t)?[...t].sort((e,o)=>{let n=j[e.quality]||0,s=j[o.quality]||0;if(n!==s)return s-n;let a=(e.serverLabel||"").split(" ")[0],r=(o.serverLabel||"").split(" ")[0],c=Q[a]||0,i=Q[r]||0;return c!==i?i-c:e.verified&&!o.verified?-1:!e.verified&&o.verified?1:0}):[]}X.exports={sortStreamsByQuality:Oe}});var ee=R((We,Z)=>{var N={VIDHIDE:["vidhide","minochinos","vadisov","vaiditv","amusemre","callistanise","vhaudm","mdfury","dintezuvio","acek-cdn","vedonm","vidhidepro","vidhidevip","supervideo","masukestin","vidoza"],STREAMWISH:["hlswish","streamwish","hglink","hglamioz","hglink.to","audinifer","embedwish","awish","dwish","strwish","filelions","wishembed","wishfast","hanerix"],FILEMOON:["filemoon","moonalu","moonembed","bysedikamoum","r66nv9ed","398fitus","filemoon.sx","filemoon.to","filemoon.lat","filemoon.live","filemoon.online","filemoon.me","bysedikamoum.com","r66nv9ed.com","398fitus.com","fmoon.top"],VOE:["voe.sx","voe-sx","voex.sx","marissashare","cloudwindow","marissasharecareer"],FASTREAM:["fastream","fastplay","fembed"],OKRU:["ok.ru","okru"],PIXELDRAIN:["pixeldrain"],BUZZHEAVIER:["buzzheavier","bzh.sh"],GOODSTREAM:["goodstream","gs.one"],LULUSTREAM:["lulustream","luluvdo","luluvids","pondy","lulupuv","luluvid"],SEEKSTREAMING:["seekplays","seekstreaming","embedseek"],DROPCDN:["dropcdn.io","dropload.io","dropcdn","dropload","dr0pstream"],DOODSTREAM:["dood.li","dood.la","ds2video.com","ds2play.com","dood.yt","dood.ws","dood.so","dood.to","dood.pm","dood.watch","dood.sh","dood.cx","dood.wf","dood.re","dood.one","dood.tech","dood.work","dooods.pro","dooood.com","doodstream.com","doodstream.co","d000d.com","d0000d.com","doodapi.com","d0o0d.com","do0od.com","dooodster.com","vidply.com","do7go.com","all3do.com","doply.net","dsvplay.com"],VIDNEST:["vidnest.io","vidnest.live"],VIDSONIC:["vidsonic.net"],BARMONREY:["barmonrey.com"],VIDMOLY:["vidmoly.biz","vidmoly.to"],UNLIMPLAY:["unlimplay.com"],KRAKENFILES:["krakenfiles.com"],UPNS:["upns.online"]};function be(t,e){if(!t||!N[e])return!1;let o=t.toLowerCase();return N[e].some(n=>o.includes(n))}Z.exports={MIRRORS:N,isMirror:be}});var ne=R((Ke,oe)=>{var{validateStream:Ie}=Y(),{sortStreamsByQuality:Ce}=J(),{isMirror:p}=ee();function te(t){let e=(t||"").toLowerCase();return e==="latino"||e==="espa\xF1ol"||e==="lat"||e==="auto"||e.includes("lat")||e.includes("mex")||e.includes("col")||e.includes("arg")||e.includes("chi")||e.includes("per")||e.includes("dub")||e.includes("dual")?"Latino":e.includes("esp")||e.includes("cas")||e.includes("spa")||e.includes("cast")||e==="esp"?"Castellano":e.includes("sub")||e.includes("vose")||e==="sub"?"Subtitulado":e.includes("eng")||e.includes("en-us")||e==="en"?"Ingl\xE9s":t||"Latino"}function Le(t,e="",o=null){if(o)return o;let n=(e||"").toLowerCase(),s=(t||"").toLowerCase();if(n.includes("goodstream")||s.includes("goodstream"))return"GoodStream";if(p(n,"FASTREAM")||p(s,"FASTREAM"))return"Fastream";if(p(n,"DROPCDN")||p(s,"DROPCDN"))return"DropCDN";if(n.includes("vimeos")||n.includes("vms.sh")||s.includes("vimeos"))return"Vimeos";if(p(n,"VIDHIDE")||p(s,"VIDHIDE"))return"VidHide";if(p(n,"STREAMWISH")||p(s,"STREAMWISH"))return"StreamWish";if(p(n,"VOE")||p(s,"VOE"))return"VOE";if(p(n,"FILEMOON")||p(s,"FILEMOON"))return"Filemoon";if(e&&e.includes("supervideo"))return"Supervideo";if(p(n,"DOODSTREAM")||p(s,"DOODSTREAM"))return"DoodStream";if(e)try{let a=new URL(e).hostname.replace("www.","").split("."),r=a.length>1?a[a.length-2]:a[0];return r.charAt(0).toUpperCase()+r.slice(1)}catch(a){}return t||"Servidor"}function _e(t,e){return u(this,null,function*(){if(!Array.isArray(t)||t.length===0)return[];console.log("[Engine] PROCESANDO STREAMS - Bitrate Global v7.6.0");let o=Ce(t),n=5,s=5,a=[];for(let i=0;i<o.length;i+=n){if(i>=s){a.push(...o.slice(i));break}let l=o.slice(i,i+n),d=yield Promise.all(l.map(f=>u(this,null,function*(){try{if(f.isReal===!0)return f;if(f.url&&(f.url.includes(".m3u8")||f.url.includes(".mp4"))){let g=new AbortController,h=setTimeout(()=>g.abort(),2500);try{let w=yield Ie(f,g.signal);return clearTimeout(h),w}catch(w){return clearTimeout(h),S(m({},f),{verified:!1,isReal:!1})}}}catch(g){}return f})));a.push(...d)}let r=[],c=new Set;for(let i of a){if(!i||i.verified===!1)continue;let l=te(i.lang||i.Audio||i.langLabel||i.language||i.audio||"Latino"),d=l.toLowerCase();if(!(d.includes("latino")||d.includes("castellano"))&&e!=="FuegoCine")continue;let g=Le(i.serverLabel||i.serverName||i.servername,i.url,i.serverName),h=i.quality||"HD",w=i.isReal===!0,D=i.verified===!0,E=`${e} - ${h}${w?" \u2705":""}`,v=`${l} - ${g}`;c.has(E+v+i.url)||(c.add(E+v+i.url),r.push({name:E,title:v,url:i.url,quality:h,verified:D,isReal:w,provider:g,language:l,headers:i.headers||{"User-Agent":"Mozilla/5.0 (Linux; Android 10; TV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}}))}return r})}oe.exports={finalizeStreams:_e,normalizeLanguage:te}});var se=R((Ye,ie)=>{var{fetchJson:O}=I(),y=["439c478a771f35c05022f9feabcca01c","d131017ccc6e5462a81c9304d21476de","1c29a5198ee1854bd5eb45dbe8d17d92"][Math.floor(Math.random()*3)],C=new Map,U=new Map;function H(t,e,o=2){return u(this,null,function*(){var a,r,c,i;let n=`${e}_${t}`;if(C.has(n))return C.get(n);o<2&&(yield new Promise(l=>setTimeout(l,1e3)));let s=t&&t.startsWith("tt");try{let l=e==="movie"||e==="movies"?"movie":"tv",d=s?`https://api.themoviedb.org/3/find/${t}?api_key=${y}&external_source=imdb_id`:`https://api.themoviedb.org/3/${l}/${t}?api_key=${y}&language=es-MX`,f=yield O(d),h=(s?((r=(a=f[l+"_results"])==null?void 0:a[0])==null?void 0:r.title)||((i=(c=f[l+"_results"])==null?void 0:c[0])==null?void 0:i.name):f.title||f.name)||null;return C.set(n,h),h}catch(l){return o>0?H(t,e,o-1):(C.set(n,null),null)}})}function B(t,e,o,n=2){return u(this,null,function*(){try{let a=`https://api.themoviedb.org/3/${e==="movie"||e==="movies"?"movie":"tv"}/${t}?api_key=${y}&language=${o||"es-MX"}`,r=yield O(a);return{title:r.title||r.name,originalTitle:r.original_title||r.original_name||null,year:(r.release_date||r.first_air_date||"").split("-")[0],genres:(r.genres||[]).map(c=>c.id),originCountries:r.origin_country||(r.production_countries||[]).map(c=>c.iso_3166_1)||[]}}catch(s){return n>0?(yield new Promise(a=>setTimeout(a,1e3)),B(t,e,o,n-1)):null}})}function $e(t,e){return u(this,null,function*(){if(!t)return{imdbId:null,title:""};let o=`${e}_${t}`;if(U.has(o))return U.get(o);if(t.startsWith("tt")){let n={imdbId:t,title:"Contenido",offset:0,fromMapping:!1};return U.set(o,n),n}try{let s=`https://api.themoviedb.org/3/${e==="movie"||e==="movies"?"movie":"tv"}/${t}/external_ids?api_key=${y}`,a=yield O(s);if(!a||!a.imdb_id){let i={imdbId:null,title:"Contenido",offset:0,fromMapping:!1};return U.set(o,i),i}let r=yield B(t,e),c={imdbId:a.imdb_id,title:(r==null?void 0:r.title)||"Contenido",year:(r==null?void 0:r.year)||null,offset:0,fromMapping:!1};return U.set(o,c),c}catch(n){let s={imdbId:null,title:"Contenido",offset:0,fromMapping:!1};return U.set(o,s),s}})}function ke(t,e){return u(this,null,function*(){try{let o=yield H(t,e),n=yield u(this,null,function*(){try{let r=`https://api.themoviedb.org/3/${e==="movie"||e==="movies"?"movie":"tv"}/${t}?api_key=${y}&language=en-US`,c=yield O(r);return c.title||c.name||null}catch(a){return null}}),s=[];o&&s.push(o),n&&n!==o&&s.push(n);try{let r=`https://api.themoviedb.org/3/${e==="movie"||e==="movies"?"movie":"tv"}/${t}/alternative_titles?api_key=${y}`,c=yield O(r),i=c.titles||c.results||[];for(let l of i){let d=l.title||l.name;d&&!s.includes(d)&&s.push(d)}}catch(a){console.warn("[TMDB-Aliases] Alternative titles fetch failed")}return s}catch(o){return[]}})}ie.exports={getTmdbTitle:H,getTmdbInfo:B,getCorrectImdbId:$e,getTmdbAliases:ke,TMDB_API_KEY:y}});var A=x(I()),re=x(ne()),L=x(se());var xe="https://enc-dec.app/api/dec-videasy",qe={Gekko:{url:"https://api2.videasy.net/cuevana/sources-with-title",label:"Cuevana"}};function ae(t,e,o,n,s){return u(this,null,function*(){if(!t)return[];console.log(`[BrazucaPlay] Looking for content: ${t} (${e})`);try{(0,A.setSessionUA)(A.CINEBY_HEADERS["User-Agent"]);let a=yield(0,L.getTmdbInfo)(t,e),r=(a==null?void 0:a.title)||s,c=(a==null?void 0:a.year)||"",{imdbId:i}=yield(0,L.getCorrectImdbId)(t,e),l=encodeURIComponent(encodeURIComponent(r)),d=[];for(let[f,g]of Object.entries(qe))try{let h=`${g.url}?title=${l}&mediaType=${e==="tv"?"tv":"movie"}&year=${c}&tmdbId=${t}&imdbId=${i}`;e==="tv"&&(h+=`&episodeId=${n||1}&seasonId=${o||1}`);let D=yield(yield fetch(h,{headers:A.CINEBY_HEADERS})).text();if(!D||D.length<20)continue;let E=yield(yield fetch(xe,{method:"POST",headers:{"Content-Type":"application/json","User-Agent":A.CINEBY_HEADERS["User-Agent"]},body:JSON.stringify({text:D,id:String(t)})})).json(),v=E.result||E;if(v&&v.sources){for(let _ of v.sources)if(_.url){let $=(_.quality||"HD").toUpperCase();$==="AUTO"&&($="1080p"),d.push({serverName:g.label,audio:"Latino",quality:$,url:_.url,headers:A.CINEBY_HEADERS})}}}catch(h){console.log(`[BrazucaPlay] ${f} error: ${h.message}`)}return yield(0,re.finalizeStreams)(d,"BrazucaPlay",r||"")}catch(a){return console.error(`[BrazucaPlay] Error: ${a.message}`),[]}})}function Ne(t,e,o,n){return u(this,null,function*(){try{return yield ae(t,e,o,n)}catch(s){return console.error(`[BrazucaPlay] Error: ${s.message}`),[]}})}module.exports={getStreams:Ne};
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+var __commonJS = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __async = (__this, __arguments, generator) => {
+  return new Promise((resolve, reject) => {
+    var fulfilled = (value) => {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var rejected = (value) => {
+      try {
+        step(generator.throw(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+    step((generator = generator.apply(__this, __arguments)).next());
+  });
+};
+
+// src/utils/http.js
+var require_http = __commonJS({
+  "src/utils/http.js"(exports2, module2) {
+    var DEFAULT_CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+    var DEFAULT_TIMEOUT = 8e3;
+    var CINEBY_HEADERS2 = {
+      Accept: "*/*",
+      Origin: "https://cineby.sc",
+      Referer: "https://cineby.sc/",
+      "User-Agent": getSessionUA()
+    };
+    var sessionUA = null;
+    function setSessionUA2(ua) {
+      sessionUA = ua;
+    }
+    function getSessionUA() {
+      return sessionUA || DEFAULT_CHROME_UA;
+    }
+    function getStealthHeaders() {
+      return {
+        "User-Agent": getSessionUA(),
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
+        Connection: "keep-alive",
+        "sec-ch-ua": '"Not.A/Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1"
+      };
+    }
+    var DEFAULT_UA = getSessionUA();
+    var MOBILE_UA = getSessionUA();
+    function request(_0) {
+      return __async(this, arguments, function* (url, options = {}) {
+        const opt = options || {};
+        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA();
+        const headers = Object.assign(
+          {
+            "User-Agent": currentUA,
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "es-MX,es;q=0.9,en;q=0.8"
+          },
+          opt.headers
+        );
+        try {
+          const fetchOptions = Object.assign(
+            {
+              redirect: opt.redirect || "follow",
+              skipSizeCheck: true
+            },
+            opt,
+            {
+              headers
+            }
+          );
+          if (opt.signal)
+            fetchOptions.signal = opt.signal;
+          const response = yield fetch(url, fetchOptions);
+          if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
+            const redirectUrl = response.headers.get("location");
+            console.log(`[HTTP] Redirecci\xF3n detectada (Manual): ${redirectUrl}`);
+            return { status: response.status, redirectUrl, ok: false };
+          }
+          if (!response.ok && !opt.ignoreErrors) {
+            console.warn("[HTTP] Error " + response.status + " en " + url);
+          }
+          return response;
+        } catch (error) {
+          console.error("[HTTP] Error en " + url + ": " + error.message);
+          throw error;
+        }
+      });
+    }
+    function fetchHtml(url, options) {
+      return __async(this, null, function* () {
+        const res = yield request(url, options);
+        return yield res.text();
+      });
+    }
+    function fetchJson(url, options) {
+      return __async(this, null, function* () {
+        const res = yield request(url, options);
+        return yield res.json();
+      });
+    }
+    function fetchWithTimeout(_0) {
+      return __async(this, arguments, function* (url, timeout = DEFAULT_TIMEOUT, options = {}) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        try {
+          const result = yield request(url, __spreadProps(__spreadValues({}, options), { signal: controller.signal }));
+          clearTimeout(timeoutId);
+          return result;
+        } catch (e) {
+          clearTimeout(timeoutId);
+          throw e;
+        }
+      });
+    }
+    module2.exports = {
+      request,
+      fetchHtml,
+      fetchJson,
+      fetchWithTimeout,
+      getSessionUA,
+      setSessionUA: setSessionUA2,
+      getStealthHeaders,
+      CINEBY_HEADERS: CINEBY_HEADERS2,
+      DEFAULT_UA,
+      MOBILE_UA,
+      DEFAULT_TIMEOUT
+    };
+  }
+});
+
+// src/utils/m3u8.js
+var require_m3u8 = __commonJS({
+  "src/utils/m3u8.js"(exports2, module2) {
+    var { getSessionUA } = require_http();
+    function getQualityFromHeight(height) {
+      if (!height)
+        return "1080p";
+      const h = parseInt(height);
+      if (h >= 2160)
+        return "4K";
+      if (h >= 1440)
+        return "1440p";
+      if (h >= 1080)
+        return "1080p";
+      if (h >= 720)
+        return "720p";
+      if (h >= 480)
+        return "480p";
+      if (h >= 360)
+        return "360p";
+      return "1080p";
+    }
+    function parseBestQuality(content, url = "") {
+      let bestHeight = 0;
+      let bestBandwidth = 0;
+      if (content) {
+        const lines = content.split("\n");
+        for (const line of lines) {
+          if (line.includes("RESOLUTION=")) {
+            const match = line.match(/RESOLUTION=\d+x(\d+)/i);
+            if (match) {
+              const height = parseInt(match[1]);
+              if (height > bestHeight)
+                bestHeight = height;
+            }
+          }
+          if (line.includes("BANDWIDTH=")) {
+            const match = line.match(/BANDWIDTH=(\d+)/i);
+            if (match) {
+              const bandwidth = parseInt(match[1]);
+              if (bandwidth > bestBandwidth)
+                bestBandwidth = bandwidth;
+            }
+          }
+        }
+      }
+      let quality = "1080p";
+      let isReal = false;
+      if (bestHeight > 0) {
+        quality = getQualityFromHeight(bestHeight);
+      } else {
+        const qMatch = url.match(/([_-]|\/)(\d{3,4})([pP]|(\.m3u8))?/);
+        if (qMatch) {
+          const h = parseInt(qMatch[2]);
+          if (h >= 360 && h <= 4320)
+            quality = getQualityFromHeight(h);
+        }
+      }
+      if (bestHeight > 0)
+        isReal = true;
+      if (bestBandwidth >= 2e6)
+        isReal = true;
+      return { quality, isReal };
+    }
+    var VALIDATION_CACHE = /* @__PURE__ */ new Map();
+    function validateStream(stream, signal = null) {
+      return __async(this, null, function* () {
+        if (!stream || !stream.url)
+          return stream;
+        const { url, headers } = stream;
+        const isMp4 = url.toLowerCase().includes(".mp4");
+        if (VALIDATION_CACHE.has(url))
+          return __spreadValues(__spreadValues({}, stream), VALIDATION_CACHE.get(url));
+        try {
+          const fetchOptions = {
+            method: isMp4 ? "HEAD" : "GET",
+            headers: __spreadValues({
+              "User-Agent": getSessionUA()
+            }, headers || {})
+          };
+          if (signal)
+            fetchOptions.signal = signal;
+          const response = yield fetch(url, fetchOptions);
+          if (!response.ok)
+            return __spreadProps(__spreadValues({}, stream), { verified: false });
+          if (isMp4) {
+            const resultData2 = { verified: true, quality: stream.quality || "1080p", isReal: true };
+            VALIDATION_CACHE.set(url, resultData2);
+            return __spreadValues(__spreadValues({}, stream), resultData2);
+          }
+          const text = yield response.text();
+          const info = parseBestQuality(text, url);
+          const resultData = {
+            verified: true,
+            quality: info.quality,
+            isReal: info.isReal
+          };
+          VALIDATION_CACHE.set(url, resultData);
+          return __spreadValues(__spreadValues({}, stream), resultData);
+        } catch (e) {
+          const info = parseBestQuality("", url);
+          const resultData = { quality: info.quality, verified: true, isReal: false };
+          VALIDATION_CACHE.set(url, resultData);
+          return __spreadValues(__spreadValues({}, stream), resultData);
+        }
+      });
+    }
+    module2.exports = { validateStream, getQualityFromHeight };
+  }
+});
+
+// src/utils/sorting.js
+var require_sorting = __commonJS({
+  "src/utils/sorting.js"(exports2, module2) {
+    var QUALITY_SCORE = {
+      "4K": 100,
+      "1440p": 90,
+      "1080p": 80,
+      "720p": 70,
+      "480p": 60,
+      "360p": 50,
+      "240p": 40,
+      Auto: 30,
+      Unknown: 0
+    };
+    var SERVER_SCORE = {
+      VOE: 10,
+      Filemoon: 10,
+      Tplayer: 10,
+      Vimeos: 10,
+      Netu: 5,
+      GoodStream: 10,
+      StreamWish: -5,
+      VidHide: -5,
+      Supervideo: 10
+    };
+    function sortStreamsByQuality(streams) {
+      if (!Array.isArray(streams))
+        return [];
+      return [...streams].sort((a, b) => {
+        const scoreA = QUALITY_SCORE[a.quality] || 0;
+        const scoreB = QUALITY_SCORE[b.quality] || 0;
+        if (scoreA !== scoreB) {
+          return scoreB - scoreA;
+        }
+        const serverA = (a.serverLabel || "").split(" ")[0];
+        const serverB = (b.serverLabel || "").split(" ")[0];
+        const speedA = SERVER_SCORE[serverA] || 0;
+        const speedB = SERVER_SCORE[serverB] || 0;
+        if (speedA !== speedB) {
+          return speedB - speedA;
+        }
+        if (a.verified && !b.verified)
+          return -1;
+        if (!a.verified && b.verified)
+          return 1;
+        return 0;
+      });
+    }
+    module2.exports = { sortStreamsByQuality };
+  }
+});
+
+// src/utils/mirrors.js
+var require_mirrors = __commonJS({
+  "src/utils/mirrors.js"(exports2, module2) {
+    var MIRRORS = {
+      VIDHIDE: [
+        "vidhide",
+        "minochinos",
+        "vadisov",
+        "vaiditv",
+        "amusemre",
+        "callistanise",
+        "vhaudm",
+        "mdfury",
+        "dintezuvio",
+        "acek-cdn",
+        "vedonm",
+        "vidhidepro",
+        "vidhidevip",
+        "supervideo",
+        "masukestin",
+        "vidoza"
+      ],
+      STREAMWISH: [
+        "hlswish",
+        "streamwish",
+        "hglink",
+        "hglamioz",
+        "hglink.to",
+        "audinifer",
+        "embedwish",
+        "awish",
+        "dwish",
+        "strwish",
+        "filelions",
+        "wishembed",
+        "wishfast",
+        "hanerix"
+      ],
+      FILEMOON: [
+        "filemoon",
+        "moonalu",
+        "moonembed",
+        "bysedikamoum",
+        "r66nv9ed",
+        "398fitus",
+        "filemoon.sx",
+        "filemoon.to",
+        "filemoon.lat",
+        "filemoon.live",
+        "filemoon.online",
+        "filemoon.me",
+        "bysedikamoum.com",
+        "r66nv9ed.com",
+        "398fitus.com",
+        "fmoon.top"
+      ],
+      VOE: ["voe.sx", "voe-sx", "voex.sx", "marissashare", "cloudwindow", "marissasharecareer"],
+      FASTREAM: ["fastream", "fastplay", "fembed"],
+      OKRU: ["ok.ru", "okru"],
+      PIXELDRAIN: ["pixeldrain"],
+      BUZZHEAVIER: ["buzzheavier", "bzh.sh"],
+      GOODSTREAM: ["goodstream", "gs.one"],
+      LULUSTREAM: ["lulustream", "luluvdo", "luluvids", "pondy", "lulupuv", "luluvid"],
+      SEEKSTREAMING: ["seekplays", "seekstreaming", "embedseek"],
+      DROPCDN: ["dropcdn.io", "dropload.io", "dropcdn", "dropload", "dr0pstream"],
+      DOODSTREAM: [
+        "dood.li",
+        "dood.la",
+        "ds2video.com",
+        "ds2play.com",
+        "dood.yt",
+        "dood.ws",
+        "dood.so",
+        "dood.to",
+        "dood.pm",
+        "dood.watch",
+        "dood.sh",
+        "dood.cx",
+        "dood.wf",
+        "dood.re",
+        "dood.one",
+        "dood.tech",
+        "dood.work",
+        "dooods.pro",
+        "dooood.com",
+        "doodstream.com",
+        "doodstream.co",
+        "d000d.com",
+        "d0000d.com",
+        "doodapi.com",
+        "d0o0d.com",
+        "do0od.com",
+        "dooodster.com",
+        "vidply.com",
+        "do7go.com",
+        "all3do.com",
+        "doply.net",
+        "dsvplay.com"
+      ],
+      VIDNEST: ["vidnest.io", "vidnest.live"],
+      VIDSONIC: ["vidsonic.net"],
+      BARMONREY: ["barmonrey.com"],
+      VIDMOLY: ["vidmoly.biz", "vidmoly.to"],
+      UNLIMPLAY: ["unlimplay.com"],
+      KRAKENFILES: ["krakenfiles.com"],
+      UPNS: ["upns.online", "upns.pro", "pelisplus.upns.pro"]
+    };
+    function isMirror(url, groupName) {
+      if (!url || !MIRRORS[groupName])
+        return false;
+      const s = url.toLowerCase();
+      return MIRRORS[groupName].some((m) => s.includes(m));
+    }
+    module2.exports = { MIRRORS, isMirror };
+  }
+});
+
+// src/utils/engine.js
+var require_engine = __commonJS({
+  "src/utils/engine.js"(exports2, module2) {
+    var { validateStream } = require_m3u8();
+    var { sortStreamsByQuality } = require_sorting();
+    var { isMirror } = require_mirrors();
+    function normalizeLanguage(lang) {
+      const l = (lang || "").toLowerCase();
+      if (l === "latino" || l === "espa\xF1ol" || l === "lat" || l === "auto") {
+        return "Latino";
+      }
+      if (l.includes("lat") || l.includes("mex") || l.includes("col") || l.includes("arg") || l.includes("chi") || l.includes("per") || l.includes("dub") || l.includes("dual")) {
+        return "Latino";
+      }
+      if (l.includes("esp") || l.includes("cas") || l.includes("spa") || l.includes("cast") || l === "esp") {
+        return "Castellano";
+      }
+      if (l.includes("sub") || l.includes("vose") || l === "sub") {
+        return "Subtitulado";
+      }
+      if (l.includes("eng") || l.includes("en-us") || l === "en") {
+        return "Ingl\xE9s";
+      }
+      return lang || "Latino";
+    }
+    function normalizeServer(server, url = "", resolvedServerName = null) {
+      if (resolvedServerName)
+        return resolvedServerName;
+      const u = (url || "").toLowerCase();
+      const s = (server || "").toLowerCase();
+      if (u.includes("goodstream") || s.includes("goodstream"))
+        return "GoodStream";
+      if (isMirror(u, "FASTREAM") || isMirror(s, "FASTREAM"))
+        return "Fastream";
+      if (isMirror(u, "DROPCDN") || isMirror(s, "DROPCDN"))
+        return "DropCDN";
+      if (u.includes("vimeos") || u.includes("vms.sh") || s.includes("vimeos"))
+        return "Vimeos";
+      if (isMirror(u, "VIDHIDE") || isMirror(s, "VIDHIDE"))
+        return "VidHide";
+      if (isMirror(u, "STREAMWISH") || isMirror(s, "STREAMWISH"))
+        return "StreamWish";
+      if (isMirror(u, "VOE") || isMirror(s, "VOE"))
+        return "VOE";
+      if (isMirror(u, "FILEMOON") || isMirror(s, "FILEMOON"))
+        return "Filemoon";
+      if (url && url.includes("supervideo"))
+        return "Supervideo";
+      if (isMirror(u, "DOODSTREAM") || isMirror(s, "DOODSTREAM"))
+        return "DoodStream";
+      if (url) {
+        try {
+          const domainParts = new URL(url).hostname.replace("www.", "").split(".");
+          const mainName = domainParts.length > 1 ? domainParts[domainParts.length - 2] : domainParts[0];
+          return mainName.charAt(0).toUpperCase() + mainName.slice(1);
+        } catch (e) {
+        }
+      }
+      return server || "Servidor";
+    }
+    function finalizeStreams2(streams, providerName) {
+      return __async(this, null, function* () {
+        if (!Array.isArray(streams) || streams.length === 0)
+          return [];
+        console.log(`[Engine] PROCESANDO STREAMS - Bitrate Global v7.6.0`);
+        const sorted = sortStreamsByQuality(streams);
+        const CONCURRENCY_LIMIT = 5;
+        const MAX_VALIDATIONS = 5;
+        const validatedStreams = [];
+        for (let i = 0; i < sorted.length; i += CONCURRENCY_LIMIT) {
+          if (i >= MAX_VALIDATIONS) {
+            validatedStreams.push(...sorted.slice(i));
+            break;
+          }
+          const batch = sorted.slice(i, i + CONCURRENCY_LIMIT);
+          const batchResults = yield Promise.all(
+            batch.map((s) => __async(this, null, function* () {
+              try {
+                if (s.isReal === true)
+                  return s;
+                if (s.url && (s.url.includes(".m3u8") || s.url.includes(".mp4"))) {
+                  const controller = new AbortController();
+                  const timeoutId = setTimeout(() => controller.abort(), 2500);
+                  try {
+                    const validated = yield validateStream(s, controller.signal);
+                    clearTimeout(timeoutId);
+                    return validated;
+                  } catch (e) {
+                    clearTimeout(timeoutId);
+                    return __spreadProps(__spreadValues({}, s), { verified: false, isReal: false });
+                  }
+                }
+              } catch (e) {
+              }
+              return s;
+            }))
+          );
+          validatedStreams.push(...batchResults);
+        }
+        const processed = [];
+        const seenTitles = /* @__PURE__ */ new Set();
+        for (const s of validatedStreams) {
+          if (!s)
+            continue;
+          if (s.verified === false)
+            continue;
+          const rawLang = normalizeLanguage(
+            s.lang || s.Audio || s.langLabel || s.language || s.audio || "Latino"
+          );
+          const l = rawLang.toLowerCase();
+          const isLatino = l.includes("latino") || l.includes("castellano");
+          if (!isLatino && providerName !== "FuegoCine")
+            continue;
+          const server = normalizeServer(
+            s.serverLabel || s.serverName || s.servername,
+            s.url,
+            s.serverName
+          );
+          const quality = s.quality || "HD";
+          const isReal = s.isReal === true;
+          const isVerified = s.verified === true;
+          const checkMark = isReal ? " \u2705" : "";
+          const streamName = `${providerName} - ${quality}${checkMark}`;
+          const streamTitle = `${rawLang} - ${server}`;
+          if (seenTitles.has(streamName + streamTitle + s.url))
+            continue;
+          seenTitles.add(streamName + streamTitle + s.url);
+          processed.push({
+            name: streamName,
+            title: streamTitle,
+            url: s.url,
+            quality,
+            verified: isVerified,
+            isReal,
+            provider: server,
+            language: rawLang,
+            headers: s.headers || {
+              "User-Agent": "Mozilla/5.0 (Linux; Android 10; TV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+          });
+        }
+        return processed;
+      });
+    }
+    module2.exports = { finalizeStreams: finalizeStreams2, normalizeLanguage };
+  }
+});
+
+// src/utils/tmdb.js
+var require_tmdb = __commonJS({
+  "src/utils/tmdb.js"(exports2, module2) {
+    var { fetchJson } = require_http();
+    var TMDB_API_KEY = [
+      "439c478a771f35c05022f9feabcca01c",
+      "d131017ccc6e5462a81c9304d21476de",
+      "1c29a5198ee1854bd5eb45dbe8d17d92"
+    ][Math.floor(Math.random() * 3)];
+    var titleCache = /* @__PURE__ */ new Map();
+    var idCache = /* @__PURE__ */ new Map();
+    function getTmdbTitle(tmdbId, mediaType, retries = 2) {
+      return __async(this, null, function* () {
+        var _a, _b, _c, _d;
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (titleCache.has(cacheKey))
+          return titleCache.get(cacheKey);
+        if (retries < 2)
+          yield new Promise((r) => setTimeout(r, 1e3));
+        const isImdb = tmdbId && tmdbId.startsWith("tt");
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const fetchUrl = isImdb ? `https://api.themoviedb.org/3/find/${tmdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id` : `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
+          const data = yield fetchJson(fetchUrl);
+          const title = isImdb ? ((_b = (_a = data[type + "_results"]) == null ? void 0 : _a[0]) == null ? void 0 : _b.title) || ((_d = (_c = data[type + "_results"]) == null ? void 0 : _c[0]) == null ? void 0 : _d.name) : data.title || data.name;
+          const result = title || null;
+          titleCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          if (retries > 0)
+            return getTmdbTitle(tmdbId, mediaType, retries - 1);
+          titleCache.set(cacheKey, null);
+          return null;
+        }
+      });
+    }
+    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
+      return __async(this, null, function* () {
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang || "es-MX"}`;
+          const data = yield fetchJson(url);
+          return {
+            title: data.title || data.name,
+            originalTitle: data.original_title || data.original_name || null,
+            year: (data.release_date || data.first_air_date || "").split("-")[0],
+            genres: (data.genres || []).map((g) => g.id),
+            originCountries: data.origin_country || (data.production_countries || []).map((c) => c.iso_3166_1) || []
+          };
+        } catch (e) {
+          if (retries > 0) {
+            yield new Promise((r) => setTimeout(r, 1e3));
+            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
+          }
+          return null;
+        }
+      });
+    }
+    function getCorrectImdbId2(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        if (!tmdbId)
+          return { imdbId: null, title: "" };
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (idCache.has(cacheKey))
+          return idCache.get(cacheKey);
+        if (tmdbId.startsWith("tt")) {
+          const res = { imdbId: tmdbId, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, res);
+          return res;
+        }
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const idUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
+          const idRes = yield fetchJson(idUrl);
+          if (!idRes || !idRes.imdb_id) {
+            const result2 = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+            idCache.set(cacheKey, result2);
+            return result2;
+          }
+          const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
+          const result = {
+            imdbId: idRes.imdb_id,
+            title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
+            year: (metaRes == null ? void 0 : metaRes.year) || null,
+            offset: 0,
+            fromMapping: false
+          };
+          idCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, result);
+          return result;
+        }
+      });
+    }
+    function getTmdbAliases(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        try {
+          const titleEs = yield getTmdbTitle(tmdbId, mediaType);
+          const titleEn = yield (() => __async(this, null, function* () {
+            try {
+              const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+              const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
+              const data = yield fetchJson(url);
+              return data.title || data.name || null;
+            } catch (e) {
+              return null;
+            }
+          }))();
+          const aliases = [];
+          if (titleEs)
+            aliases.push(titleEs);
+          if (titleEn && titleEn !== titleEs)
+            aliases.push(titleEn);
+          try {
+            const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+            const altUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/alternative_titles?api_key=${TMDB_API_KEY}`;
+            const altData = yield fetchJson(altUrl);
+            const titles = altData.titles || altData.results || [];
+            for (const t of titles) {
+              const altTitle = t.title || t.name;
+              if (altTitle && !aliases.includes(altTitle))
+                aliases.push(altTitle);
+            }
+          } catch (e) {
+            console.warn(`[TMDB-Aliases] Alternative titles fetch failed`);
+          }
+          return aliases;
+        } catch (e) {
+          return [];
+        }
+      });
+    }
+    module2.exports = { getTmdbTitle, getTmdbInfo: getTmdbInfo2, getCorrectImdbId: getCorrectImdbId2, getTmdbAliases, TMDB_API_KEY };
+  }
+});
+
+// src/brazucaplay/extractor.js
+var import_http = __toESM(require_http());
+var import_engine = __toESM(require_engine());
+var import_tmdb = __toESM(require_tmdb());
+var API_DEC = "https://enc-dec.app/api/dec-videasy";
+var SERVERS = {
+  Gekko: { url: "https://api2.videasy.net/cuevana/sources-with-title", label: "Cuevana" }
+};
+function extractStreams(tmdbId, mediaType, season, episode, title) {
+  return __async(this, null, function* () {
+    if (!tmdbId)
+      return [];
+    console.log(`[BrazucaPlay] Looking for content: ${tmdbId} (${mediaType})`);
+    try {
+      (0, import_http.setSessionUA)(import_http.CINEBY_HEADERS["User-Agent"]);
+      const tmdbInfo = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType);
+      const contentTitle = (tmdbInfo == null ? void 0 : tmdbInfo.title) || title;
+      const year = (tmdbInfo == null ? void 0 : tmdbInfo.year) || "";
+      const { imdbId } = yield (0, import_tmdb.getCorrectImdbId)(tmdbId, mediaType);
+      const doubleEncTitle = encodeURIComponent(encodeURIComponent(contentTitle));
+      const streams = [];
+      for (const [serverId, config] of Object.entries(SERVERS)) {
+        try {
+          let searchUrl = `${config.url}?title=${doubleEncTitle}&mediaType=${mediaType === "tv" ? "tv" : "movie"}&year=${year}&tmdbId=${tmdbId}&imdbId=${imdbId}`;
+          if (mediaType === "tv") {
+            searchUrl += `&episodeId=${episode || 1}&seasonId=${season || 1}`;
+          }
+          const encryptedRes = yield fetch(searchUrl, { headers: import_http.CINEBY_HEADERS });
+          const encryptedText = yield encryptedRes.text();
+          if (!encryptedText || encryptedText.length < 20)
+            continue;
+          const decRes = yield fetch(API_DEC, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "User-Agent": import_http.CINEBY_HEADERS["User-Agent"]
+            },
+            body: JSON.stringify({ text: encryptedText, id: String(tmdbId) })
+          });
+          const decData = yield decRes.json();
+          const mediaData = decData.result || decData;
+          if (mediaData && mediaData.sources) {
+            for (const source of mediaData.sources) {
+              if (source.url) {
+                let quality = (source.quality || "HD").toUpperCase();
+                if (quality === "AUTO")
+                  quality = "1080p";
+                streams.push({
+                  serverName: config.label,
+                  audio: "Latino",
+                  quality,
+                  url: source.url,
+                  headers: import_http.CINEBY_HEADERS
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.log(`[BrazucaPlay] ${serverId} error: ${err.message}`);
+        }
+      }
+      return yield (0, import_engine.finalizeStreams)(streams, "BrazucaPlay", contentTitle || "");
+    } catch (error) {
+      console.error(`[BrazucaPlay] Error: ${error.message}`);
+      return [];
+    }
+  });
+}
+
+// src/brazucaplay/index.js
+function getStreams(tmdbId, mediaType, season, episode) {
+  return __async(this, null, function* () {
+    try {
+      return yield extractStreams(tmdbId, mediaType, season, episode);
+    } catch (e) {
+      console.error(`[BrazucaPlay] Error: ${e.message}`);
+      return [];
+    }
+  });
+}
+module.exports = { getStreams };
