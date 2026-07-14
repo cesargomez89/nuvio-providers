@@ -29,7 +29,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   if (!tmdbId || !mediaType) return [];
   console.log(`[TioPlus] Looking for content: ${tmdbId} (${mediaType})`);
   try {
-    const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
+    const tmdbInfo = await getTmdbInfo(tmdbId, mediaType, 'es-ES');
     const mediaTitle = tmdbInfo?.title || title;
     const releaseYear = tmdbInfo?.year || '';
     if (!mediaTitle) return [];
@@ -55,7 +55,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     }
 
     if (candidates.length === 0) {
-      const searchUrl = `${BASE_URL}/search/${encodeURIComponent(searchQuery)}`;
+      const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
       const html = await fetchHtml(searchUrl, { headers: { 'User-Agent': UA } });
       if (html) {
         const itemRegex =
@@ -116,11 +116,21 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     }
     if (encodes.length === 0) return [];
 
+    const resolveWithTimeout = async (promise, timeoutMs = 15000) => {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), timeoutMs)
+      );
+      return Promise.race([promise, timeoutPromise]);
+    };
+
     const resolutionPromises = encodes.map(async (item) => {
       try {
-        const realEmbedUrl = await getRedirectUrl(item.enc, finalMediaUrl);
+        const realEmbedUrl = await resolveWithTimeout(
+          getRedirectUrl(item.enc, finalMediaUrl),
+          10000
+        );
         if (realEmbedUrl && realEmbedUrl.startsWith('http')) {
-          const resolved = await resolveEmbed(realEmbedUrl);
+          const resolved = await resolveWithTimeout(resolveEmbed(realEmbedUrl), 15000);
           if (resolved && (resolved.url || (Array.isArray(resolved) && resolved.length > 0))) {
             const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
             return streamsArray.map((s) => ({

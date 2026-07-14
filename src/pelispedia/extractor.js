@@ -31,16 +31,19 @@ export async function extractPlayerEmbeds(url) {
 
     $('.player-content iframe').each((i, el) => {
       let iframeUrl = $(el).attr('src');
-      if (iframeUrl && !seenUrls.has(iframeUrl)) {
-        seenUrls.add(iframeUrl);
-        const serverName = $(`#server-option-${i} .title`).text().trim() || 'Servidor';
-        streams.push({
-          servername: serverName,
-          url: iframeUrl,
-          language: 'Latino',
-          quality: '1080p',
-          headers: { 'User-Agent': UA, Referer: url },
-        });
+      if (iframeUrl) {
+        if (iframeUrl.startsWith('/')) iframeUrl = BASE + iframeUrl;
+        if (!seenUrls.has(iframeUrl)) {
+          seenUrls.add(iframeUrl);
+          const serverName = $(`#server-option-${i} .title`).text().trim() || 'Servidor';
+          streams.push({
+            servername: serverName,
+            url: iframeUrl,
+            language: 'Latino',
+            quality: '1080p',
+            headers: { 'User-Agent': UA, Referer: url },
+          });
+        }
       }
     });
 
@@ -48,7 +51,8 @@ export async function extractPlayerEmbeds(url) {
       const re = /<iframe[^>]+src="([^"]+)"/gi;
       let m;
       while ((m = re.exec(html)) !== null) {
-        const iframeUrl = m[1];
+        let iframeUrl = m[1];
+        if (iframeUrl.startsWith('/')) iframeUrl = BASE + iframeUrl;
         if (iframeUrl.includes('embed69') || iframeUrl.includes('xupalace')) {
           if (!seenUrls.has(iframeUrl)) {
             seenUrls.add(iframeUrl);
@@ -131,7 +135,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
           if (resolved) {
             const results = Array.isArray(resolved) ? resolved : [resolved];
             for (const r of results) {
-              if (r.url) {
+              if (r.url && (r.url.includes('.m3u8') || r.url.includes('.mp4'))) {
                 return {
                   name: 'PelisPedia',
                   title: `${r.quality || '1080p'} · Latino · ${r.servername || embed.servername || 'Server'}`,

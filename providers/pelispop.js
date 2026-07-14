@@ -1,6 +1,6 @@
 /**
  * pelispop - Built from src/pelispop/
- * Generated: 2026-07-14T06:55:33.842Z
+ * Generated: 2026-07-14T07:26:17.642Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -2401,10 +2401,6 @@ var require_emturbovid = __commonJS({
           if (!resp.ok)
             return null;
           const html = yield resp.text();
-          if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
-            console.log(`[Emturbovid] File expired/deleted at ${url}`);
-            return null;
-          }
           const fileMatch = html.match(/file\s*:\s*["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
           if (fileMatch) {
             return {
@@ -2412,6 +2408,24 @@ var require_emturbovid = __commonJS({
               quality: "1080p",
               serverName: "Emturbovid",
               headers: { "User-Agent": UA, Referer: domain + "/" }
+            };
+          }
+          const hashMatch = html.match(/data-hash=["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
+          if (hashMatch) {
+            return {
+              url: hashMatch[1],
+              quality: "1080p",
+              serverName: "Emturbovid",
+              headers: { "User-Agent": UA, Referer: url }
+            };
+          }
+          const urlPlayMatch = html.match(/urlPlay\s*=\s*['"]([^'"]+\.(?:m3u8|mp4)[^'"]*)['"]/i);
+          if (urlPlayMatch) {
+            return {
+              url: urlPlayMatch[1],
+              quality: "1080p",
+              serverName: "Emturbovid",
+              headers: { "User-Agent": UA, Referer: url }
             };
           }
           const videoMatch = html.match(/<video[^>]+src=["']([^"']+)["']/i);
@@ -2422,6 +2436,10 @@ var require_emturbovid = __commonJS({
               serverName: "Emturbovid",
               headers: { "User-Agent": UA, Referer: domain + "/" }
             };
+          }
+          if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
+            console.log(`[Emturbovid] File expired/deleted at ${url}`);
+            return null;
           }
           return null;
         } catch (e) {

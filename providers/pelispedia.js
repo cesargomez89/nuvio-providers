@@ -1,6 +1,6 @@
 /**
  * pelispedia - Built from src/pelispedia/
- * Generated: 2026-07-14T06:55:33.831Z
+ * Generated: 2026-07-14T07:26:17.631Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -2084,10 +2084,6 @@ var require_emturbovid = __commonJS({
           if (!resp.ok)
             return null;
           const html = yield resp.text();
-          if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
-            console.log(`[Emturbovid] File expired/deleted at ${url}`);
-            return null;
-          }
           const fileMatch = html.match(/file\s*:\s*["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
           if (fileMatch) {
             return {
@@ -2095,6 +2091,24 @@ var require_emturbovid = __commonJS({
               quality: "1080p",
               serverName: "Emturbovid",
               headers: { "User-Agent": UA2, Referer: domain + "/" }
+            };
+          }
+          const hashMatch = html.match(/data-hash=["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
+          if (hashMatch) {
+            return {
+              url: hashMatch[1],
+              quality: "1080p",
+              serverName: "Emturbovid",
+              headers: { "User-Agent": UA2, Referer: url }
+            };
+          }
+          const urlPlayMatch = html.match(/urlPlay\s*=\s*['"]([^'"]+\.(?:m3u8|mp4)[^'"]*)['"]/i);
+          if (urlPlayMatch) {
+            return {
+              url: urlPlayMatch[1],
+              quality: "1080p",
+              serverName: "Emturbovid",
+              headers: { "User-Agent": UA2, Referer: url }
             };
           }
           const videoMatch = html.match(/<video[^>]+src=["']([^"']+)["']/i);
@@ -2105,6 +2119,10 @@ var require_emturbovid = __commonJS({
               serverName: "Emturbovid",
               headers: { "User-Agent": UA2, Referer: domain + "/" }
             };
+          }
+          if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
+            console.log(`[Emturbovid] File expired/deleted at ${url}`);
+            return null;
           }
           return null;
         } catch (e) {
@@ -3307,23 +3325,29 @@ function extractPlayerEmbeds(url) {
       const seenUrls = /* @__PURE__ */ new Set();
       $(".player-content iframe").each((i, el) => {
         let iframeUrl = $(el).attr("src");
-        if (iframeUrl && !seenUrls.has(iframeUrl)) {
-          seenUrls.add(iframeUrl);
-          const serverName = $(`#server-option-${i} .title`).text().trim() || "Servidor";
-          streams.push({
-            servername: serverName,
-            url: iframeUrl,
-            language: "Latino",
-            quality: "1080p",
-            headers: { "User-Agent": UA, Referer: url }
-          });
+        if (iframeUrl) {
+          if (iframeUrl.startsWith("/"))
+            iframeUrl = BASE + iframeUrl;
+          if (!seenUrls.has(iframeUrl)) {
+            seenUrls.add(iframeUrl);
+            const serverName = $(`#server-option-${i} .title`).text().trim() || "Servidor";
+            streams.push({
+              servername: serverName,
+              url: iframeUrl,
+              language: "Latino",
+              quality: "1080p",
+              headers: { "User-Agent": UA, Referer: url }
+            });
+          }
         }
       });
       if (streams.length === 0) {
         const re = /<iframe[^>]+src="([^"]+)"/gi;
         let m;
         while ((m = re.exec(html)) !== null) {
-          const iframeUrl = m[1];
+          let iframeUrl = m[1];
+          if (iframeUrl.startsWith("/"))
+            iframeUrl = BASE + iframeUrl;
           if (iframeUrl.includes("embed69") || iframeUrl.includes("xupalace")) {
             if (!seenUrls.has(iframeUrl)) {
               seenUrls.add(iframeUrl);
@@ -3394,7 +3418,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
             if (resolved) {
               const results = Array.isArray(resolved) ? resolved : [resolved];
               for (const r of results) {
-                if (r.url) {
+                if (r.url && (r.url.includes(".m3u8") || r.url.includes(".mp4"))) {
                   return {
                     name: "PelisPedia",
                     title: `${r.quality || "1080p"} \xB7 Latino \xB7 ${r.servername || embed.servername || "Server"}`,

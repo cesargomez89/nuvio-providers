@@ -65,9 +65,7 @@ function parseFV2PL(html) {
   const match = html.match(/window\.FV2_PL\s*=\s*({[^;]+});/);
   if (!match) return null;
   try {
-    let raw = match[1]
-      .replace(/'/g, '"')
-      .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3');
+    let raw = match[1].replace(/'/g, '"').replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3');
     return JSON.parse(raw);
   } catch {
     return null;

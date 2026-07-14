@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-07-14T06:55:33.867Z
+ * Generated: 2026-07-14T07:26:17.664Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -2401,10 +2401,6 @@ var require_emturbovid = __commonJS({
           if (!resp.ok)
             return null;
           const html = yield resp.text();
-          if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
-            console.log(`[Emturbovid] File expired/deleted at ${url}`);
-            return null;
-          }
           const fileMatch = html.match(/file\s*:\s*["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
           if (fileMatch) {
             return {
@@ -2412,6 +2408,24 @@ var require_emturbovid = __commonJS({
               quality: "1080p",
               serverName: "Emturbovid",
               headers: { "User-Agent": UA2, Referer: domain + "/" }
+            };
+          }
+          const hashMatch = html.match(/data-hash=["']([^"']+\.(?:m3u8|mp4)[^"']*)["']/i);
+          if (hashMatch) {
+            return {
+              url: hashMatch[1],
+              quality: "1080p",
+              serverName: "Emturbovid",
+              headers: { "User-Agent": UA2, Referer: url }
+            };
+          }
+          const urlPlayMatch = html.match(/urlPlay\s*=\s*['"]([^'"]+\.(?:m3u8|mp4)[^'"]*)['"]/i);
+          if (urlPlayMatch) {
+            return {
+              url: urlPlayMatch[1],
+              quality: "1080p",
+              serverName: "Emturbovid",
+              headers: { "User-Agent": UA2, Referer: url }
             };
           }
           const videoMatch = html.match(/<video[^>]+src=["']([^"']+)["']/i);
@@ -2422,6 +2436,10 @@ var require_emturbovid = __commonJS({
               serverName: "Emturbovid",
               headers: { "User-Agent": UA2, Referer: domain + "/" }
             };
+          }
+          if (html.includes("expired") || html.includes("deleted") || html.includes("not found")) {
+            console.log(`[Emturbovid] File expired/deleted at ${url}`);
+            return null;
           }
           return null;
         } catch (e) {
@@ -3619,7 +3637,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       return [];
     console.log(`[TioPlus] Looking for content: ${tmdbId} (${mediaType})`);
     try {
-      const tmdbInfo = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType);
+      const tmdbInfo = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType, "es-ES");
       const mediaTitle = (tmdbInfo == null ? void 0 : tmdbInfo.title) || title;
       const releaseYear = (tmdbInfo == null ? void 0 : tmdbInfo.year) || "";
       if (!mediaTitle)
@@ -3634,7 +3652,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         candidates.push({ url: directUrl, title: mediaTitle });
       }
       if (candidates.length === 0) {
-        const searchUrl = `${BASE_URL}/search/${encodeURIComponent(searchQuery)}`;
+        const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
         const html = yield (0, import_http.fetchHtml)(searchUrl, { headers: { "User-Agent": UA } });
         if (html) {
           const itemRegex = /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;
@@ -3698,11 +3716,20 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       if (encodes.length === 0)
         return [];
+      const resolveWithTimeout = (promise, timeoutMs = 15e3) => __async(this, null, function* () {
+        const timeoutPromise = new Promise(
+          (_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs)
+        );
+        return Promise.race([promise, timeoutPromise]);
+      });
       const resolutionPromises = encodes.map((item) => __async(this, null, function* () {
         try {
-          const realEmbedUrl = yield getRedirectUrl(item.enc, finalMediaUrl);
+          const realEmbedUrl = yield resolveWithTimeout(
+            getRedirectUrl(item.enc, finalMediaUrl),
+            1e4
+          );
           if (realEmbedUrl && realEmbedUrl.startsWith("http")) {
-            const resolved = yield (0, import_resolvers.resolveEmbed)(realEmbedUrl);
+            const resolved = yield resolveWithTimeout((0, import_resolvers.resolveEmbed)(realEmbedUrl), 15e3);
             if (resolved && (resolved.url || Array.isArray(resolved) && resolved.length > 0)) {
               const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
               return streamsArray.map((s) => __spreadProps(__spreadValues({}, s), {
