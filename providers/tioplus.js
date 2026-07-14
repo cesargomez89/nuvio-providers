@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-07-14T07:26:17.664Z
+ * Generated: 2026-07-14T07:30:26.401Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3643,7 +3643,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       if (!mediaTitle)
         return [];
       console.log(`[TioPlus] Searching: ${mediaTitle} (${releaseYear})`);
-      const searchQuery = mediaTitle.split(/[:(]/)[0].trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      const searchQuery = mediaTitle.split(/[:(]/)[0].trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       const candidates = [];
       const typePrefix = (0, import_helpers.isMovie)(mediaType) ? "pelicula" : "serie";
       const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
