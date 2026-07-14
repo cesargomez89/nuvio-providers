@@ -35,7 +35,7 @@
         "tv"
       ],
       "filename": "providers/cinecalidad.js",
-      "enabled": false,
+      "enabled": true,
       "contentLanguage": [
         "es"
       ],
@@ -233,7 +233,7 @@
         "tv"
       ],
       "filename": "providers/pelispedia.js",
-      "enabled": false,
+      "enabled": true,
       "contentLanguage": [
         "es"
       ],
@@ -382,6 +382,7 @@
       "description": "Películas y series en Latino.",
       "version": "1.0.48",
       "author": "cesargomez89",
+      "enabled": false,
       "supportedTypes": [
         "movie",
         "tv"
