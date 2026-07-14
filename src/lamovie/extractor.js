@@ -1,11 +1,9 @@
-import { fetchJson, fetchHtml } from '../utils/http.js';
+import { fetchJson } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbInfo } from '../utils/tmdb.js';
-import { isMovie } from '../utils/helpers.js';
 
-const BASE_URL = 'https://la.movie';
-const API_URL = 'https://la.movie/wp-api/v1';
+const API_URL = 'https://lamovie.org/wp-api/v1';
 function normalizeQuality(quality) {
   const str = quality.toString().toLowerCase();
   const match = str.match(/(\d+)/);
@@ -32,16 +30,14 @@ function getServerName(url) {
   return 'Online';
 }
 
-function buildSlug(title, year) {
-  const slug = title
+function normalizeTitle(str) {
+  return str
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, ' ')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-  return year ? slug + '-' + year : slug;
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function getTmdbData(tmdbId, mediaType) {
@@ -77,68 +73,52 @@ async function getTmdbData(tmdbId, mediaType) {
   }
 }
 
-function extractIdFromHtml(html) {
-  const match = html.match(/rel=['"]shortlink['"]\s+href=['"][^'"]*\?p=(\d+)['"]/);
-  return match ? match[1] : null;
-}
+async function searchById(tmdbInfo) {
+  const { title, originalTitle, year } = tmdbInfo;
+  const searchTerms = [title, originalTitle].filter(Boolean);
 
-async function getIdBySlug(category, slug) {
-  const url = BASE_URL + '/' + category + '/' + slug + '/';
-  try {
-    const html = await fetchHtml(url, { headers: { Accept: 'text/html' } });
-    const id = extractIdFromHtml(html);
-    if (id) {
-      console.log(`[LaMovie] ✓ Slug directo: /${category}/${slug} → id:${id}`);
-      return { id };
+  for (const term of searchTerms) {
+    const url = API_URL + '/search?postType=any&q=' + encodeURIComponent(term) + '&postsPerPage=10';
+    try {
+      const data = await fetchJson(url);
+      if (!data || !data.data || !data.data.posts) continue;
+
+      const normTerm = normalizeTitle(term);
+      let bestMatch = null;
+
+      for (const post of data.data.posts) {
+        const normTitle = normalizeTitle(post.title);
+        const normOrig = normalizeTitle(post.original_title || '');
+
+        if (normTitle === normTerm || normOrig === normTerm) {
+          bestMatch = post;
+          break;
+        }
+
+        if (!bestMatch && year) {
+          const yearMatch = post.title.match(/\((\d{4})\)/);
+          if (yearMatch && yearMatch[1] === String(year)) {
+            bestMatch = post;
+          }
+        }
+      }
+
+      if (!bestMatch && data.data.posts.length > 0) {
+        bestMatch = data.data.posts[0];
+      }
+
+      if (bestMatch) {
+        console.log(
+          `[LaMovie] ✓ Encontrado por búsqueda: "${bestMatch.title}" → id:${bestMatch._id}`
+        );
+        return { id: bestMatch._id };
+      }
+    } catch {
+      continue;
     }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-async function findBySlug(tmdbInfo, mediaType) {
-  const { title, originalTitle, year, genres, originCountries } = tmdbInfo;
-  const isMovieLoc = isMovie(mediaType);
-  const GENRE_ANIMATION = 16;
-  const ANIME_COUNTRIES = ['JP', 'CN', 'KR'];
-
-  let categories;
-  if (isMovieLoc) {
-    categories = ['peliculas'];
-  } else {
-    const isAnimation = (genres || []).includes(GENRE_ANIMATION);
-    if (!isAnimation) {
-      categories = ['series'];
-    } else {
-      const isAnimeCountry = (originCountries || []).some((c) => ANIME_COUNTRIES.includes(c));
-      categories = isAnimeCountry ? ['animes'] : ['animes', 'series'];
-    }
-  }
-
-  const slugs = [];
-  if (title) slugs.push(buildSlug(title, year));
-  if (originalTitle && originalTitle !== title) slugs.push(buildSlug(originalTitle, year));
-
-  async function trySlug(slug, cats) {
-    if (cats.length === 1) {
-      return await getIdBySlug(cats[0], slug);
-    }
-    const results = await Promise.all(cats.map((cat) => getIdBySlug(cat, slug).catch(() => null)));
-    for (const r of results) {
-      if (r) return r;
-    }
-    return null;
   }
 
-  async function tryAllSlugs(idx) {
-    if (idx >= slugs.length) return null;
-    const result = await trySlug(slugs[idx], categories);
-    if (result) return result;
-    return await tryAllSlugs(idx + 1);
-  }
-
-  return await tryAllSlugs(0);
+  return null;
 }
 
 async function getEpisodeId(seriesId, seasonNum, episodeNum) {
@@ -202,9 +182,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
     const tmdbInfo = await getTmdbData(tmdbId, resolvedType);
     if (!tmdbInfo) return [];
 
-    const found = await findBySlug(tmdbInfo, resolvedType);
+    const found = await searchById(tmdbInfo);
     if (!found) {
-      console.log('[LaMovie] No encontrado por slug');
+      console.log('[LaMovie] No encontrado por búsqueda');
       return [];
     }
 
@@ -219,7 +199,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
       targetId = epId;
     }
 
-    if (!targetId || !targetId.length) return [];
+    if (!targetId) return [];
 
     const data = await fetchJson(API_URL + '/player?postId=' + targetId + '&demo=0');
     if (!data || !data.data || !data.data.embeds) {
