@@ -1,4 +1,4 @@
-import { setSessionUA, CINEBY_HEADERS } from '../utils/http.js';
+import { getCinebyHeaders } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { getTmdbInfo, getCorrectImdbId } from '../utils/tmdb.js';
 
@@ -12,7 +12,6 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   if (!tmdbId) return [];
   console.log(`[BrazucaPlay] Looking for content: ${tmdbId} (${mediaType})`);
   try {
-    setSessionUA(CINEBY_HEADERS['User-Agent']);
     const tmdbInfo = await getTmdbInfo(tmdbId, mediaType);
     const contentTitle = tmdbInfo?.title || title;
     const year = tmdbInfo?.year || '';
@@ -21,18 +20,19 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const streams = [];
     for (const [serverId, config] of Object.entries(SERVERS)) {
       try {
+        const headers = getCinebyHeaders();
         let searchUrl = `${config.url}?title=${doubleEncTitle}&mediaType=${mediaType === 'tv' ? 'tv' : 'movie'}&year=${year}&tmdbId=${tmdbId}&imdbId=${imdbId}`;
         if (mediaType === 'tv') {
           searchUrl += `&episodeId=${episode || 1}&seasonId=${season || 1}`;
         }
-        const encryptedRes = await fetch(searchUrl, { headers: CINEBY_HEADERS });
+        const encryptedRes = await fetch(searchUrl, { headers });
         const encryptedText = await encryptedRes.text();
         if (!encryptedText || encryptedText.length < 20) continue;
         const decRes = await fetch(API_DEC, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': CINEBY_HEADERS['User-Agent'],
+            'User-Agent': headers['User-Agent'],
           },
           body: JSON.stringify({ text: encryptedText, id: String(tmdbId) }),
         });
@@ -48,7 +48,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                 audio: 'Latino',
                 quality,
                 url: source.url,
-                headers: CINEBY_HEADERS,
+                headers,
               });
             }
           }

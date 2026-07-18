@@ -1,6 +1,6 @@
 /**
  * videasy - Built from src/videasy/
- * Generated: 2026-07-18T01:27:05.869Z
+ * Generated: 2026-07-18T18:54:15.455Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -70,12 +70,14 @@ var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var DEFAULT_TIMEOUT = 8e3;
-    var CINEBY_HEADERS2 = {
-      Accept: "*/*",
-      Origin: "https://cineby.sc",
-      Referer: "https://cineby.sc/",
-      "User-Agent": getSessionUA2()
-    };
+    function getCinebyHeaders2() {
+      return {
+        Accept: "*/*",
+        Origin: "https://cineby.sc",
+        Referer: "https://cineby.sc/",
+        "User-Agent": getSessionUA2()
+      };
+    }
     var sessionUA = null;
     function setSessionUA(ua) {
       sessionUA = ua;
@@ -176,7 +178,7 @@ var require_http = __commonJS({
       getSessionUA: getSessionUA2,
       setSessionUA,
       getStealthHeaders,
-      CINEBY_HEADERS: CINEBY_HEADERS2,
+      getCinebyHeaders: getCinebyHeaders2,
       DEFAULT_UA,
       MOBILE_UA,
       DEFAULT_TIMEOUT
@@ -777,11 +779,13 @@ var SERVERS = {
     lang: "Latino"
   }
 };
-var ANDROID_HEADERS = {
-  "User-Agent": (0, import_http.getSessionUA)(),
-  Referer: "https://player.videasy.net/",
-  Origin: "https://player.videasy.net"
-};
+function getAndroidHeaders() {
+  return {
+    "User-Agent": (0, import_http.getSessionUA)(),
+    Referer: "https://player.videasy.net/",
+    Origin: "https://player.videasy.net"
+  };
+}
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     try {
@@ -792,10 +796,11 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const doubleEncTitle = encodeURIComponent(encodeURIComponent(contentTitle));
       const serverPromises = Object.entries(SERVERS).map((_0) => __async(this, [_0], function* ([serverId, config]) {
         try {
+          const headers = (0, import_http.getCinebyHeaders)();
           let searchUrl = `${config.url}?title=${doubleEncTitle}&mediaType=${mediaType === "tv" ? "tv" : "movie"}&year=${year}&tmdbId=${tmdbId}&imdbId=${imdbId}`;
           if (mediaType === "tv")
             searchUrl += `&episodeId=${episode || 1}&seasonId=${season || 1}`;
-          const encryptedRes = yield fetch(searchUrl, { headers: import_http.CINEBY_HEADERS });
+          const encryptedRes = yield fetch(searchUrl, { headers });
           const encryptedText = yield encryptedRes.text();
           if (!encryptedText || encryptedText.length < 20)
             return [];
@@ -803,7 +808,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "User-Agent": import_http.CINEBY_HEADERS["User-Agent"]
+              "User-Agent": headers["User-Agent"]
             },
             body: JSON.stringify({ text: encryptedText, id: String(tmdbId) })
           });
@@ -828,7 +833,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
                   audio,
                   quality,
                   url: source.url,
-                  headers: serverId === "Raze" ? ANDROID_HEADERS : import_http.CINEBY_HEADERS
+                  headers: serverId === "Raze" ? getAndroidHeaders() : headers
                 });
               }
             }

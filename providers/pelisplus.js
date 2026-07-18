@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-07-18T01:27:05.848Z
+ * Generated: 2026-07-18T18:54:15.430Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -169,12 +169,14 @@ var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var DEFAULT_TIMEOUT = 8e3;
-    var CINEBY_HEADERS = {
-      Accept: "*/*",
-      Origin: "https://cineby.sc",
-      Referer: "https://cineby.sc/",
-      "User-Agent": getSessionUA()
-    };
+    function getCinebyHeaders() {
+      return {
+        Accept: "*/*",
+        Origin: "https://cineby.sc",
+        Referer: "https://cineby.sc/",
+        "User-Agent": getSessionUA()
+      };
+    }
     var sessionUA = null;
     function setSessionUA(ua) {
       sessionUA = ua;
@@ -275,7 +277,7 @@ var require_http = __commonJS({
       getSessionUA,
       setSessionUA,
       getStealthHeaders,
-      CINEBY_HEADERS,
+      getCinebyHeaders,
       DEFAULT_UA: DEFAULT_UA2,
       MOBILE_UA,
       DEFAULT_TIMEOUT
@@ -1399,11 +1401,11 @@ var require_fastream = __commonJS({
           const m3u8 = (_a = unpacked.match(/file:"(https?:\/\/[^"]+\.m3u8[^"]*)"/)) == null ? void 0 : _a[1];
           if (!m3u8)
             return null;
-          const quality = yield detectQuality(m3u8, { Referer: "https://fastream.to/" }, signal);
+          const quality = yield detectQuality(m3u8, { Referer: "https://www3.seriesmetro.net/" }, signal);
           return {
             url: m3u8,
             quality,
-            headers: { "User-Agent": UA, Referer: "https://fastream.to/" }
+            headers: { "User-Agent": UA, Referer: "https://www3.seriesmetro.net/" }
           };
         } catch (e) {
           console.error("[Fastream] Error:", e.message);

@@ -1,0 +1,8 @@
+{
+  "name": "VerTeleSeries",
+  "description": "Series en Latino/Español desde VerTeleSeriesOnline.",
+  "author": "cesargomez89",
+  "supportedTypes": ["tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

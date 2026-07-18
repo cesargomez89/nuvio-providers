@@ -48,11 +48,11 @@ async function resolve(url, signal = null) {
     if (!unpacked) return null;
     const m3u8 = unpacked.match(/file:"(https?:\/\/[^"]+\.m3u8[^"]*)"/)?.[1];
     if (!m3u8) return null;
-    const quality = await detectQuality(m3u8, { Referer: 'https://fastream.to/' }, signal);
+    const quality = await detectQuality(m3u8, { Referer: 'https://www3.seriesmetro.net/' }, signal);
     return {
       url: m3u8,
       quality,
-      headers: { 'User-Agent': UA, Referer: 'https://fastream.to/' },
+      headers: { 'User-Agent': UA, Referer: 'https://www3.seriesmetro.net/' },
     };
   } catch (e) {
     console.error('[Fastream] Error:', e.message);

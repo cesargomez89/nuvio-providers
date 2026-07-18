@@ -1,6 +1,6 @@
 /**
  * brazucaplay - Built from src/brazucaplay/
- * Generated: 2026-07-18T01:27:05.792Z
+ * Generated: 2026-07-18T18:54:15.373Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -70,14 +70,16 @@ var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var DEFAULT_TIMEOUT = 8e3;
-    var CINEBY_HEADERS2 = {
-      Accept: "*/*",
-      Origin: "https://cineby.sc",
-      Referer: "https://cineby.sc/",
-      "User-Agent": getSessionUA()
-    };
+    function getCinebyHeaders2() {
+      return {
+        Accept: "*/*",
+        Origin: "https://cineby.sc",
+        Referer: "https://cineby.sc/",
+        "User-Agent": getSessionUA()
+      };
+    }
     var sessionUA = null;
-    function setSessionUA2(ua) {
+    function setSessionUA(ua) {
       sessionUA = ua;
     }
     function getSessionUA() {
@@ -174,9 +176,9 @@ var require_http = __commonJS({
       fetchJson,
       fetchWithTimeout,
       getSessionUA,
-      setSessionUA: setSessionUA2,
+      setSessionUA,
       getStealthHeaders,
-      CINEBY_HEADERS: CINEBY_HEADERS2,
+      getCinebyHeaders: getCinebyHeaders2,
       DEFAULT_UA,
       MOBILE_UA,
       DEFAULT_TIMEOUT
@@ -764,7 +766,6 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       return [];
     console.log(`[BrazucaPlay] Looking for content: ${tmdbId} (${mediaType})`);
     try {
-      (0, import_http.setSessionUA)(import_http.CINEBY_HEADERS["User-Agent"]);
       const tmdbInfo = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType);
       const contentTitle = (tmdbInfo == null ? void 0 : tmdbInfo.title) || title;
       const year = (tmdbInfo == null ? void 0 : tmdbInfo.year) || "";
@@ -773,11 +774,12 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const streams = [];
       for (const [serverId, config] of Object.entries(SERVERS)) {
         try {
+          const headers = (0, import_http.getCinebyHeaders)();
           let searchUrl = `${config.url}?title=${doubleEncTitle}&mediaType=${mediaType === "tv" ? "tv" : "movie"}&year=${year}&tmdbId=${tmdbId}&imdbId=${imdbId}`;
           if (mediaType === "tv") {
             searchUrl += `&episodeId=${episode || 1}&seasonId=${season || 1}`;
           }
-          const encryptedRes = yield fetch(searchUrl, { headers: import_http.CINEBY_HEADERS });
+          const encryptedRes = yield fetch(searchUrl, { headers });
           const encryptedText = yield encryptedRes.text();
           if (!encryptedText || encryptedText.length < 20)
             continue;
@@ -785,7 +787,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "User-Agent": import_http.CINEBY_HEADERS["User-Agent"]
+              "User-Agent": headers["User-Agent"]
             },
             body: JSON.stringify({ text: encryptedText, id: String(tmdbId) })
           });
@@ -802,7 +804,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
                   audio: "Latino",
                   quality,
                   url: source.url,
-                  headers: import_http.CINEBY_HEADERS
+                  headers
                 });
               }
             }

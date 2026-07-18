@@ -63,6 +63,12 @@ function extractSvLinks(html) {
       const rawUrl = (entry.match(/url\s*:\s*["']([^"']+)["']/) || [])[1] || '';
       if (!rawUrl) continue;
       const decoded = decodeUrl(rawUrl);
+      try {
+        new URL(decoded);
+      } catch {
+        continue;
+      }
+      if (decoded.includes('facebook.com')) continue;
       links.push({
         lang: lang.toLowerCase(),
         serverName: name,

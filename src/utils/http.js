@@ -2,12 +2,14 @@ const DEFAULT_CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 const DEFAULT_TIMEOUT = 8000;
 
-const CINEBY_HEADERS = {
-  Accept: '*/*',
-  Origin: 'https://cineby.sc',
-  Referer: 'https://cineby.sc/',
-  'User-Agent': getSessionUA(),
-};
+function getCinebyHeaders() {
+  return {
+    Accept: '*/*',
+    Origin: 'https://cineby.sc',
+    Referer: 'https://cineby.sc/',
+    'User-Agent': getSessionUA(),
+  };
+}
 
 let sessionUA = null;
 
@@ -116,7 +118,7 @@ module.exports = {
   getSessionUA,
   setSessionUA,
   getStealthHeaders,
-  CINEBY_HEADERS,
+  getCinebyHeaders,
   DEFAULT_UA,
   MOBILE_UA,
   DEFAULT_TIMEOUT,

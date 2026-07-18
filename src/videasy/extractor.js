@@ -1,4 +1,4 @@
-import { getSessionUA, CINEBY_HEADERS } from '../utils/http.js';
+import { getSessionUA, getCinebyHeaders } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { getTmdbInfo, getCorrectImdbId } from '../utils/tmdb.js';
 
@@ -27,11 +27,13 @@ const SERVERS = {
   },
 };
 
-const ANDROID_HEADERS = {
-  'User-Agent': getSessionUA(),
-  Referer: 'https://player.videasy.net/',
-  Origin: 'https://player.videasy.net',
-};
+function getAndroidHeaders() {
+  return {
+    'User-Agent': getSessionUA(),
+    Referer: 'https://player.videasy.net/',
+    Origin: 'https://player.videasy.net',
+  };
+}
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
   try {
@@ -43,16 +45,17 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     const serverPromises = Object.entries(SERVERS).map(async ([serverId, config]) => {
       try {
+        const headers = getCinebyHeaders();
         let searchUrl = `${config.url}?title=${doubleEncTitle}&mediaType=${mediaType === 'tv' ? 'tv' : 'movie'}&year=${year}&tmdbId=${tmdbId}&imdbId=${imdbId}`;
         if (mediaType === 'tv') searchUrl += `&episodeId=${episode || 1}&seasonId=${season || 1}`;
-        const encryptedRes = await fetch(searchUrl, { headers: CINEBY_HEADERS });
+        const encryptedRes = await fetch(searchUrl, { headers });
         const encryptedText = await encryptedRes.text();
         if (!encryptedText || encryptedText.length < 20) return [];
         const decRes = await fetch(API_DEC, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': CINEBY_HEADERS['User-Agent'],
+            'User-Agent': headers['User-Agent'],
           },
           body: JSON.stringify({ text: encryptedText, id: String(tmdbId) }),
         });
@@ -76,7 +79,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                 audio,
                 quality,
                 url: source.url,
-                headers: serverId === 'Raze' ? ANDROID_HEADERS : CINEBY_HEADERS,
+                headers: serverId === 'Raze' ? getAndroidHeaders() : headers,
               });
             }
           }

@@ -1,0 +1,8 @@
+{
+  "name": "GnulaHD",
+  "description": "Películas en Latino/Español desde GnulaHD.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

@@ -1,6 +1,6 @@
 /**
  * hackstore2 - Built from src/hackstore2/
- * Generated: 2026-07-18T01:27:05.832Z
+ * Generated: 2026-07-18T18:54:15.415Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -70,12 +70,14 @@ var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     var DEFAULT_TIMEOUT = 8e3;
-    var CINEBY_HEADERS = {
-      Accept: "*/*",
-      Origin: "https://cineby.sc",
-      Referer: "https://cineby.sc/",
-      "User-Agent": getSessionUA2()
-    };
+    function getCinebyHeaders() {
+      return {
+        Accept: "*/*",
+        Origin: "https://cineby.sc",
+        Referer: "https://cineby.sc/",
+        "User-Agent": getSessionUA2()
+      };
+    }
     var sessionUA = null;
     function setSessionUA(ua) {
       sessionUA = ua;
@@ -176,7 +178,7 @@ var require_http = __commonJS({
       getSessionUA: getSessionUA2,
       setSessionUA,
       getStealthHeaders: getStealthHeaders2,
-      CINEBY_HEADERS,
+      getCinebyHeaders,
       DEFAULT_UA,
       MOBILE_UA,
       DEFAULT_TIMEOUT
