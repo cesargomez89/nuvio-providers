@@ -1,12 +1,12 @@
 {
   "name": "Latinus Mexico",
-  "version": "1.0.26",
+  "version": "1.0.28",
   "scrapers": [
     {
       "id": "cineby",
       "name": "cineby",
       "description": "Streams from cineby",
-      "version": "1.0.26",
+      "version": "1.0.28",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",

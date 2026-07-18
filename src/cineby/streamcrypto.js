@@ -1,4 +1,4 @@
-const _MASK = 0xFFFFFFFF;
+const _MASK = 0xffffffff;
 const _GOLDEN = 2654435769;
 const _MAGIC = [109, 118, 109, 49]; // "mvm1"
 
@@ -32,7 +32,7 @@ function _fnv_f(text) {
 }
 
 function _key_schedule(seed, media_id) {
-  const n = (_f(_fnv_f(seed) ^ _f((media_id & _MASK) ^ _GOLDEN))) >>> 0;
+  const n = _f(_fnv_f(seed) ^ _f((media_id & _MASK) ^ _GOLDEN)) >>> 0;
   const state = {};
   let currentN = n;
   for (let e = 0; e < 8; e++) {
@@ -67,9 +67,18 @@ function _keystream(seed, media_id, length) {
     const val = acc >>> 0;
     out[pos] = val & 255;
     pos++;
-    if (pos < length) { out[pos] = (val >> 8) & 255; pos++; }
-    if (pos < length) { out[pos] = (val >> 16) & 255; pos++; }
-    if (pos < length) { out[pos] = (val >> 24) & 255; pos++; }
+    if (pos < length) {
+      out[pos] = (val >> 8) & 255;
+      pos++;
+    }
+    if (pos < length) {
+      out[pos] = (val >> 16) & 255;
+      pos++;
+    }
+    if (pos < length) {
+      out[pos] = (val >> 24) & 255;
+      pos++;
+    }
   }
   return out;
 }
@@ -122,7 +131,7 @@ function _utf8_decode(bytes) {
       const b3 = bytes[i + 2];
       const b4 = bytes[i + 3];
       const cp = ((b & 7) << 18) | ((b2 & 63) << 12) | ((b3 & 63) << 6) | (b4 & 63);
-      str += String.fromCharCode((cp >> 10) + 0xD800, (cp & 0x3FF) + 0xDC00);
+      str += String.fromCharCode((cp >> 10) + 0xd800, (cp & 0x3ff) + 0xdc00);
       i += 4;
     }
   }

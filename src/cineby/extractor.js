@@ -6,17 +6,18 @@ import { decryptSources } from './streamcrypto.js';
 
 const API_BASE = 'https://api.wingsdatabase.com';
 const VIDKING_BASE = 'https://www.vidking.net';
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 const HEADERS = {
   'User-Agent': UA,
-  'Accept': 'application/json, text/plain, */*',
+  Accept: 'application/json, text/plain, */*',
   'Accept-Language': 'en-US,en;q=0.9',
-  'Origin': VIDKING_BASE,
-  'Referer': VIDKING_BASE + '/',
+  Origin: VIDKING_BASE,
+  Referer: VIDKING_BASE + '/',
 };
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function tryApiPath(tmdbId, mediaType, season, episode) {
@@ -30,7 +31,10 @@ async function tryApiPath(tmdbId, mediaType, season, episode) {
       const seedUrl = `${API_BASE}/seed?mediaId=${numericId}`;
       const seedData = await fetchJson(seedUrl, { headers: HEADERS });
       const seed = seedData.seed;
-      if (!seed) { console.log(`[Cineby] No seed in response`); continue; }
+      if (!seed) {
+        console.log(`[Cineby] No seed in response`);
+        continue;
+      }
 
       const mediaTypeParam = isMovie ? 'movie' : 'tv';
       const sourcesUrl = `${API_BASE}/cdn/sources-with-title?tmdbId=${numericId}&mediaType=${mediaTypeParam}&seasonId=${s}&episodeId=${e}&enc=2&seed=${seed}`;
@@ -39,7 +43,7 @@ async function tryApiPath(tmdbId, mediaType, season, episode) {
       if (typeof encryptedData === 'string' && encryptedData.length > 0) {
         const decrypted = decryptSources(encryptedData, seed, numericId);
         if (decrypted && decrypted.sources && decrypted.sources.length > 0) {
-          return decrypted.sources.map(src => ({
+          return decrypted.sources.map((src) => ({
             url: src.url,
             quality: src.quality || '1080p',
             headers: { Referer: VIDKING_BASE + '/', 'User-Agent': UA },
@@ -70,7 +74,7 @@ async function tryEmbedFallback(tmdbId, mediaType, season, episode) {
     const m3u8Regex = /https?:\/\/[^"'\s]*\.m3u8[^"'\s]*/gi;
     const matches = html.match(m3u8Regex);
     if (matches && matches.length > 0) {
-      return matches.map(url => ({
+      return matches.map((url) => ({
         url,
         quality: '1080p',
         headers: { Referer: VIDKING_BASE + '/', 'User-Agent': UA },
@@ -106,7 +110,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
       return [];
     }
 
-    const rawStreams = sources.map(s => ({
+    const rawStreams = sources.map((s) => ({
       url: s.url,
       quality: s.quality,
       serverLabel: 'VidKing',

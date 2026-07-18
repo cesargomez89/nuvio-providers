@@ -1,6 +1,6 @@
 /**
  * cineby - Built from src/cineby/
- * Generated: 2026-07-18T20:23:06.005Z
+ * Generated: 2026-07-18T20:23:26.875Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1014,10 +1014,10 @@ var VIDKING_BASE = "https://www.vidking.net";
 var UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 var HEADERS = {
   "User-Agent": UA,
-  "Accept": "application/json, text/plain, */*",
+  Accept: "application/json, text/plain, */*",
   "Accept-Language": "en-US,en;q=0.9",
-  "Origin": VIDKING_BASE,
-  "Referer": VIDKING_BASE + "/"
+  Origin: VIDKING_BASE,
+  Referer: VIDKING_BASE + "/"
 };
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
