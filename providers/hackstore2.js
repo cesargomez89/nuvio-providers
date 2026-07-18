@@ -1,6 +1,6 @@
 /**
  * hackstore2 - Built from src/hackstore2/
- * Generated: 2026-07-18T20:56:41.733Z
+ * Generated: 2026-07-18T21:21:24.080Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -256,12 +256,11 @@ var require_m3u8 = __commonJS({
         if (!stream || !stream.url)
           return stream;
         const { url, headers } = stream;
-        const isMp4 = url.toLowerCase().includes(".mp4");
         if (VALIDATION_CACHE.has(url))
           return __spreadValues(__spreadValues({}, stream), VALIDATION_CACHE.get(url));
         try {
           const fetchOptions = {
-            method: isMp4 ? "HEAD" : "GET",
+            method: "HEAD",
             headers: __spreadValues({
               "User-Agent": getSessionUA2()
             }, headers || {})
@@ -271,12 +270,22 @@ var require_m3u8 = __commonJS({
           const response = yield fetch(url, fetchOptions);
           if (!response.ok)
             return __spreadProps(__spreadValues({}, stream), { verified: false });
-          if (isMp4) {
-            const resultData2 = { verified: true, quality: stream.quality || "1080p", isReal: true };
+          if (stream.quality) {
+            const resultData2 = { verified: true, quality: stream.quality, isReal: true };
             VALIDATION_CACHE.set(url, resultData2);
             return __spreadValues(__spreadValues({}, stream), resultData2);
           }
-          const text = yield response.text();
+          const isMp4 = url.toLowerCase().includes(".mp4");
+          if (isMp4) {
+            const resultData2 = { verified: true, quality: "1080p", isReal: true };
+            VALIDATION_CACHE.set(url, resultData2);
+            return __spreadValues(__spreadValues({}, stream), resultData2);
+          }
+          fetchOptions.method = "GET";
+          const getResponse = yield fetch(url, fetchOptions);
+          if (!getResponse.ok)
+            return __spreadProps(__spreadValues({}, stream), { verified: false });
+          const text = yield getResponse.text();
           const info = parseBestQuality(text, url);
           const resultData = {
             verified: true,
@@ -533,7 +542,7 @@ var require_engine = __commonJS({
         console.log(`[Engine] PROCESANDO STREAMS - Bitrate Global v7.6.0`);
         const sorted = sortStreamsByQuality(streams);
         const CONCURRENCY_LIMIT = 5;
-        const MAX_VALIDATIONS = 5;
+        const MAX_VALIDATIONS = 3;
         const validatedStreams = [];
         for (let i = 0; i < sorted.length; i += CONCURRENCY_LIMIT) {
           if (i >= MAX_VALIDATIONS) {
@@ -544,11 +553,11 @@ var require_engine = __commonJS({
           const batchResults = yield Promise.all(
             batch.map((s) => __async(this, null, function* () {
               try {
-                if (s.isReal === true)
+                if (s.isReal === true || s.verified === true)
                   return s;
                 if (s.url && (s.url.includes(".m3u8") || s.url.includes(".mp4"))) {
                   const controller = new AbortController();
-                  const timeoutId = setTimeout(() => controller.abort(), 2500);
+                  const timeoutId = setTimeout(() => controller.abort(), 1500);
                   try {
                     const validated = yield validateStream2(s, controller.signal);
                     clearTimeout(timeoutId);

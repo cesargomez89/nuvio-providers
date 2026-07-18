@@ -1,6 +1,6 @@
 /**
  * cuevana_unbuendato - Built from src/cuevana_unbuendato/
- * Generated: 2026-07-18T20:56:41.708Z
+ * Generated: 2026-07-18T21:21:24.055Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -256,12 +256,11 @@ var require_m3u8 = __commonJS({
         if (!stream || !stream.url)
           return stream;
         const { url, headers } = stream;
-        const isMp4 = url.toLowerCase().includes(".mp4");
         if (VALIDATION_CACHE.has(url))
           return __spreadValues(__spreadValues({}, stream), VALIDATION_CACHE.get(url));
         try {
           const fetchOptions = {
-            method: isMp4 ? "HEAD" : "GET",
+            method: "HEAD",
             headers: __spreadValues({
               "User-Agent": getSessionUA2()
             }, headers || {})
@@ -271,12 +270,22 @@ var require_m3u8 = __commonJS({
           const response = yield fetch(url, fetchOptions);
           if (!response.ok)
             return __spreadProps(__spreadValues({}, stream), { verified: false });
-          if (isMp4) {
-            const resultData2 = { verified: true, quality: stream.quality || "1080p", isReal: true };
+          if (stream.quality) {
+            const resultData2 = { verified: true, quality: stream.quality, isReal: true };
             VALIDATION_CACHE.set(url, resultData2);
             return __spreadValues(__spreadValues({}, stream), resultData2);
           }
-          const text = yield response.text();
+          const isMp4 = url.toLowerCase().includes(".mp4");
+          if (isMp4) {
+            const resultData2 = { verified: true, quality: "1080p", isReal: true };
+            VALIDATION_CACHE.set(url, resultData2);
+            return __spreadValues(__spreadValues({}, stream), resultData2);
+          }
+          fetchOptions.method = "GET";
+          const getResponse = yield fetch(url, fetchOptions);
+          if (!getResponse.ok)
+            return __spreadProps(__spreadValues({}, stream), { verified: false });
+          const text = yield getResponse.text();
           const info = parseBestQuality(text, url);
           const resultData = {
             verified: true,
@@ -533,7 +542,7 @@ var require_engine = __commonJS({
         console.log(`[Engine] PROCESANDO STREAMS - Bitrate Global v7.6.0`);
         const sorted = sortStreamsByQuality(streams);
         const CONCURRENCY_LIMIT = 5;
-        const MAX_VALIDATIONS = 5;
+        const MAX_VALIDATIONS = 3;
         const validatedStreams = [];
         for (let i = 0; i < sorted.length; i += CONCURRENCY_LIMIT) {
           if (i >= MAX_VALIDATIONS) {
@@ -544,11 +553,11 @@ var require_engine = __commonJS({
           const batchResults = yield Promise.all(
             batch.map((s) => __async(this, null, function* () {
               try {
-                if (s.isReal === true)
+                if (s.isReal === true || s.verified === true)
                   return s;
                 if (s.url && (s.url.includes(".m3u8") || s.url.includes(".mp4"))) {
                   const controller = new AbortController();
-                  const timeoutId = setTimeout(() => controller.abort(), 2500);
+                  const timeoutId = setTimeout(() => controller.abort(), 1500);
                   try {
                     const validated = yield validateStream(s, controller.signal);
                     clearTimeout(timeoutId);
@@ -3123,6 +3132,54 @@ var require_generic_fuegocine = __commonJS({
   }
 });
 
+// src/utils/parallel.js
+var require_parallel = __commonJS({
+  "src/utils/parallel.js"(exports2, module2) {
+    function parallelWithLimit2(items, handler, limit = 5) {
+      return __async(this, null, function* () {
+        const results = [];
+        for (let i = 0; i < items.length; i += limit) {
+          const batch = items.slice(i, i + limit);
+          const batchPromises = batch.map((item) => {
+            return handler(item).catch(() => null);
+          });
+          const batchResults = yield Promise.allSettled(batchPromises);
+          results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
+        }
+        return results;
+      });
+    }
+    function resolveWithLimit(items, handler) {
+      return __async(this, null, function* () {
+        const results = [];
+        const promises = items.map((item) => __async(this, null, function* () {
+          return yield handler(item);
+        }));
+        const settled = yield Promise.allSettled(promises);
+        settled.forEach((r) => {
+          if (r.status === "fulfilled" && r.value)
+            results.push(r.value);
+        });
+        return results;
+      });
+    }
+    function withTimeout(promise, ms = 1e4) {
+      return __async(this, null, function* () {
+        let timer;
+        const timeout = new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms);
+        });
+        try {
+          return yield Promise.race([promise, timeout]);
+        } finally {
+          clearTimeout(timer);
+        }
+      });
+    }
+    module2.exports = { parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
+  }
+});
+
 // src/utils/resolvers.js
 var require_resolvers = __commonJS({
   "src/utils/resolvers.js"(exports2, module2) {
@@ -3161,10 +3218,11 @@ var require_resolvers = __commonJS({
     var { resolve: resolveRpmvid } = require_rpmvid();
     var { resolve: resolvePlaymogo } = require_playmogo();
     var { resolve: resolveGeneric } = require_generic_fuegocine();
+    var { withTimeout } = require_parallel();
     var { isMirror } = require_mirrors();
     var { getSessionUA: getSessionUA2 } = require_http();
     var UA = getSessionUA2();
-    var DEAD_DOMAINS = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
+    var DEAD_DOMAINS = ["supervideo", "mixdrop", "verhdlink", "waaw.to"];
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
@@ -3204,6 +3262,11 @@ var require_resolvers = __commonJS({
       return result;
     }
     function resolveEmbed2(url, signal = null) {
+      return __async(this, null, function* () {
+        return withTimeout(_resolveEmbed(url, signal), 15e3).catch(() => null);
+      });
+    }
+    function _resolveEmbed(url, signal = null) {
       return __async(this, null, function* () {
         if (!url)
           return null;
@@ -3501,6 +3564,7 @@ var require_helpers = __commonJS({
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
+var import_parallel = __toESM(require_parallel());
 var import_helpers = __toESM(require_helpers());
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
@@ -3521,8 +3585,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         console.log("[CuevanaUBD] Sin resultados o API fall\xF3");
         return [];
       }
-      const rawStreams = [];
-      const promises = [];
+      const entries = [];
       for (const [langKey, servers] of Object.entries(data.languages)) {
         const lKey = langKey.toLowerCase();
         if (!lKey.includes("latino") && !lKey.includes("subtitulado") && !lKey.includes("sub"))
@@ -3532,24 +3595,23 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           const sKey = serverKey.toLowerCase();
           if (sKey.includes("netu") || sKey.includes("hqq") || sKey.includes("waaw") || url.includes("netu") || url.includes("hqq") || url.includes("waaw"))
             continue;
-          promises.push(
-            (0, import_resolvers.resolveEmbed)(url).then((res) => {
-              if (res) {
-                return __spreadProps(__spreadValues({}, res), {
-                  serverName: res.serverName || serverKey.charAt(0).toUpperCase() + serverKey.slice(1),
-                  lang: langLabel
-                });
-              }
-              return null;
-            }).catch(() => null)
-          );
+          entries.push({ url, serverKey, langLabel });
         }
       }
-      const results = yield Promise.all(promises);
-      results.forEach((r) => {
-        if (r)
-          rawStreams.push(r);
-      });
+      const results = yield (0, import_parallel.parallelWithLimit)(entries, (entry) => __async(this, null, function* () {
+        try {
+          const res = yield (0, import_resolvers.resolveEmbed)(entry.url);
+          if (res) {
+            return __spreadProps(__spreadValues({}, res), {
+              serverName: res.serverName || entry.serverKey.charAt(0).toUpperCase() + entry.serverKey.slice(1),
+              lang: entry.langLabel
+            });
+          }
+        } catch (e) {
+        }
+        return null;
+      }), 5);
+      const rawStreams = results.filter(Boolean);
       return yield (0, import_engine.finalizeStreams)(rawStreams, "Cuevana UBD", data.title || title);
     } catch (e) {
       console.error(`[CuevanaUBD] Error Cr\xEDtico: ${e.message}`);

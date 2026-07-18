@@ -33,12 +33,13 @@ const { resolve: resolveVidmoly } = require('../resolvers/vidmoly.js');
 const { resolve: resolveRpmvid } = require('../resolvers/rpmvid.js');
 const { resolve: resolvePlaymogo } = require('../resolvers/playmogo.js');
 const { resolve: resolveGeneric } = require('../resolvers/generic_fuegocine.js');
+const { withTimeout } = require('../utils/parallel.js');
 const { isMirror } = require('../utils/mirrors.js');
 const { getSessionUA } = require('../utils/http.js');
 
 const UA = getSessionUA();
 
-const DEAD_DOMAINS = ['supervideo', 'voe.sx', 'mixdrop', 'verhdlink', 'waaw.to'];
+const DEAD_DOMAINS = ['supervideo', 'mixdrop', 'verhdlink', 'waaw.to'];
 
 function getDirectCdnHeaders(url) {
   if (!url) return null;
@@ -84,6 +85,10 @@ function applyPiping(result) {
 }
 
 async function resolveEmbed(url, signal = null) {
+  return withTimeout(_resolveEmbed(url, signal), 15000).catch(() => null);
+}
+
+async function _resolveEmbed(url, signal = null) {
   if (!url) return null;
   const urlLower = url.toLowerCase();
   if (DEAD_DOMAINS.some((d) => urlLower.includes(d))) return null;

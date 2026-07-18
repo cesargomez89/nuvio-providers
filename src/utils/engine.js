@@ -67,7 +67,7 @@ async function finalizeStreams(streams, providerName) {
   console.log(`[Engine] PROCESANDO STREAMS - Bitrate Global v7.6.0`);
   const sorted = sortStreamsByQuality(streams);
   const CONCURRENCY_LIMIT = 5;
-  const MAX_VALIDATIONS = 5;
+  const MAX_VALIDATIONS = 3;
   const validatedStreams = [];
   for (let i = 0; i < sorted.length; i += CONCURRENCY_LIMIT) {
     if (i >= MAX_VALIDATIONS) {
@@ -78,10 +78,10 @@ async function finalizeStreams(streams, providerName) {
     const batchResults = await Promise.all(
       batch.map(async (s) => {
         try {
-          if (s.isReal === true) return s;
+          if (s.isReal === true || s.verified === true) return s;
           if (s.url && (s.url.includes('.m3u8') || s.url.includes('.mp4'))) {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2500);
+            const timeoutId = setTimeout(() => controller.abort(), 1500);
             try {
               const validated = await validateStream(s, controller.signal);
               clearTimeout(timeoutId);

@@ -1,6 +1,7 @@
 import { fetchJson, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
+import { parallelWithLimit } from '../utils/parallel.js';
 import { isMovie } from '../utils/helpers.js';
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
@@ -23,8 +24,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       console.log('[CuevanaUBD] Sin resultados o API falló');
       return [];
     }
-    const rawStreams = [];
-    const promises = [];
+    const entries = [];
     for (const [langKey, servers] of Object.entries(data.languages)) {
       const lKey = langKey.toLowerCase();
       if (!lKey.includes('latino') && !lKey.includes('subtitulado') && !lKey.includes('sub'))
@@ -41,27 +41,24 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
           url.includes('waaw')
         )
           continue;
-        promises.push(
-          resolveEmbed(url)
-            .then((res) => {
-              if (res) {
-                return {
-                  ...res,
-                  serverName:
-                    res.serverName || serverKey.charAt(0).toUpperCase() + serverKey.slice(1),
-                  lang: langLabel,
-                };
-              }
-              return null;
-            })
-            .catch(() => null)
-        );
+        entries.push({ url, serverKey, langLabel });
       }
     }
-    const results = await Promise.all(promises);
-    results.forEach((r) => {
-      if (r) rawStreams.push(r);
-    });
+    const results = await parallelWithLimit(entries, async (entry) => {
+      try {
+        const res = await resolveEmbed(entry.url);
+        if (res) {
+          return {
+            ...res,
+            serverName:
+              res.serverName || entry.serverKey.charAt(0).toUpperCase() + entry.serverKey.slice(1),
+            lang: entry.langLabel,
+          };
+        }
+      } catch {}
+      return null;
+    }, 5);
+    const rawStreams = results.filter(Boolean);
     return await finalizeStreams(rawStreams, 'Cuevana UBD', data.title || title);
   } catch (e) {
     console.error(`[CuevanaUBD] Error Crítico: ${e.message}`);
