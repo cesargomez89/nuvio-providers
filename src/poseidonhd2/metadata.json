@@ -1,0 +1,7 @@
+{
+  "name": "PoseidonHD2",
+  "description": "Películas y series en Latino desde PoseidonHD2.",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es"],
+  "formats": ["mp4", "mkv"]
+}

@@ -1,6 +1,6 @@
 /**
- * embed69 - Built from src/embed69/
- * Generated: 2026-07-18T20:56:41.717Z
+ * poseidonhd2 - Built from src/poseidonhd2/
+ * Generated: 2026-07-18T20:56:41.761Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -75,19 +75,19 @@ var require_http = __commonJS({
         Accept: "*/*",
         Origin: "https://cineby.sc",
         Referer: "https://cineby.sc/",
-        "User-Agent": getSessionUA2()
+        "User-Agent": getSessionUA()
       };
     }
     var sessionUA = null;
-    function setSessionUA2(ua) {
+    function setSessionUA(ua) {
       sessionUA = ua;
     }
-    function getSessionUA2() {
+    function getSessionUA() {
       return sessionUA || DEFAULT_CHROME_UA;
     }
     function getStealthHeaders() {
       return {
-        "User-Agent": getSessionUA2(),
+        "User-Agent": getSessionUA(),
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
         Connection: "keep-alive",
@@ -101,12 +101,12 @@ var require_http = __commonJS({
         "Upgrade-Insecure-Requests": "1"
       };
     }
-    var DEFAULT_UA = getSessionUA2();
-    var MOBILE_UA = getSessionUA2();
+    var DEFAULT_UA = getSessionUA();
+    var MOBILE_UA = getSessionUA();
     function request(_0) {
       return __async(this, arguments, function* (url, options = {}) {
         const opt = options || {};
-        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA2();
+        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA();
         const headers = Object.assign(
           {
             "User-Agent": currentUA,
@@ -144,7 +144,7 @@ var require_http = __commonJS({
         }
       });
     }
-    function fetchHtml(url, options) {
+    function fetchHtml2(url, options) {
       return __async(this, null, function* () {
         const res = yield request(url, options);
         return yield res.text();
@@ -172,11 +172,11 @@ var require_http = __commonJS({
     }
     module2.exports = {
       request,
-      fetchHtml,
+      fetchHtml: fetchHtml2,
       fetchJson,
       fetchWithTimeout,
-      getSessionUA: getSessionUA2,
-      setSessionUA: setSessionUA2,
+      getSessionUA,
+      setSessionUA,
       getStealthHeaders,
       getCinebyHeaders,
       DEFAULT_UA,
@@ -186,109 +186,10 @@ var require_http = __commonJS({
   }
 });
 
-// src/utils/helpers.js
-var require_helpers = __commonJS({
-  "src/utils/helpers.js"(exports2, module2) {
-    function sleep(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-    function padEpisode2(episode) {
-      return String(episode).padStart(2, "0");
-    }
-    function isMovie(mediaType) {
-      return mediaType === "movie" || mediaType === "movies";
-    }
-    function cleanTmdbId2(tmdbId) {
-      return tmdbId ? tmdbId.toString().split(":")[0] : tmdbId;
-    }
-    function toDoubleBase64(str) {
-      try {
-        if (typeof btoa !== "undefined")
-          return btoa(str);
-      } catch (e) {
-      }
-      try {
-        if (typeof Buffer !== "undefined")
-          return Buffer.from(str, "utf-8").toString("base64");
-      } catch (e) {
-      }
-      const bytes = [];
-      for (let i = 0; i < str.length; i++) {
-        let c = str.charCodeAt(i);
-        if (c < 128)
-          bytes.push(c);
-        else if (c < 2048)
-          bytes.push(192 | c >> 6, 128 | c & 63);
-        else if (c < 55296 || c >= 57344)
-          bytes.push(224 | c >> 12, 128 | c >> 6 & 63, 128 | c & 63);
-        else {
-          i++;
-          const cp = 65536 + ((c & 1023) << 10 | str.charCodeAt(i) & 1023);
-          bytes.push(
-            240 | cp >> 18,
-            128 | cp >> 12 & 63,
-            128 | cp >> 6 & 63,
-            128 | cp & 63
-          );
-        }
-      }
-      const b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-      let r = "";
-      for (let i = 0; i < bytes.length; i += 3) {
-        const b0 = bytes[i], b1 = bytes[i + 1], b2 = bytes[i + 2];
-        if (b1 === void 0)
-          r += b64[b0 >> 2] + b64[(b0 & 3) << 4] + "==";
-        else if (b2 === void 0)
-          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2] + "=";
-        else
-          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2 | b2 >> 6] + b64[b2 & 63];
-      }
-      return r;
-    }
-    function b64decode(str) {
-      try {
-        if (typeof atob !== "undefined")
-          return atob(str);
-      } catch (e) {
-      }
-      try {
-        if (typeof Buffer !== "undefined")
-          return Buffer.from(str, "base64").toString("utf8");
-      } catch (e) {
-      }
-      try {
-        const s = str.replace(/[\s]/g, "");
-        if (s.length % 4 !== 0)
-          return null;
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-        const lookup = {};
-        for (let i = 0; i < chars.length; i++)
-          lookup[chars[i]] = i;
-        let r = "";
-        for (let i = 0; i < s.length; i += 4) {
-          const c0 = lookup[s[i]], c1 = lookup[s[i + 1]], c2 = lookup[s[i + 2]], c3 = lookup[s[i + 3]];
-          if (c0 === void 0 || c1 === void 0 || c2 === void 0 || c3 === void 0)
-            return null;
-          r += String.fromCharCode(c0 << 2 | c1 >> 4);
-          if (c2 !== 64) {
-            r += String.fromCharCode((c1 & 15) << 4 | c2 >> 2);
-            if (c3 !== 64)
-              r += String.fromCharCode((c2 & 3) << 6 | c3);
-          }
-        }
-        return r;
-      } catch (e) {
-        return null;
-      }
-    }
-    module2.exports = { sleep, padEpisode: padEpisode2, isMovie, cleanTmdbId: cleanTmdbId2, toDoubleBase64, b64decode };
-  }
-});
-
 // src/utils/m3u8.js
 var require_m3u8 = __commonJS({
   "src/utils/m3u8.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function getQualityFromHeight(height) {
       if (!height)
         return "1080p";
@@ -362,7 +263,7 @@ var require_m3u8 = __commonJS({
           const fetchOptions = {
             method: isMp4 ? "HEAD" : "GET",
             headers: __spreadValues({
-              "User-Agent": getSessionUA2()
+              "User-Agent": getSessionUA()
             }, headers || {})
           };
           if (signal)
@@ -713,148 +614,10 @@ var require_engine = __commonJS({
   }
 });
 
-// src/utils/tmdb.js
-var require_tmdb = __commonJS({
-  "src/utils/tmdb.js"(exports2, module2) {
-    var { fetchJson } = require_http();
-    var TMDB_API_KEY = [
-      "439c478a771f35c05022f9feabcca01c",
-      "d131017ccc6e5462a81c9304d21476de",
-      "1c29a5198ee1854bd5eb45dbe8d17d92"
-    ][Math.floor(Math.random() * 3)];
-    var titleCache = /* @__PURE__ */ new Map();
-    var idCache = /* @__PURE__ */ new Map();
-    function getTmdbTitle(tmdbId, mediaType, retries = 2) {
-      return __async(this, null, function* () {
-        var _a, _b, _c, _d;
-        const cacheKey = `${mediaType}_${tmdbId}`;
-        if (titleCache.has(cacheKey))
-          return titleCache.get(cacheKey);
-        if (retries < 2)
-          yield new Promise((r) => setTimeout(r, 1e3));
-        const isImdb = tmdbId && tmdbId.startsWith("tt");
-        try {
-          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-          const fetchUrl = isImdb ? `https://api.themoviedb.org/3/find/${tmdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id` : `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
-          const data = yield fetchJson(fetchUrl);
-          const title = isImdb ? ((_b = (_a = data[type + "_results"]) == null ? void 0 : _a[0]) == null ? void 0 : _b.title) || ((_d = (_c = data[type + "_results"]) == null ? void 0 : _c[0]) == null ? void 0 : _d.name) : data.title || data.name;
-          const result = title || null;
-          titleCache.set(cacheKey, result);
-          return result;
-        } catch (e) {
-          if (retries > 0)
-            return getTmdbTitle(tmdbId, mediaType, retries - 1);
-          titleCache.set(cacheKey, null);
-          return null;
-        }
-      });
-    }
-    function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
-      return __async(this, null, function* () {
-        try {
-          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-          const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang || "es-MX"}`;
-          const data = yield fetchJson(url);
-          return {
-            title: data.title || data.name,
-            originalTitle: data.original_title || data.original_name || null,
-            year: (data.release_date || data.first_air_date || "").split("-")[0],
-            genres: (data.genres || []).map((g) => g.id),
-            originCountries: data.origin_country || (data.production_countries || []).map((c) => c.iso_3166_1) || []
-          };
-        } catch (e) {
-          if (retries > 0) {
-            yield new Promise((r) => setTimeout(r, 1e3));
-            return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
-          }
-          return null;
-        }
-      });
-    }
-    function getCorrectImdbId2(tmdbId, mediaType) {
-      return __async(this, null, function* () {
-        if (!tmdbId)
-          return { imdbId: null, title: "" };
-        const cacheKey = `${mediaType}_${tmdbId}`;
-        if (idCache.has(cacheKey))
-          return idCache.get(cacheKey);
-        if (tmdbId.startsWith("tt")) {
-          const res = { imdbId: tmdbId, title: "Contenido", offset: 0, fromMapping: false };
-          idCache.set(cacheKey, res);
-          return res;
-        }
-        try {
-          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-          const idUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
-          const idRes = yield fetchJson(idUrl);
-          if (!idRes || !idRes.imdb_id) {
-            const result2 = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
-            idCache.set(cacheKey, result2);
-            return result2;
-          }
-          const metaRes = yield getTmdbInfo(tmdbId, mediaType);
-          const result = {
-            imdbId: idRes.imdb_id,
-            title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
-            year: (metaRes == null ? void 0 : metaRes.year) || null,
-            offset: 0,
-            fromMapping: false
-          };
-          idCache.set(cacheKey, result);
-          return result;
-        } catch (e) {
-          const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
-          idCache.set(cacheKey, result);
-          return result;
-        }
-      });
-    }
-    function getTmdbAliases(tmdbId, mediaType) {
-      return __async(this, null, function* () {
-        try {
-          const titleEs = yield getTmdbTitle(tmdbId, mediaType);
-          const titleEn = yield (() => __async(this, null, function* () {
-            try {
-              const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-              const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
-              const data = yield fetchJson(url);
-              return data.title || data.name || null;
-            } catch (e) {
-              return null;
-            }
-          }))();
-          const aliases = [];
-          if (titleEs)
-            aliases.push(titleEs);
-          if (titleEn && titleEn !== titleEs)
-            aliases.push(titleEn);
-          try {
-            const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
-            const altUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/alternative_titles?api_key=${TMDB_API_KEY}`;
-            const altData = yield fetchJson(altUrl);
-            const titles = altData.titles || altData.results || [];
-            for (const t of titles) {
-              const altTitle = t.title || t.name;
-              if (altTitle && !aliases.includes(altTitle))
-                aliases.push(altTitle);
-            }
-          } catch (e) {
-            console.warn(`[TMDB-Aliases] Alternative titles fetch failed`);
-          }
-          return aliases;
-        } catch (e) {
-          return [];
-        }
-      });
-    }
-    module2.exports = { getTmdbTitle, getTmdbInfo, getCorrectImdbId: getCorrectImdbId2, getTmdbAliases, TMDB_API_KEY };
-  }
-});
-
 // src/resolvers/voe.js
 var require_voe = __commonJS({
   "src/resolvers/voe.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var { validateStream } = require_m3u8();
     var VOE_MIRRORS = ["voe.sx", "voe-sx", "voex.sx"];
     function localAtob(input) {
@@ -872,7 +635,7 @@ var require_voe = __commonJS({
     }
     function tryResolve(url, signal) {
       return __async(this, null, function* () {
-        const currentUA = getSessionUA2();
+        const currentUA = getSessionUA();
         console.log(`[VOE] TV-Resolving: ${url}`);
         const response = yield fetch(url, {
           headers: { "User-Agent": currentUA },
@@ -975,7 +738,7 @@ var require_voe = __commonJS({
 // src/resolvers/hlswish.js
 var require_hlswish = __commonJS({
   "src/resolvers/hlswish.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var { validateStream } = require_m3u8();
     function unpackEval(payload, radix, symtab) {
       const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -999,7 +762,7 @@ var require_hlswish = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const rawId = url.split("/").pop().replace(/\.html$/, "");
           const mirrors = [
             `https://hanerix.com/e/${rawId}`,
@@ -1178,8 +941,8 @@ var require_aes_gcm = __commonJS({
 var require_filemoon = __commonJS({
   "src/resolvers/filemoon.js"(exports2, module2) {
     var { decryptByse } = require_aes_gcm();
-    var { getSessionUA: getSessionUA2 } = require_http();
-    var UA_CHROME = getSessionUA2();
+    var { getSessionUA } = require_http();
+    var UA_CHROME = getSessionUA();
     function unpack(p, a, c, k) {
       while (c--)
         if (k[c])
@@ -1287,7 +1050,7 @@ var require_filemoon = __commonJS({
 // src/resolvers/vidhide.js
 var require_vidhide = __commonJS({
   "src/resolvers/vidhide.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2, getStealthHeaders } = require_http();
+    var { getSessionUA, getStealthHeaders } = require_http();
     var { validateStream } = require_m3u8();
     function unpackVidHide(script) {
       try {
@@ -1321,7 +1084,7 @@ var require_vidhide = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const currentUA = getSessionUA2();
+          const currentUA = getSessionUA();
           console.log(`[VidHide] TV-Resolving: ${url}`);
           const urlObj = new URL(url);
           const domain = urlObj.hostname;
@@ -1393,7 +1156,7 @@ var require_vidhide = __commonJS({
 // src/resolvers/doodstream.js
 var require_doodstream = __commonJS({
   "src/resolvers/doodstream.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var RAND_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     function randomStr(len) {
       let r = "";
@@ -1404,7 +1167,7 @@ var require_doodstream = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const urlObj = new URL(url);
           const domain = urlObj.origin;
           const pathMatch = urlObj.pathname.match(/\/[ed]\/([a-z0-9]+)/i);
@@ -1493,11 +1256,11 @@ var require_packer = __commonJS({
 var require_dropcdn = __commonJS({
   "src/resolvers/dropcdn.js"(exports2, module2) {
     var { unpackPacker } = require_packer();
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -1557,7 +1320,7 @@ var require_dropcdn = __commonJS({
 // src/resolvers/quality.js
 var require_quality = __commonJS({
   "src/resolvers/quality.js"(exports2, module2) {
-    var { request, getSessionUA: getSessionUA2 } = require_http();
+    var { request, getSessionUA } = require_http();
     function detectQuality(_0) {
       return __async(this, arguments, function* (url, headers = {}) {
         try {
@@ -1566,7 +1329,7 @@ var require_quality = __commonJS({
           const res = yield request(url, {
             timeout: 5e3,
             headers: __spreadValues({
-              "User-Agent": getSessionUA2()
+              "User-Agent": getSessionUA()
             }, headers)
           });
           const data = yield res.text();
@@ -1609,11 +1372,11 @@ var require_quality = __commonJS({
 var require_goodstream = __commonJS({
   "src/resolvers/goodstream.js"(exports2, module2) {
     var { detectQuality } = require_quality();
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(embedUrl, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
           const response = yield fetch(embedUrl, {
             signal,
@@ -1737,13 +1500,13 @@ var require_fastream = __commonJS({
 // src/resolvers/vimeos.js
 var require_vimeos = __commonJS({
   "src/resolvers/vimeos.js"(exports2, module2) {
-    var { fetchHtml, fetchJson, getSessionUA: getSessionUA2 } = require_http();
+    var { fetchHtml: fetchHtml2, fetchJson, getSessionUA } = require_http();
     function resolve(embedUrl, signal = null) {
       return __async(this, null, function* () {
-        const UA = getSessionUA2();
+        const UA = getSessionUA();
         try {
           console.log("[Vimeos] Resolviendo: " + embedUrl);
-          var html = yield fetchHtml(embedUrl, {
+          var html = yield fetchHtml2(embedUrl, {
             signal,
             headers: {
               "User-Agent": UA,
@@ -1840,14 +1603,14 @@ var require_vimeos = __commonJS({
 // src/resolvers/supervideo.js
 var require_supervideo = __commonJS({
   "src/resolvers/supervideo.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2, getStealthHeaders } = require_http();
+    var { getSessionUA, getStealthHeaders } = require_http();
     var { unpackPacker } = require_packer();
     var { validateStream } = require_m3u8();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         var _a, _b, _c, _d;
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           console.log(`[Supervideo] Resolving: ${url}`);
           const resp = yield fetch(url, {
             signal,
@@ -1919,11 +1682,11 @@ var require_supervideo = __commonJS({
 // src/resolvers/pixeldrain.js
 var require_pixeldrain = __commonJS({
   "src/resolvers/pixeldrain.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const pathMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9]+)/i);
           if (!pathMatch)
             return null;
@@ -1952,11 +1715,11 @@ var require_pixeldrain = __commonJS({
 // src/resolvers/lulustream.js
 var require_lulustream = __commonJS({
   "src/resolvers/lulustream.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2010,11 +1773,11 @@ var require_lulustream = __commonJS({
 // src/resolvers/okru.js
 var require_okru = __commonJS({
   "src/resolvers/okru.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const resp = yield fetch(url, {
             signal,
             headers: {
@@ -2067,11 +1830,11 @@ var require_okru = __commonJS({
 // src/resolvers/embed69.js
 var require_embed69 = __commonJS({
   "src/resolvers/embed69.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const resp = yield fetch(url, {
             signal,
             headers: {
@@ -2182,11 +1945,11 @@ var require_embed69 = __commonJS({
 // src/resolvers/xupalace.js
 var require_xupalace = __commonJS({
   "src/resolvers/xupalace.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2241,7 +2004,7 @@ var require_xupalace = __commonJS({
 // src/resolvers/mixdrop.js
 var require_mixdrop = __commonJS({
   "src/resolvers/mixdrop.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function decodeMixdropSource(html) {
       const rcdMatch = html.match(/["']([a-zA-Z0-9]+)["']\s*\+\s*["']([a-zA-Z0-9]+)["']/);
       if (rcdMatch) {
@@ -2255,7 +2018,7 @@ var require_mixdrop = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const resp = yield fetch(url, {
             signal,
             headers: {
@@ -2293,11 +2056,11 @@ var require_mixdrop = __commonJS({
 // src/resolvers/verhdlink.js
 var require_verhdlink = __commonJS({
   "src/resolvers/verhdlink.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2346,11 +2109,11 @@ var require_verhdlink = __commonJS({
 // src/resolvers/streamtape.js
 var require_streamtape = __commonJS({
   "src/resolvers/streamtape.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const resp = yield fetch(url, {
             signal,
             headers: {
@@ -2403,11 +2166,11 @@ var require_streamtape = __commonJS({
 // src/resolvers/playhydrax.js
 var require_playhydrax = __commonJS({
   "src/resolvers/playhydrax.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2452,11 +2215,11 @@ var require_playhydrax = __commonJS({
 // src/resolvers/sololatino.js
 var require_sololatino = __commonJS({
   "src/resolvers/sololatino.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2497,11 +2260,11 @@ var require_sololatino = __commonJS({
 // src/resolvers/krakenfiles.js
 var require_krakenfiles = __commonJS({
   "src/resolvers/krakenfiles.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2546,11 +2309,11 @@ var require_krakenfiles = __commonJS({
 // src/resolvers/unlimplay.js
 var require_unlimplay = __commonJS({
   "src/resolvers/unlimplay.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2600,11 +2363,11 @@ var require_unlimplay = __commonJS({
 // src/resolvers/vibuxer.js
 var require_vibuxer = __commonJS({
   "src/resolvers/vibuxer.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2654,11 +2417,11 @@ var require_vibuxer = __commonJS({
 // src/resolvers/emturbovid.js
 var require_emturbovid = __commonJS({
   "src/resolvers/emturbovid.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2958,11 +2721,11 @@ var require_vidsrc = __commonJS({
 var require_embedseek = __commonJS({
   "src/resolvers/embedseek.js"(exports2, module2) {
     var CryptoJS2 = require("crypto-js");
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA = getSessionUA2();
+          const UA = getSessionUA();
           const parsedUrl = new URL(url);
           const hostname = parsedUrl.hostname;
           const hash = parsedUrl.hash;
@@ -3399,8 +3162,8 @@ var require_resolvers = __commonJS({
     var { resolve: resolvePlaymogo } = require_playmogo();
     var { resolve: resolveGeneric } = require_generic_fuegocine();
     var { isMirror } = require_mirrors();
-    var { getSessionUA: getSessionUA2 } = require_http();
-    var UA = getSessionUA2();
+    var { getSessionUA } = require_http();
+    var UA = getSessionUA();
     var DEAD_DOMAINS = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
     function getDirectCdnHeaders(url) {
       if (!url)
@@ -3635,209 +3398,487 @@ var require_resolvers = __commonJS({
   }
 });
 
-// src/embed69/extractor.js
+// src/utils/tmdb.js
+var require_tmdb = __commonJS({
+  "src/utils/tmdb.js"(exports2, module2) {
+    var { fetchJson } = require_http();
+    var TMDB_API_KEY = [
+      "439c478a771f35c05022f9feabcca01c",
+      "d131017ccc6e5462a81c9304d21476de",
+      "1c29a5198ee1854bd5eb45dbe8d17d92"
+    ][Math.floor(Math.random() * 3)];
+    var titleCache = /* @__PURE__ */ new Map();
+    var idCache = /* @__PURE__ */ new Map();
+    function getTmdbTitle(tmdbId, mediaType, retries = 2) {
+      return __async(this, null, function* () {
+        var _a, _b, _c, _d;
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (titleCache.has(cacheKey))
+          return titleCache.get(cacheKey);
+        if (retries < 2)
+          yield new Promise((r) => setTimeout(r, 1e3));
+        const isImdb = tmdbId && tmdbId.startsWith("tt");
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const fetchUrl = isImdb ? `https://api.themoviedb.org/3/find/${tmdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id` : `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=es-MX`;
+          const data = yield fetchJson(fetchUrl);
+          const title = isImdb ? ((_b = (_a = data[type + "_results"]) == null ? void 0 : _a[0]) == null ? void 0 : _b.title) || ((_d = (_c = data[type + "_results"]) == null ? void 0 : _c[0]) == null ? void 0 : _d.name) : data.title || data.name;
+          const result = title || null;
+          titleCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          if (retries > 0)
+            return getTmdbTitle(tmdbId, mediaType, retries - 1);
+          titleCache.set(cacheKey, null);
+          return null;
+        }
+      });
+    }
+    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
+      return __async(this, null, function* () {
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang || "es-MX"}`;
+          const data = yield fetchJson(url);
+          return {
+            title: data.title || data.name,
+            originalTitle: data.original_title || data.original_name || null,
+            year: (data.release_date || data.first_air_date || "").split("-")[0],
+            genres: (data.genres || []).map((g) => g.id),
+            originCountries: data.origin_country || (data.production_countries || []).map((c) => c.iso_3166_1) || []
+          };
+        } catch (e) {
+          if (retries > 0) {
+            yield new Promise((r) => setTimeout(r, 1e3));
+            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
+          }
+          return null;
+        }
+      });
+    }
+    function getCorrectImdbId(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        if (!tmdbId)
+          return { imdbId: null, title: "" };
+        const cacheKey = `${mediaType}_${tmdbId}`;
+        if (idCache.has(cacheKey))
+          return idCache.get(cacheKey);
+        if (tmdbId.startsWith("tt")) {
+          const res = { imdbId: tmdbId, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, res);
+          return res;
+        }
+        try {
+          const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+          const idUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
+          const idRes = yield fetchJson(idUrl);
+          if (!idRes || !idRes.imdb_id) {
+            const result2 = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+            idCache.set(cacheKey, result2);
+            return result2;
+          }
+          const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
+          const result = {
+            imdbId: idRes.imdb_id,
+            title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
+            year: (metaRes == null ? void 0 : metaRes.year) || null,
+            offset: 0,
+            fromMapping: false
+          };
+          idCache.set(cacheKey, result);
+          return result;
+        } catch (e) {
+          const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
+          idCache.set(cacheKey, result);
+          return result;
+        }
+      });
+    }
+    function getTmdbAliases(tmdbId, mediaType) {
+      return __async(this, null, function* () {
+        try {
+          const titleEs = yield getTmdbTitle(tmdbId, mediaType);
+          const titleEn = yield (() => __async(this, null, function* () {
+            try {
+              const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+              const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
+              const data = yield fetchJson(url);
+              return data.title || data.name || null;
+            } catch (e) {
+              return null;
+            }
+          }))();
+          const aliases = [];
+          if (titleEs)
+            aliases.push(titleEs);
+          if (titleEn && titleEn !== titleEs)
+            aliases.push(titleEn);
+          try {
+            const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
+            const altUrl = `https://api.themoviedb.org/3/${type}/${tmdbId}/alternative_titles?api_key=${TMDB_API_KEY}`;
+            const altData = yield fetchJson(altUrl);
+            const titles = altData.titles || altData.results || [];
+            for (const t of titles) {
+              const altTitle = t.title || t.name;
+              if (altTitle && !aliases.includes(altTitle))
+                aliases.push(altTitle);
+            }
+          } catch (e) {
+            console.warn(`[TMDB-Aliases] Alternative titles fetch failed`);
+          }
+          return aliases;
+        } catch (e) {
+          return [];
+        }
+      });
+    }
+    module2.exports = { getTmdbTitle, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
+  }
+});
+
+// src/utils/helpers.js
+var require_helpers = __commonJS({
+  "src/utils/helpers.js"(exports2, module2) {
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+    function padEpisode(episode) {
+      return String(episode).padStart(2, "0");
+    }
+    function isMovie2(mediaType) {
+      return mediaType === "movie" || mediaType === "movies";
+    }
+    function cleanTmdbId2(tmdbId) {
+      return tmdbId ? tmdbId.toString().split(":")[0] : tmdbId;
+    }
+    function toDoubleBase64(str) {
+      try {
+        if (typeof btoa !== "undefined")
+          return btoa(str);
+      } catch (e) {
+      }
+      try {
+        if (typeof Buffer !== "undefined")
+          return Buffer.from(str, "utf-8").toString("base64");
+      } catch (e) {
+      }
+      const bytes = [];
+      for (let i = 0; i < str.length; i++) {
+        let c = str.charCodeAt(i);
+        if (c < 128)
+          bytes.push(c);
+        else if (c < 2048)
+          bytes.push(192 | c >> 6, 128 | c & 63);
+        else if (c < 55296 || c >= 57344)
+          bytes.push(224 | c >> 12, 128 | c >> 6 & 63, 128 | c & 63);
+        else {
+          i++;
+          const cp = 65536 + ((c & 1023) << 10 | str.charCodeAt(i) & 1023);
+          bytes.push(
+            240 | cp >> 18,
+            128 | cp >> 12 & 63,
+            128 | cp >> 6 & 63,
+            128 | cp & 63
+          );
+        }
+      }
+      const b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+      let r = "";
+      for (let i = 0; i < bytes.length; i += 3) {
+        const b0 = bytes[i], b1 = bytes[i + 1], b2 = bytes[i + 2];
+        if (b1 === void 0)
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4] + "==";
+        else if (b2 === void 0)
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2] + "=";
+        else
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2 | b2 >> 6] + b64[b2 & 63];
+      }
+      return r;
+    }
+    function b64decode(str) {
+      try {
+        if (typeof atob !== "undefined")
+          return atob(str);
+      } catch (e) {
+      }
+      try {
+        if (typeof Buffer !== "undefined")
+          return Buffer.from(str, "base64").toString("utf8");
+      } catch (e) {
+      }
+      try {
+        const s = str.replace(/[\s]/g, "");
+        if (s.length % 4 !== 0)
+          return null;
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        const lookup = {};
+        for (let i = 0; i < chars.length; i++)
+          lookup[chars[i]] = i;
+        let r = "";
+        for (let i = 0; i < s.length; i += 4) {
+          const c0 = lookup[s[i]], c1 = lookup[s[i + 1]], c2 = lookup[s[i + 2]], c3 = lookup[s[i + 3]];
+          if (c0 === void 0 || c1 === void 0 || c2 === void 0 || c3 === void 0)
+            return null;
+          r += String.fromCharCode(c0 << 2 | c1 >> 4);
+          if (c2 !== 64) {
+            r += String.fromCharCode((c1 & 15) << 4 | c2 >> 2);
+            if (c3 !== 64)
+              r += String.fromCharCode((c2 & 3) << 6 | c3);
+          }
+        }
+        return r;
+      } catch (e) {
+        return null;
+      }
+    }
+    module2.exports = { sleep, padEpisode, isMovie: isMovie2, cleanTmdbId: cleanTmdbId2, toDoubleBase64, b64decode };
+  }
+});
+
+// src/utils/title.js
+var require_title = __commonJS({
+  "src/utils/title.js"(exports2, module2) {
+    function normalizeTitle(t) {
+      if (!t)
+        return "";
+      return t.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    }
+    function titleMatch(query, target, minRatio = 0.8) {
+      const q = normalizeTitle(query);
+      const t = normalizeTitle(target);
+      if (!q || !t)
+        return false;
+      if (q === t)
+        return true;
+      const qWords = q.split(" ").filter((w) => w.length > 2);
+      const tWords = t.split(" ");
+      if (qWords.length === 0)
+        return q === t;
+      const matchCount = qWords.filter((w) => tWords.includes(w)).length;
+      const ratio = matchCount / qWords.length;
+      return ratio >= minRatio;
+    }
+    function buildSlug2(title) {
+      return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    }
+    function levenshtein(a, b) {
+      if (!a || !b)
+        return Math.max((a || "").length, (b || "").length);
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++)
+        matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++)
+        matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+    module2.exports = { normalizeTitle, titleMatch, levenshtein, buildSlug: buildSlug2 };
+  }
+});
+
+// src/utils/parallel.js
+var require_parallel = __commonJS({
+  "src/utils/parallel.js"(exports2, module2) {
+    function parallelWithLimit2(items, handler, limit = 5) {
+      return __async(this, null, function* () {
+        const results = [];
+        for (let i = 0; i < items.length; i += limit) {
+          const batch = items.slice(i, i + limit);
+          const batchPromises = batch.map((item) => {
+            return handler(item).catch(() => null);
+          });
+          const batchResults = yield Promise.allSettled(batchPromises);
+          results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
+        }
+        return results;
+      });
+    }
+    function resolveWithLimit(items, handler) {
+      return __async(this, null, function* () {
+        const results = [];
+        const promises = items.map((item) => __async(this, null, function* () {
+          return yield handler(item);
+        }));
+        const settled = yield Promise.allSettled(promises);
+        settled.forEach((r) => {
+          if (r.status === "fulfilled" && r.value)
+            results.push(r.value);
+        });
+        return results;
+      });
+    }
+    function withTimeout(promise, ms = 1e4) {
+      return __async(this, null, function* () {
+        let timer;
+        const timeout = new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms);
+        });
+        try {
+          return yield Promise.race([promise, timeout]);
+        } finally {
+          clearTimeout(timer);
+        }
+      });
+    }
+    module2.exports = { parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
+  }
+});
+
+// src/poseidonhd2/extractor.js
 var import_http = __toESM(require_http());
-var import_helpers = __toESM(require_helpers());
 var import_engine = __toESM(require_engine());
-var import_tmdb = __toESM(require_tmdb());
 var import_resolvers = __toESM(require_resolvers());
-var BASE_URL = "https://embed69.org";
-var RESOLVER_TIMEOUT = 1e4;
-function applyPipingLocal(result) {
-  var _a, _b, _c;
-  if (!result || !result.url)
-    return result;
-  let url = result.url;
-  const ua = ((_a = result.headers) == null ? void 0 : _a["User-Agent"]) || "Mozilla/5.0 (Linux; Android 13; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-  const headers = [
-    `User-Agent=${ua}`,
-    `Referer=${((_b = result.headers) == null ? void 0 : _b.Referer) || "https://embed69.org/"}`
-  ];
-  if ((_c = result.headers) == null ? void 0 : _c.Origin)
-    headers.push(`Origin=${result.headers.Origin}`);
-  url = `${url}|${headers.join("|")}`;
-  if (!url.toLowerCase().includes(".m3u8") && !url.toLowerCase().includes(".mp4"))
-    url += "#.m3u8";
-  result.url = url;
-  return result;
+var import_tmdb = __toESM(require_tmdb());
+var import_helpers = __toESM(require_helpers());
+var import_title = __toESM(require_title());
+var import_parallel = __toESM(require_parallel());
+var BASE_URL = "https://www.poseidonhd2.co";
+var HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Accept-Language": "es-MX,es;q=0.9",
+  Referer: `${BASE_URL}/`
+};
+var LANGUAGE_MAP = {
+  latino: "Latino",
+  spanish: "Espa\xF1ol",
+  english: "Subtitulado"
+};
+function extractNextData(html) {
+  const match = html.match(
+    /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
+  );
+  if (!match)
+    return null;
+  try {
+    return JSON.parse(match[1]);
+  } catch (e) {
+    console.warn(`[PoseidonHD2] Error parsing JSON: ${e.message}`);
+    return null;
+  }
 }
-function resolveWithTimeout(url) {
-  return __async(this, null, function* () {
-    if (!url)
-      return null;
-    return Promise.race([
-      (0, import_resolvers.resolveEmbed)(url).then(
-        (res) => res ? applyPipingLocal(res) : applyPipingLocal({ url, quality: "HD", verified: false })
-      ),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), RESOLVER_TIMEOUT))
-    ]);
-  });
+function extractEmbedUrl(playerHtml) {
+  const match = playerHtml.match(/(?:var|let)\s+url\s*=\s*['"]([^'"]+)['"]/);
+  return match ? match[1] : null;
 }
-function resolveEmbedLocal(url) {
+function fetchPlayerEmbed(playerUrl) {
   return __async(this, null, function* () {
-    if (!url)
-      return null;
-    console.log(`[Embed69] Resolving: ${url}`);
     try {
-      return yield resolveWithTimeout(url);
+      const html = yield (0, import_http.fetchHtml)(playerUrl, { headers: HEADERS });
+      return extractEmbedUrl(html);
     } catch (e) {
-      console.log(`[Embed69] Timeout/failed: ${url.substring(0, 60)}`);
+      console.warn(`[PoseidonHD2] Error en player: ${e.message}`);
       return null;
     }
   });
 }
-function extractStreams(tmdbId, mediaType, season, episode, title) {
+function extractStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
-    if (!tmdbId)
+    var _a;
+    if (!tmdbId || !mediaType)
       return [];
-    console.log(`[Embed69] Looking for content: ${tmdbId} (${mediaType})`);
+    const isMovieType = (0, import_helpers.isMovie)(mediaType);
+    console.log(`[PoseidonHD2] Buscando: TMDB ${tmdbId} (${mediaType})`);
     try {
-      let deriveKey = function(challenge, nonce2, salt) {
-        return CryptoJS2.SHA256(challenge + nonce2.toString() + salt);
-      }, decryptLink = function(encryptedBase64, key) {
-        const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
-        const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
-        const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
-        const decrypted = CryptoJS2.AES.decrypt({ ciphertext: ct }, key, {
-          iv,
-          mode: CryptoJS2.mode.CBC,
-          padding: CryptoJS2.pad.Pkcs7
-        });
-        return decrypted.toString(CryptoJS2.enc.Utf8);
-      };
-      const s = season !== void 0 && season !== null ? parseInt(season) : null;
-      const e = episode !== void 0 && episode !== null ? parseInt(episode) : null;
-      const currentUA = (0, import_http.getSessionUA)();
-      (0, import_http.setSessionUA)(currentUA);
-      const tmdbIdOnly = (0, import_helpers.cleanTmdbId)(tmdbId);
-      const imdbInfo = yield (0, import_tmdb.getCorrectImdbId)(tmdbIdOnly, mediaType);
-      if (!imdbInfo || !imdbInfo.imdbId) {
-        console.log(`[Embed69] No IMDB ID found`);
+      const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
+      const info = yield (0, import_tmdb.getTmdbInfo)(realId, mediaType, "es-MX");
+      const title = info == null ? void 0 : info.title;
+      if (!title)
         return [];
+      const slug = (0, import_title.buildSlug)(title);
+      if (!slug)
+        return [];
+      let pageUrl;
+      if (isMovieType) {
+        pageUrl = `${BASE_URL}/pelicula/${realId}/${slug}`;
+      } else {
+        const s = season || "1";
+        const ep = episode || "1";
+        pageUrl = `${BASE_URL}/serie/${realId}/${slug}/temporada/${s}/episodio/${ep}`;
       }
-      let displayTitle = title || "Contenido";
-      if (imdbInfo && imdbInfo.title)
-        displayTitle = imdbInfo.title;
-      let urlSuffix = imdbInfo.imdbId;
-      if (s !== null && e !== null) {
-        const epPadded = (0, import_helpers.padEpisode)(e);
-        urlSuffix = `${imdbInfo.imdbId}-${s}x${epPadded}`;
+      console.log(`[PoseidonHD2] Obteniendo p\xE1gina: ${pageUrl}`);
+      const html = yield (0, import_http.fetchHtml)(pageUrl, { headers: HEADERS });
+      if (!html || html.includes("Page not found"))
+        return [];
+      const nextData = extractNextData(html);
+      if (!nextData)
+        return [];
+      const pp = (_a = nextData.props) == null ? void 0 : _a.pageProps;
+      if (!pp)
+        return [];
+      const dataSource = isMovieType ? pp.thisMovie : pp.episode;
+      if (!dataSource || !dataSource.videos)
+        return [];
+      const videoEntries = [];
+      for (const lang of ["latino", "spanish", "english"]) {
+        const langVideos = dataSource.videos[lang];
+        if (!Array.isArray(langVideos))
+          continue;
+        for (const v of langVideos) {
+          if (v && v.result) {
+            videoEntries.push({
+              playerUrl: v.result,
+              quality: v.quality || "HD",
+              serverLabel: v.cyberlocker || "",
+              language: LANGUAGE_MAP[lang] || "Latino"
+            });
+          }
+        }
       }
-      const url = `${BASE_URL}/f/${urlSuffix}`;
-      console.log(`[Embed69] Searching: ${url}`);
-      const response = yield fetch(url, {
-        method: "GET",
-        headers: { "User-Agent": currentUA, Referer: BASE_URL + "/" }
-      });
-      if (!response.ok)
+      if (videoEntries.length === 0)
         return [];
-      const html = yield response.text();
-      const match = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
-      if (!match)
-        return [];
-      let rawData = JSON.parse(match[1].replace(/\\\//g, "/"));
-      let data = Array.isArray(rawData) ? rawData : Object.values(rawData);
-      const CryptoJS2 = require("crypto-js");
-      const powChallengeMatch = html.match(/POW_CHALLENGE\s*=\s*['"]([^'"]+)['"]/);
-      const powDifficultyMatch = html.match(/POW_DIFFICULTY\s*=\s*(\d+)/);
-      const powSaltMatch = html.match(/POW_SALT\s*=\s*['"]([^'"]+)['"]/);
-      if (!powChallengeMatch || !powDifficultyMatch || !powSaltMatch) {
-        console.log(`[Embed69] PoW params not found`);
-        return [];
-      }
-      const powChallenge = powChallengeMatch[1];
-      const powDifficulty = parseInt(powDifficultyMatch[1]);
-      const powSalt = powSaltMatch[1];
-      function solvePoW(challenge, difficulty, signal) {
-        return __async(this, null, function* () {
-          const prefix = "0".repeat(difficulty);
-          let nonce2 = 0;
-          const MAX_ITERATIONS = 5e4;
-          while (nonce2 < MAX_ITERATIONS) {
-            if (signal == null ? void 0 : signal.aborted)
+      const rawStreams = [];
+      const resolved = yield (0, import_parallel.parallelWithLimit)(
+        videoEntries,
+        (entry) => __async(this, null, function* () {
+          try {
+            const embedUrl = yield fetchPlayerEmbed(entry.playerUrl);
+            if (!embedUrl)
               return null;
-            for (let i = 0; i < 100; i++) {
-              const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-              if (hash.startsWith(prefix))
-                return nonce2;
-              nonce2++;
+            const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
+            if (result && result.url) {
+              return {
+                langLabel: entry.language,
+                url: result.url,
+                quality: result.quality || entry.quality || "HD",
+                headers: result.headers || {},
+                serverLabel: entry.serverLabel
+              };
             }
-            yield new Promise((r) => setTimeout(r, 0));
+          } catch (e) {
+            console.warn(`[PoseidonHD2] Error procesando ${entry.serverLabel}: ${e.message}`);
           }
-          console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
           return null;
-        });
-      }
-      console.log(`[Embed69] Solving PoW (difficulty: ${powDifficulty})...`);
-      const nonce = yield solvePoW(powChallenge, powDifficulty);
-      if (nonce === null) {
-        console.log(`[Embed69] PoW failed or aborted`);
-        return [];
-      }
-      const aesKey = deriveKey(powChallenge, nonce, powSalt);
-      console.log(`[Embed69] PoW solved (nonce: ${nonce})`);
-      const langMap = { LAT: "Latino", ESP: "Espa\xF1ol", SUB: "Subtitulado" };
-      const langPriority = ["LAT", "ESP", "SUB"];
-      const byLang = {};
-      for (const item of data) {
-        const vLang = (item.video_language || "LAT").toUpperCase();
-        byLang[vLang] = item;
-      }
-      const streams = [];
-      for (const lang of langPriority) {
-        const item = byLang[lang];
-        if (!item)
-          continue;
-        const currentLangLabel = langMap[lang] || "Latino";
-        if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
-          continue;
-        const embeds = [];
-        for (const embed of item.sortedEmbeds) {
-          if (!embed.link)
-            continue;
-          const decryptedUrl = decryptLink(embed.link, aesKey);
-          if (!decryptedUrl || !decryptedUrl.startsWith("http")) {
-            console.log(`[Embed69] Decrypt failed for ${embed.servername || "unknown"}`);
-            continue;
-          }
-          embeds.push({ url: decryptedUrl, servername: embed.servername });
-        }
-        if (embeds.length === 0)
-          continue;
-        console.log(`[Embed69] Resolving ${embeds.length} embeds (${lang})...`);
-        const resolvedResults = yield Promise.allSettled(
-          embeds.map((emb) => resolveEmbedLocal(emb.url))
-        );
-        const resolved = resolvedResults.filter((r) => r.status === "fulfilled" && r.value && r.value.url).map((r) => r.value).map((result) => ({
-          serverName: result.serverName || "Server",
-          audio: currentLangLabel,
-          quality: result.quality || "HD",
-          url: result.url,
-          headers: result.headers || { "User-Agent": currentUA }
-        }));
-        if (resolved.length > 0) {
-          streams.push(...resolved);
-          console.log(`[Embed69] \u2713 Streams found in ${lang}, stopping cascade`);
-          break;
-        } else {
-          console.log(`[Embed69] No streams in ${lang}, trying next language...`);
-        }
-      }
-      return yield (0, import_engine.finalizeStreams)(streams, "Embed69", displayTitle);
-    } catch (error) {
-      console.error(`[Embed69] Error: ${error.message}`);
+        }),
+        5
+      );
+      rawStreams.push(...resolved.filter(Boolean));
+      return yield (0, import_engine.finalizeStreams)(rawStreams, "PoseidonHD2");
+    } catch (e) {
+      console.error(`[PoseidonHD2] Error: ${e.message}`);
       return [];
     }
   });
 }
 
-// src/embed69/index.js
+// src/poseidonhd2/index.js
 function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
       return yield extractStreams(tmdbId, mediaType, season, episode);
     } catch (e) {
-      console.error(`[Embed69] Error: ${e.message}`);
+      console.error(`[PoseidonHD2] Error: ${e.message}`);
       return [];
     }
   });
