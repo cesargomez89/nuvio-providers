@@ -69,7 +69,10 @@ async function validateStream(stream, signal = null) {
     if (signal) fetchOptions.signal = signal;
 
     const response = await fetch(url, fetchOptions);
-    if (!response.ok) return { ...stream, verified: false };
+    if (!response.ok) {
+      await response.text().catch(() => {});
+      return { ...stream, verified: false };
+    }
 
     if (stream.quality) {
       const resultData = { verified: true, quality: stream.quality, isReal: true };
@@ -86,7 +89,10 @@ async function validateStream(stream, signal = null) {
 
     fetchOptions.method = 'GET';
     const getResponse = await fetch(url, fetchOptions);
-    if (!getResponse.ok) return { ...stream, verified: false };
+    if (!getResponse.ok) {
+      await getResponse.text().catch(() => {});
+      return { ...stream, verified: false };
+    }
 
     const text = await getResponse.text();
     const info = parseBestQuality(text, url);

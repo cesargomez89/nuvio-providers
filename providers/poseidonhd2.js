@@ -1,6 +1,6 @@
 /**
  * poseidonhd2 - Built from src/poseidonhd2/
- * Generated: 2026-07-18T22:14:27.129Z
+ * Generated: 2026-07-18T22:44:19.890Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -69,7 +69,7 @@ var __async = (__this, __arguments, generator) => {
 var require_http = __commonJS({
   "src/utils/http.js"(exports2, module2) {
     var DEFAULT_CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-    var DEFAULT_TIMEOUT = 8e3;
+    var DEFAULT_TIMEOUT = 15e3;
     function getCinebyHeaders() {
       return {
         Accept: "*/*",
@@ -131,13 +131,26 @@ var require_http = __commonJS({
           const response = yield fetch(url, fetchOptions);
           if (opt.redirect === "manual" && (response.status === 301 || response.status === 302)) {
             const redirectUrl = response.headers.get("location");
+            response.text().catch(() => {
+            });
             console.log(`[HTTP] Redirecci\xF3n detectada (Manual): ${redirectUrl}`);
             return { status: response.status, redirectUrl, ok: false };
           }
+          const body = yield response.text();
           if (!response.ok && !opt.ignoreErrors) {
             console.warn("[HTTP] Error " + response.status + " en " + url);
           }
-          return response;
+          return {
+            ok: response.ok,
+            status: response.status,
+            statusText: response.statusText,
+            url: response.url,
+            headers: response.headers,
+            redirected: response.redirected,
+            body,
+            text: () => Promise.resolve(body),
+            json: () => Promise.resolve(JSON.parse(body))
+          };
         } catch (error) {
           console.error("[HTTP] Error en " + url + ": " + error.message);
           throw error;
@@ -271,8 +284,11 @@ var require_m3u8 = __commonJS({
           if (signal)
             fetchOptions.signal = signal;
           const response = yield fetch(url, fetchOptions);
-          if (!response.ok)
+          if (!response.ok) {
+            yield response.text().catch(() => {
+            });
             return __spreadProps(__spreadValues({}, stream), { verified: false });
+          }
           if (stream.quality) {
             const resultData2 = { verified: true, quality: stream.quality, isReal: true };
             VALIDATION_CACHE.set(url, resultData2);
@@ -286,8 +302,11 @@ var require_m3u8 = __commonJS({
           }
           fetchOptions.method = "GET";
           const getResponse = yield fetch(url, fetchOptions);
-          if (!getResponse.ok)
+          if (!getResponse.ok) {
+            yield getResponse.text().catch(() => {
+            });
             return __spreadProps(__spreadValues({}, stream), { verified: false });
+          }
           const text = yield getResponse.text();
           const info = parseBestQuality(text, url);
           const resultData = {
@@ -563,7 +582,7 @@ var require_engine = __commonJS({
                   const controller = hasAbort ? new AbortController() : null;
                   let timeoutId;
                   if (hasAbort)
-                    timeoutId = setTimeout(() => controller.abort(), 1500);
+                    timeoutId = setTimeout(() => controller.abort(), 5e3);
                   try {
                     const validated = yield validateStream(s, hasAbort ? controller.signal : null);
                     clearTimeout(timeoutId);

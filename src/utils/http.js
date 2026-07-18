@@ -1,6 +1,6 @@
 const DEFAULT_CHROME_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-const DEFAULT_TIMEOUT = 8000;
+const DEFAULT_TIMEOUT = 15000;
 
 function getCinebyHeaders() {
   return {
@@ -74,13 +74,28 @@ async function request(url, options = {}) {
 
     if (opt.redirect === 'manual' && (response.status === 301 || response.status === 302)) {
       const redirectUrl = response.headers.get('location');
+      response.text().catch(() => {});
       console.log(`[HTTP] Redirección detectada (Manual): ${redirectUrl}`);
       return { status: response.status, redirectUrl, ok: false };
     }
+
+    const body = await response.text();
+
     if (!response.ok && !opt.ignoreErrors) {
       console.warn('[HTTP] Error ' + response.status + ' en ' + url);
     }
-    return response;
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+      url: response.url,
+      headers: response.headers,
+      redirected: response.redirected,
+      body,
+      text: () => Promise.resolve(body),
+      json: () => Promise.resolve(JSON.parse(body)),
+    };
   } catch (error) {
     console.error('[HTTP] Error en ' + url + ': ' + error.message);
     throw error;
