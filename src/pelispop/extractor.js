@@ -27,8 +27,8 @@ function fetchWithTimeout(url, options = {}) {
   }
   const opts = { ...options };
   delete opts.signal;
-  return fetchHtml(url, hasAbort ? { ...opts, signal: controller.signal } : opts).finally(
-    () => clearTimeout(timeoutId)
+  return fetchHtml(url, hasAbort ? { ...opts, signal: controller.signal } : opts).finally(() =>
+    clearTimeout(timeoutId)
   );
 }
 
@@ -66,7 +66,13 @@ async function getSeriesUrl(slug) {
   try {
     const html = await fetchWithTimeout(url, { headers: HEADERS });
     if (!html || html.includes('404 Not Found')) return null;
-    if (!html.includes('Temporada') && !html.includes('temporada') && !html.includes('capitulo') && !html.includes('Episodio')) return null;
+    if (
+      !html.includes('Temporada') &&
+      !html.includes('temporada') &&
+      !html.includes('capitulo') &&
+      !html.includes('Episodio')
+    )
+      return null;
     console.log(`[PelisPop] ✓ Encontrado serie: /serie/${slug}/`);
     return url;
   } catch (e) {

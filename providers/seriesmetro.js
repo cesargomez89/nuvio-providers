@@ -1,6 +1,6 @@
 /**
  * seriesmetro - Built from src/seriesmetro/
- * Generated: 2026-07-18T20:29:41.257Z
+ * Generated: 2026-07-18T20:42:28.238Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3943,7 +3943,13 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       let targetUrl = found.url;
       if (!(0, import_helpers.isMovie)(mediaType) && season && episode) {
-        const epUrl = yield getEpisodeUrl(found.url, found.html, parseInt(season), parseInt(episode), mainController.signal);
+        const epUrl = yield getEpisodeUrl(
+          found.url,
+          found.html,
+          parseInt(season),
+          parseInt(episode),
+          mainController.signal
+        );
         if (!epUrl)
           return [];
         targetUrl = epUrl;

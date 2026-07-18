@@ -45,7 +45,7 @@ async function resolve(url, signal = null) {
             if (hash.startsWith(prefix)) return nonce;
             nonce++;
           }
-          await new Promise(r => setTimeout(r, 0));
+          await new Promise((r) => setTimeout(r, 0));
         }
         console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
         return null;

@@ -86,7 +86,7 @@ async function searchById(tmdbInfo, extraAliases) {
       if (!data || !data.data || !data.data.posts) continue;
 
       const normTerm = normalizeTitle(term);
-      const termWords = normTerm.split(/\s+/).filter(w => w.length > 3);
+      const termWords = normTerm.split(/\s+/).filter((w) => w.length > 3);
       let bestMatch = null;
 
       for (const post of data.data.posts) {
@@ -110,7 +110,7 @@ async function searchById(tmdbInfo, extraAliases) {
         for (const post of data.data.posts) {
           const normTitle = normalizeTitle(post.title);
           const resultWords = normTitle.split(/\s+/);
-          if (termWords.some(w => resultWords.includes(w))) {
+          if (termWords.some((w) => resultWords.includes(w))) {
             bestMatch = post;
             console.log(`[LaMovie] Word-match: "${post.title}" → id:${post._id}`);
             break;

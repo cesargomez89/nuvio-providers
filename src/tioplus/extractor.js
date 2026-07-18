@@ -11,7 +11,10 @@ async function getRedirectUrl(serverEncoded, referer, signal) {
   try {
     const doubleB64 = toDoubleBase64(serverEncoded);
     const playerUrl = `${BASE_URL}/player/${doubleB64}`;
-    const html = await fetchHtml(playerUrl, { headers: { 'User-Agent': UA, Referer: referer }, signal });
+    const html = await fetchHtml(playerUrl, {
+      headers: { 'User-Agent': UA, Referer: referer },
+      signal,
+    });
     if (!html || html.length < 50) return null;
     const match = html.match(/(?:window\.)?location\.href\s*=\s*['"]([^'"]+)['"]/i);
     let finalUrl = match ? match[1] : null;
@@ -50,7 +53,10 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     const typePrefix = isMovie(mediaType) ? 'pelicula' : 'serie';
     const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
-    const directHtml = await fetchHtml(directUrl, { headers: { 'User-Agent': UA }, signal: mainController.signal });
+    const directHtml = await fetchHtml(directUrl, {
+      headers: { 'User-Agent': UA },
+      signal: mainController.signal,
+    });
     if (
       directHtml &&
       !directHtml.includes('404') &&
@@ -62,7 +68,10 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     if (candidates.length === 0) {
       const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
-      const html = await fetchHtml(searchUrl, { headers: { 'User-Agent': UA }, signal: mainController.signal });
+      const html = await fetchHtml(searchUrl, {
+        headers: { 'User-Agent': UA },
+        signal: mainController.signal,
+      });
       if (html) {
         const itemRegex =
           /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;

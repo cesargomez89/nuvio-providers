@@ -8,7 +8,8 @@ import { parallelWithLimit } from '../utils/parallel.js';
 
 const BASE_URL = 'https://www2.gnula.one';
 const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   'Accept-Language': 'es-MX,es;q=0.9',
   Referer: `${BASE_URL}/`,
 };
@@ -30,7 +31,13 @@ function extractLanguageFromEm(text) {
   const parts = text.split(',').map((p) => p.trim());
   for (const part of parts) {
     const lower = part.toLowerCase();
-    if (lower === 'latino' || lower === 'castellano' || lower === 'vose' || lower === 'subtitulado' || lower === 'español') {
+    if (
+      lower === 'latino' ||
+      lower === 'castellano' ||
+      lower === 'vose' ||
+      lower === 'subtitulado' ||
+      lower === 'español'
+    ) {
       return part;
     }
   }
@@ -102,7 +109,12 @@ async function getMovieUrl(slug, expectedYear) {
     const url = `${BASE_URL}/movie/${s}/`;
     try {
       const html = await fetchWithTimeout(url, { headers: HEADERS });
-      if (!html || html.includes('404 Not Found') || !html.includes('class="iframes"') || !html.includes('contenedor_tab')) {
+      if (
+        !html ||
+        html.includes('404 Not Found') ||
+        !html.includes('class="iframes"') ||
+        !html.includes('contenedor_tab')
+      ) {
         continue;
       }
       if (expectedYear) {
@@ -127,7 +139,9 @@ async function searchResults(title) {
     let match;
     while ((match = linkRegex.exec(html)) !== null) {
       const url = match[1];
-      const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+      const fullUrl = url.startsWith('http')
+        ? url
+        : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
       if (!results.includes(fullUrl)) results.push(fullUrl);
     }
     return results;
@@ -174,7 +188,8 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       for (const result of searchResultsList) {
         try {
           const html = await fetchWithTimeout(result, { headers: HEADERS });
-          if (!html || html.includes('404 Not Found') || !html.includes('class="iframes"')) continue;
+          if (!html || html.includes('404 Not Found') || !html.includes('class="iframes"'))
+            continue;
           if (releaseYear) {
             const yearRegex = new RegExp(`\\(${releaseYear}\\)`);
             if (!yearRegex.test(html)) continue;
@@ -198,22 +213,26 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     const rawStreams = [];
     for (const section of sections) {
-      const resolved = await parallelWithLimit(section.urls, async (embedUrl) => {
-        try {
-          const result = await resolveEmbed(embedUrl);
-          if (result && result.url) {
-            return {
-              langLabel: section.language,
-              url: result.url,
-              quality: result.quality || section.quality,
-              headers: result.headers || {},
-            };
+      const resolved = await parallelWithLimit(
+        section.urls,
+        async (embedUrl) => {
+          try {
+            const result = await resolveEmbed(embedUrl);
+            if (result && result.url) {
+              return {
+                langLabel: section.language,
+                url: result.url,
+                quality: result.quality || section.quality,
+                headers: result.headers || {},
+              };
+            }
+          } catch (e) {
+            console.warn(`[GnulaHD] Error procesando embed: ${e.message}`);
           }
-        } catch (e) {
-          console.warn(`[GnulaHD] Error procesando embed: ${e.message}`);
-        }
-        return null;
-      }, 5);
+          return null;
+        },
+        5
+      );
       rawStreams.push(...resolved.filter(Boolean));
     }
 

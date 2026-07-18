@@ -1,6 +1,6 @@
 /**
  * verteleseriesonline - Built from src/verteleseriesonline/
- * Generated: 2026-07-18T20:29:41.271Z
+ * Generated: 2026-07-18T20:42:28.252Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3873,7 +3873,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId || !mediaType || mediaType === "movie" || mediaType === "movies")
       return [];
-    console.log(`[VerTeleSeries] Buscando: TMDB ${tmdbId} (${mediaType}) S${season || "?"}E${episode || "?"}`);
+    console.log(
+      `[VerTeleSeries] Buscando: TMDB ${tmdbId} (${mediaType}) S${season || "?"}E${episode || "?"}`
+    );
     try {
       const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
       let mediaTitle = title;
@@ -3957,22 +3959,26 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         langGroups[mirror.language].push(mirror.url);
       }
       for (const [language, urls] of Object.entries(langGroups)) {
-        const resolved = yield (0, import_parallel.parallelWithLimit)(urls, (embedUrl) => __async(this, null, function* () {
-          try {
-            const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
-            if (result && result.url) {
-              return {
-                langLabel: language,
-                url: result.url,
-                quality: result.quality,
-                headers: result.headers || {}
-              };
+        const resolved = yield (0, import_parallel.parallelWithLimit)(
+          urls,
+          (embedUrl) => __async(this, null, function* () {
+            try {
+              const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
+              if (result && result.url) {
+                return {
+                  langLabel: language,
+                  url: result.url,
+                  quality: result.quality,
+                  headers: result.headers || {}
+                };
+              }
+            } catch (e) {
+              console.warn(`[VerTeleSeries] Error procesando embed: ${e.message}`);
             }
-          } catch (e) {
-            console.warn(`[VerTeleSeries] Error procesando embed: ${e.message}`);
-          }
-          return null;
-        }), 5);
+            return null;
+          }),
+          5
+        );
         rawStreams.push(...resolved.filter(Boolean));
       }
       return yield (0, import_engine.finalizeStreams)(rawStreams, "VerTeleSeries", mediaTitle);

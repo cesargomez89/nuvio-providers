@@ -1,6 +1,6 @@
 /**
  * gnulahd - Built from src/gnulahd/
- * Generated: 2026-07-18T20:29:41.217Z
+ * Generated: 2026-07-18T20:42:28.201Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3937,22 +3937,26 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         return [];
       const rawStreams = [];
       for (const section of sections) {
-        const resolved = yield (0, import_parallel.parallelWithLimit)(section.urls, (embedUrl) => __async(this, null, function* () {
-          try {
-            const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
-            if (result && result.url) {
-              return {
-                langLabel: section.language,
-                url: result.url,
-                quality: result.quality || section.quality,
-                headers: result.headers || {}
-              };
+        const resolved = yield (0, import_parallel.parallelWithLimit)(
+          section.urls,
+          (embedUrl) => __async(this, null, function* () {
+            try {
+              const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
+              if (result && result.url) {
+                return {
+                  langLabel: section.language,
+                  url: result.url,
+                  quality: result.quality || section.quality,
+                  headers: result.headers || {}
+                };
+              }
+            } catch (e) {
+              console.warn(`[GnulaHD] Error procesando embed: ${e.message}`);
             }
-          } catch (e) {
-            console.warn(`[GnulaHD] Error procesando embed: ${e.message}`);
-          }
-          return null;
-        }), 5);
+            return null;
+          }),
+          5
+        );
         rawStreams.push(...resolved.filter(Boolean));
       }
       return yield (0, import_engine.finalizeStreams)(rawStreams, "GnulaHD", mediaTitle);

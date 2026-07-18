@@ -233,7 +233,13 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     let targetUrl = found.url;
     if (!isMovie(mediaType) && season && episode) {
-      const epUrl = await getEpisodeUrl(found.url, found.html, parseInt(season), parseInt(episode), mainController.signal);
+      const epUrl = await getEpisodeUrl(
+        found.url,
+        found.html,
+        parseInt(season),
+        parseInt(episode),
+        mainController.signal
+      );
       if (!epUrl) return [];
       targetUrl = epUrl;
     }

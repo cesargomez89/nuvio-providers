@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-07-18T20:29:41.267Z
+ * Generated: 2026-07-18T20:42:28.249Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3648,7 +3648,10 @@ function getRedirectUrl(serverEncoded, referer, signal) {
     try {
       const doubleB64 = (0, import_helpers.toDoubleBase64)(serverEncoded);
       const playerUrl = `${BASE_URL}/player/${doubleB64}`;
-      const html = yield (0, import_http.fetchHtml)(playerUrl, { headers: { "User-Agent": UA, Referer: referer }, signal });
+      const html = yield (0, import_http.fetchHtml)(playerUrl, {
+        headers: { "User-Agent": UA, Referer: referer },
+        signal
+      });
       if (!html || html.length < 50)
         return null;
       const match = html.match(/(?:window\.)?location\.href\s*=\s*['"]([^'"]+)['"]/i);
@@ -3683,13 +3686,19 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const candidates = [];
       const typePrefix = (0, import_helpers.isMovie)(mediaType) ? "pelicula" : "serie";
       const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
-      const directHtml = yield (0, import_http.fetchHtml)(directUrl, { headers: { "User-Agent": UA }, signal: mainController.signal });
+      const directHtml = yield (0, import_http.fetchHtml)(directUrl, {
+        headers: { "User-Agent": UA },
+        signal: mainController.signal
+      });
       if (directHtml && !directHtml.includes("404") && !directHtml.includes("Not Found") && directHtml.length > 1e3) {
         candidates.push({ url: directUrl, title: mediaTitle });
       }
       if (candidates.length === 0) {
         const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
-        const html = yield (0, import_http.fetchHtml)(searchUrl, { headers: { "User-Agent": UA }, signal: mainController.signal });
+        const html = yield (0, import_http.fetchHtml)(searchUrl, {
+          headers: { "User-Agent": UA },
+          signal: mainController.signal
+        });
         if (html) {
           const itemRegex = /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;
           let match;

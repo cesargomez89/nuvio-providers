@@ -1,6 +1,6 @@
 /**
  * cineby - Built from src/cineby/
- * Generated: 2026-07-18T20:29:41.182Z
+ * Generated: 2026-07-18T20:42:28.167Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1022,26 +1022,47 @@ var HEADERS = {
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+var seedCache = /* @__PURE__ */ new Map();
+function getCachedSeed(tmdbId) {
+  const entry = seedCache.get(tmdbId);
+  if (entry && Date.now() < entry.expiresAt)
+    return entry.seed;
+  return null;
+}
+function setCachedSeed(tmdbId, seed, ttlMs) {
+  seedCache.set(tmdbId, { seed, expiresAt: Date.now() + ttlMs });
+}
+function fetchSeed(numericId) {
+  return __async(this, null, function* () {
+    const cached = getCachedSeed(numericId);
+    if (cached)
+      return cached;
+    const seedUrl = `${API_BASE}/seed?mediaId=${numericId}`;
+    const seedData = yield (0, import_http.fetchJson)(seedUrl, { headers: HEADERS });
+    if (!seedData || !seedData.seed) {
+      throw new Error("No seed in response");
+    }
+    setCachedSeed(numericId, seedData.seed, seedData.ttlMs || 3e4);
+    return seedData.seed;
+  });
+}
 function tryApiPath(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     const numericId = parseInt((0, import_helpers.cleanTmdbId)(tmdbId));
     const isMovie = mediaType === "movie";
     const s = season !== void 0 && season !== null ? parseInt(season) : 0;
     const e = episode !== void 0 && episode !== null ? parseInt(episode) : 0;
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 5; attempt++) {
       try {
-        const seedUrl = `${API_BASE}/seed?mediaId=${numericId}`;
-        const seedData = yield (0, import_http.fetchJson)(seedUrl, { headers: HEADERS });
-        const seed = seedData.seed;
-        if (!seed) {
-          console.log(`[Cineby] No seed in response`);
-          continue;
-        }
+        const seed = yield fetchSeed(numericId);
         const mediaTypeParam = isMovie ? "movie" : "tv";
         const sourcesUrl = `${API_BASE}/cdn/sources-with-title?tmdbId=${numericId}&mediaType=${mediaTypeParam}&seasonId=${s}&episodeId=${e}&enc=2&seed=${seed}`;
-        const encryptedData = yield (0, import_http.fetchJson)(sourcesUrl, { headers: HEADERS });
-        if (typeof encryptedData === "string" && encryptedData.length > 0) {
-          const decrypted = decryptSources(encryptedData, seed, numericId);
+        const resp = yield fetch(sourcesUrl, {
+          headers: Object.assign({}, HEADERS, { Accept: "text/plain, */*" })
+        });
+        const encryptedText = yield resp.text();
+        if (encryptedText && encryptedText.length > 0 && encryptedText !== "{}") {
+          const decrypted = decryptSources(encryptedText, seed, numericId);
           if (decrypted && decrypted.sources && decrypted.sources.length > 0) {
             return decrypted.sources.map((src) => ({
               url: src.url,
@@ -1051,9 +1072,11 @@ function tryApiPath(tmdbId, mediaType, season, episode) {
           }
         }
       } catch (e2) {
-        console.log(`[Cineby] API attempt ${attempt + 1} failed: ${e2.message}`);
-        if (attempt < 2)
-          yield sleep(1e3);
+        console.log(`[Cineby] API attempt ${attempt + 1}/5 failed: ${e2.message}`);
+        if (attempt < 4) {
+          const delay = Math.min(1e3 * Math.pow(2, attempt) + Math.random() * 1e3, 15e3);
+          yield sleep(delay);
+        }
       }
     }
     return null;

@@ -20,28 +20,52 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const seedCache = new Map();
+
+function getCachedSeed(tmdbId) {
+  const entry = seedCache.get(tmdbId);
+  if (entry && Date.now() < entry.expiresAt) return entry.seed;
+  return null;
+}
+
+function setCachedSeed(tmdbId, seed, ttlMs) {
+  seedCache.set(tmdbId, { seed, expiresAt: Date.now() + ttlMs });
+}
+
+async function fetchSeed(numericId) {
+  const cached = getCachedSeed(numericId);
+  if (cached) return cached;
+
+  const seedUrl = `${API_BASE}/seed?mediaId=${numericId}`;
+  const seedData = await fetchJson(seedUrl, { headers: HEADERS });
+
+  if (!seedData || !seedData.seed) {
+    throw new Error('No seed in response');
+  }
+
+  setCachedSeed(numericId, seedData.seed, seedData.ttlMs || 30000);
+  return seedData.seed;
+}
+
 async function tryApiPath(tmdbId, mediaType, season, episode) {
   const numericId = parseInt(cleanTmdbId(tmdbId));
   const isMovie = mediaType === 'movie';
   const s = season !== undefined && season !== null ? parseInt(season) : 0;
   const e = episode !== undefined && episode !== null ? parseInt(episode) : 0;
 
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 5; attempt++) {
     try {
-      const seedUrl = `${API_BASE}/seed?mediaId=${numericId}`;
-      const seedData = await fetchJson(seedUrl, { headers: HEADERS });
-      const seed = seedData.seed;
-      if (!seed) {
-        console.log(`[Cineby] No seed in response`);
-        continue;
-      }
+      const seed = await fetchSeed(numericId);
 
       const mediaTypeParam = isMovie ? 'movie' : 'tv';
       const sourcesUrl = `${API_BASE}/cdn/sources-with-title?tmdbId=${numericId}&mediaType=${mediaTypeParam}&seasonId=${s}&episodeId=${e}&enc=2&seed=${seed}`;
-      const encryptedData = await fetchJson(sourcesUrl, { headers: HEADERS });
+      const resp = await fetch(sourcesUrl, {
+        headers: Object.assign({}, HEADERS, { Accept: 'text/plain, */*' }),
+      });
+      const encryptedText = await resp.text();
 
-      if (typeof encryptedData === 'string' && encryptedData.length > 0) {
-        const decrypted = decryptSources(encryptedData, seed, numericId);
+      if (encryptedText && encryptedText.length > 0 && encryptedText !== '{}') {
+        const decrypted = decryptSources(encryptedText, seed, numericId);
         if (decrypted && decrypted.sources && decrypted.sources.length > 0) {
           return decrypted.sources.map((src) => ({
             url: src.url,
@@ -51,8 +75,11 @@ async function tryApiPath(tmdbId, mediaType, season, episode) {
         }
       }
     } catch (e) {
-      console.log(`[Cineby] API attempt ${attempt + 1} failed: ${e.message}`);
-      if (attempt < 2) await sleep(1000);
+      console.log(`[Cineby] API attempt ${attempt + 1}/5 failed: ${e.message}`);
+      if (attempt < 4) {
+        const delay = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 1000, 15000);
+        await sleep(delay);
+      }
     }
   }
   return null;
