@@ -80,8 +80,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   if (!tmdbId && !title) return [];
 
   const OVERALL_TIMEOUT = 30000;
-  const mainController = new AbortController();
-  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+  const hasAbort = typeof AbortController !== 'undefined';
+  const mainController = hasAbort ? new AbortController() : null;
+  const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
 
   let searchTitle = title;
   if (!searchTitle) {
@@ -108,7 +109,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const searchUrl = `${BASE}/search?s=${normalizeTitle(searchTitle).replace(/\s+/g, '+')}`;
     const html = await fetchHtml(searchUrl, {
       headers: { Referer: BASE + '/' },
-      signal: mainController.signal,
+      signal: mainController ? mainController.signal : undefined,
     });
 
     const re = /href="(https:\/\/pelispedia\.mov\/(pelicula|serie)\/([^"]+))"/gi;
@@ -134,7 +135,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     console.log(`[PelisPedia] Found: ${targetUrl}`);
 
-    const rawEmbeds = await extractPlayerEmbeds(targetUrl, mainController.signal);
+    const rawEmbeds = await extractPlayerEmbeds(targetUrl, mainController ? mainController.signal : undefined);
     const streams = [];
     const EMBED_LIMIT = 3;
 
@@ -145,7 +146,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
           let currentUrl = embed.url;
           let resolved = null;
 
-          resolved = await resolveEmbed(currentUrl, mainController.signal);
+          resolved = await resolveEmbed(currentUrl, mainController ? mainController.signal : undefined);
 
           if (resolved) {
             const results = Array.isArray(resolved) ? resolved : [resolved];

@@ -240,8 +240,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     console.log(`[PelisPlus] Resolving ${rawResults.length} sources...`);
 
     const candidates = [];
-    const controller = new AbortController();
-    const signal = controller.signal;
+    const hasAbort = typeof AbortController !== 'undefined';
+    const controller = hasAbort ? new AbortController() : null;
+    const signal = hasAbort ? controller.signal : null;
     let isFinished = false;
     const TARGET_COUNT = 15;
 
@@ -284,7 +285,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
           if (candidates.length >= TARGET_COUNT) {
             isFinished = true;
             try {
-              controller.abort();
+              if (controller) controller.abort();
             } catch {}
           }
         }
@@ -301,7 +302,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       timeoutId = setTimeout(() => {
         isFinished = true;
         try {
-          controller.abort();
+          if (controller) controller.abort();
         } catch {}
         resolve();
       }, 10000);

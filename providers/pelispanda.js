@@ -1,6 +1,6 @@
 /**
  * pelispanda - Built from src/pelispanda/
- * Generated: 2026-07-18T22:06:48.040Z
+ * Generated: 2026-07-18T22:14:27.112Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3418,8 +3418,9 @@ function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
   return __async(this, null, function* () {
     console.log(`[PelisPanda] Sync-Extracci\xF3n para TMDB: ${tmdbId} (${mediaType})`);
     const OVERALL_TIMEOUT = 3e4;
-    const mainController = new AbortController();
-    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+    const hasAbort = typeof AbortController !== "undefined";
+    const mainController = hasAbort ? new AbortController() : null;
+    const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
     try {
       let searchTitle = providedTitle;
       if (!searchTitle || searchTitle === tmdbId) {
@@ -3468,7 +3469,7 @@ function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
         if (!rawUrl)
           return null;
         try {
-          const resolvedData = yield (0, import_resolvers.resolveEmbed)(rawUrl, mainController.signal);
+          const resolvedData = yield (0, import_resolvers.resolveEmbed)(rawUrl, mainController ? mainController.signal : void 0);
           if (!resolvedData || !resolvedData.url)
             return null;
           const streamData = {
@@ -3482,11 +3483,12 @@ function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
               Referer: rawUrl
             }
           };
-          const validationController = new AbortController();
-          const validationTimer = setTimeout(() => validationController.abort(), 4500);
-          mainController.signal.addEventListener("abort", () => validationController.abort());
+          const validationController = hasAbort ? new AbortController() : null;
+          const validationTimer = validationController ? setTimeout(() => validationController.abort(), 4500) : null;
+          if (mainController && validationController)
+            mainController.signal.addEventListener("abort", () => validationController.abort());
           try {
-            return yield (0, import_m3u8.validateStream)(streamData, validationController.signal);
+            return yield (0, import_m3u8.validateStream)(streamData, validationController ? validationController.signal : void 0);
           } catch (e) {
             return streamData;
           } finally {

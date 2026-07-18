@@ -32,8 +32,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   if (!tmdbId || !mediaType) return [];
   console.log(`[TioPlus] Looking for content: ${tmdbId} (${mediaType})`);
   const OVERALL_TIMEOUT = 25000;
-  const mainController = new AbortController();
-  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+  const hasAbort = typeof AbortController !== 'undefined';
+  const mainController = hasAbort ? new AbortController() : null;
+  const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
 
   try {
     const tmdbInfo = await getTmdbInfo(tmdbId, mediaType, 'es-ES');
@@ -55,7 +56,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
     const directHtml = await fetchHtml(directUrl, {
       headers: { 'User-Agent': UA },
-      signal: mainController.signal,
+      signal: mainController ? mainController.signal : undefined,
     });
     if (
       directHtml &&
@@ -70,7 +71,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
       const html = await fetchHtml(searchUrl, {
         headers: { 'User-Agent': UA },
-        signal: mainController.signal,
+        signal: mainController ? mainController.signal : undefined,
       });
       if (html) {
         const itemRegex =
@@ -114,7 +115,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     }
     const mediaHtml = await fetchHtml(finalMediaUrl, {
       headers: { 'User-Agent': UA, Referer: BASE_URL },
-      signal: mainController.signal,
+      signal: mainController ? mainController.signal : undefined,
     });
     if (!mediaHtml) return [];
     const serverRegex = /data-server=['"]([^'"]+)['"][^>]*>[\s\S]*?<span>([^<]+)<\/span>/gi;
@@ -137,14 +138,14 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     if (encodes.length === 0) return [];
 
     const resolutionPromises = encodes.map(async (item) => {
-      const ac = new AbortController();
-      const timer = setTimeout(() => ac.abort(), 10000);
-      mainController.signal.addEventListener('abort', () => ac.abort());
+      const ac = hasAbort ? new AbortController() : null;
+      const timer = ac ? setTimeout(() => ac.abort(), 10000) : null;
+      if (mainController && ac) mainController.signal.addEventListener('abort', () => ac.abort());
       try {
-        const realEmbedUrl = await getRedirectUrl(item.enc, finalMediaUrl, ac.signal);
+        const realEmbedUrl = await getRedirectUrl(item.enc, finalMediaUrl, ac ? ac.signal : undefined);
         if (!realEmbedUrl || !realEmbedUrl.startsWith('http')) return [];
         clearTimeout(timer);
-        const resolved = await resolveEmbed(realEmbedUrl, ac.signal);
+        const resolved = await resolveEmbed(realEmbedUrl, ac ? ac.signal : undefined);
         if (resolved && (resolved.url || (Array.isArray(resolved) && resolved.length > 0))) {
           const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
           return streamsArray.map((s) => ({

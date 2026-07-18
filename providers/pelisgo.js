@@ -1,6 +1,6 @@
 /**
  * pelisgo - Built from src/pelisgo/
- * Generated: 2026-07-18T22:06:48.037Z
+ * Generated: 2026-07-18T22:14:27.109Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3627,13 +3627,16 @@ function getPelisGoHeaders(referer = BASE) {
   });
 }
 function fetchWithTimeout(url, options = {}, timeout = 6e3) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  return fetch(url, __spreadProps(__spreadValues({}, options), { signal: controller.signal })).then((res) => {
-    clearTimeout(id);
+  const hasAbort = typeof AbortController !== "undefined";
+  const controller = hasAbort ? new AbortController() : null;
+  const id = controller ? setTimeout(() => controller.abort(), timeout) : null;
+  return fetch(url, __spreadProps(__spreadValues({}, options), { signal: hasAbort ? controller.signal : null })).then((res) => {
+    if (id)
+      clearTimeout(id);
     return res;
   }).catch(() => {
-    clearTimeout(id);
+    if (id)
+      clearTimeout(id);
     return { text: () => "", json: () => ({}), ok: false, status: 404 };
   });
 }

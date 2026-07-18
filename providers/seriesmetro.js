@@ -1,6 +1,6 @@
 /**
  * seriesmetro - Built from src/seriesmetro/
- * Generated: 2026-07-18T22:06:48.063Z
+ * Generated: 2026-07-18T22:14:27.133Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3945,8 +3945,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId || !mediaType)
       return [];
     const OVERALL_TIMEOUT = 3e4;
-    const mainController = new AbortController();
-    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+    const hasAbort = typeof AbortController !== "undefined";
+    const mainController = hasAbort ? new AbortController() : null;
+    const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
     try {
       const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
       let tmdbInfo = { title, originalTitle: title, aliases: [], year: "" };
@@ -3964,7 +3965,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       if (!tmdbInfo.title)
         return [];
-      const found = yield findContentUrl(tmdbInfo, mediaType, mainController.signal);
+      const found = yield findContentUrl(tmdbInfo, mediaType, mainController ? mainController.signal : void 0);
       if (!found) {
         console.log(`[SeriesMetro] \u2717 No se encontr\xF3 contenido para: ${tmdbInfo.title}`);
         return [];
@@ -3976,13 +3977,13 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           found.html,
           parseInt(season),
           parseInt(episode),
-          mainController.signal
+          mainController ? mainController.signal : void 0
         );
         if (!epUrl)
           return [];
         targetUrl = epUrl;
       }
-      const streams = yield extractStreamsFromPage(targetUrl, found.url, mainController.signal);
+      const streams = yield extractStreamsFromPage(targetUrl, found.url, mainController ? mainController.signal : void 0);
       return yield (0, import_engine.finalizeStreams)(streams, "SeriesMetro", tmdbInfo.title);
     } catch (e) {
       if (e.name === "AbortError") {

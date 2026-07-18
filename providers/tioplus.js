@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-07-18T22:06:48.071Z
+ * Generated: 2026-07-18T22:14:27.138Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3749,8 +3749,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       return [];
     console.log(`[TioPlus] Looking for content: ${tmdbId} (${mediaType})`);
     const OVERALL_TIMEOUT = 25e3;
-    const mainController = new AbortController();
-    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+    const hasAbort = typeof AbortController !== "undefined";
+    const mainController = hasAbort ? new AbortController() : null;
+    const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
     try {
       const tmdbInfo = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType, "es-ES");
       const mediaTitle = (tmdbInfo == null ? void 0 : tmdbInfo.title) || title;
@@ -3764,7 +3765,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
       const directHtml = yield (0, import_http.fetchHtml)(directUrl, {
         headers: { "User-Agent": UA },
-        signal: mainController.signal
+        signal: mainController ? mainController.signal : void 0
       });
       if (directHtml && !directHtml.includes("404") && !directHtml.includes("Not Found") && directHtml.length > 1e3) {
         candidates.push({ url: directUrl, title: mediaTitle });
@@ -3773,7 +3774,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
         const html = yield (0, import_http.fetchHtml)(searchUrl, {
           headers: { "User-Agent": UA },
-          signal: mainController.signal
+          signal: mainController ? mainController.signal : void 0
         });
         if (html) {
           const itemRegex = /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;
@@ -3817,7 +3818,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       const mediaHtml = yield (0, import_http.fetchHtml)(finalMediaUrl, {
         headers: { "User-Agent": UA, Referer: BASE_URL },
-        signal: mainController.signal
+        signal: mainController ? mainController.signal : void 0
       });
       if (!mediaHtml)
         return [];
@@ -3844,15 +3845,16 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       if (encodes.length === 0)
         return [];
       const resolutionPromises = encodes.map((item) => __async(this, null, function* () {
-        const ac = new AbortController();
-        const timer = setTimeout(() => ac.abort(), 1e4);
-        mainController.signal.addEventListener("abort", () => ac.abort());
+        const ac = hasAbort ? new AbortController() : null;
+        const timer = ac ? setTimeout(() => ac.abort(), 1e4) : null;
+        if (mainController && ac)
+          mainController.signal.addEventListener("abort", () => ac.abort());
         try {
-          const realEmbedUrl = yield getRedirectUrl(item.enc, finalMediaUrl, ac.signal);
+          const realEmbedUrl = yield getRedirectUrl(item.enc, finalMediaUrl, ac ? ac.signal : void 0);
           if (!realEmbedUrl || !realEmbedUrl.startsWith("http"))
             return [];
           clearTimeout(timer);
-          const resolved = yield (0, import_resolvers.resolveEmbed)(realEmbedUrl, ac.signal);
+          const resolved = yield (0, import_resolvers.resolveEmbed)(realEmbedUrl, ac ? ac.signal : void 0);
           if (resolved && (resolved.url || Array.isArray(resolved) && resolved.length > 0)) {
             const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
             return streamsArray.map((s) => __spreadProps(__spreadValues({}, s), {

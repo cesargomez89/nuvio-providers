@@ -1,6 +1,6 @@
 /**
  * lamovie - Built from src/lamovie/
- * Generated: 2026-07-18T22:06:48.032Z
+ * Generated: 2026-07-18T22:14:27.105Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3792,8 +3792,9 @@ function extractStreams(tmdbId, mediaType, season, episode) {
       `[LaMovie] Buscando: TMDB ${tmdbId} (${resolvedType})${season ? ` S${season}E${episode}` : ""}`
     );
     const OVERALL_TIMEOUT = 25e3;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), OVERALL_TIMEOUT);
+    const hasAbort = typeof AbortController !== "undefined";
+    const controller = hasAbort ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), OVERALL_TIMEOUT) : null;
     try {
       const [tmdbInfo, aliases] = yield Promise.all([
         getTmdbData(tmdbId, resolvedType),
@@ -3823,7 +3824,7 @@ function extractStreams(tmdbId, mediaType, season, episode) {
         return [];
       }
       const embeds = data.data.embeds;
-      const results = yield Promise.allSettled(embeds.map((e) => processEmbed(e, controller.signal)));
+      const results = yield Promise.allSettled(embeds.map((e) => processEmbed(e, controller ? controller.signal : void 0)));
       const streams = results.map((r) => r.status === "fulfilled" ? r.value : null).filter((r) => r);
       const elapsed = ((Date.now() - startTime) / 1e3).toFixed(2);
       console.log(`[LaMovie] \u2713 ${streams.length} streams en ${elapsed}s`);

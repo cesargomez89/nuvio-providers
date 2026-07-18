@@ -7,8 +7,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, provide
   console.log(`[PelisPanda] Sync-Extracción para TMDB: ${tmdbId} (${mediaType})`);
 
   const OVERALL_TIMEOUT = 30000;
-  const mainController = new AbortController();
-  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+  const hasAbort = typeof AbortController !== 'undefined';
+  const mainController = hasAbort ? new AbortController() : null;
+  const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
 
   try {
     let searchTitle = providedTitle;
@@ -51,7 +52,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, provide
       const rawUrl = player.url;
       if (!rawUrl) return null;
       try {
-        const resolvedData = await resolveEmbed(rawUrl, mainController.signal);
+        const resolvedData = await resolveEmbed(rawUrl, mainController ? mainController.signal : undefined);
         if (!resolvedData || !resolvedData.url) return null;
         const streamData = {
           url: resolvedData.url,
@@ -64,11 +65,11 @@ export async function extractStreams(tmdbId, mediaType, season, episode, provide
             Referer: rawUrl,
           },
         };
-        const validationController = new AbortController();
-        const validationTimer = setTimeout(() => validationController.abort(), 4500);
-        mainController.signal.addEventListener('abort', () => validationController.abort());
+        const validationController = hasAbort ? new AbortController() : null;
+        const validationTimer = validationController ? setTimeout(() => validationController.abort(), 4500) : null;
+        if (mainController && validationController) mainController.signal.addEventListener('abort', () => validationController.abort());
         try {
-          return await validateStream(streamData, validationController.signal);
+          return await validateStream(streamData, validationController ? validationController.signal : undefined);
         } catch {
           return streamData;
         } finally {

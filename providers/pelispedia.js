@@ -1,6 +1,6 @@
 /**
  * pelispedia - Built from src/pelispedia/
- * Generated: 2026-07-18T22:06:48.044Z
+ * Generated: 2026-07-18T22:14:27.114Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3580,8 +3580,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId && !title)
       return [];
     const OVERALL_TIMEOUT = 3e4;
-    const mainController = new AbortController();
-    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+    const hasAbort = typeof AbortController !== "undefined";
+    const mainController = hasAbort ? new AbortController() : null;
+    const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
     let searchTitle = title;
     if (!searchTitle) {
       console.log(`[PelisPedia] Resolving title for ${tmdbId}...`);
@@ -3604,7 +3605,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const searchUrl = `${BASE}/search?s=${normalizeTitle(searchTitle).replace(/\s+/g, "+")}`;
       const html = yield (0, import_http.fetchHtml)(searchUrl, {
         headers: { Referer: BASE + "/" },
-        signal: mainController.signal
+        signal: mainController ? mainController.signal : void 0
       });
       const re = /href="(https:\/\/pelispedia\.mov\/(pelicula|serie)\/([^"]+))"/gi;
       let best = null;
@@ -3625,7 +3626,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         targetUrl = `${BASE}/serie/${best.slug}/temporada/${season || 1}/capitulo/${episode || 1}`;
       }
       console.log(`[PelisPedia] Found: ${targetUrl}`);
-      const rawEmbeds = yield extractPlayerEmbeds(targetUrl, mainController.signal);
+      const rawEmbeds = yield extractPlayerEmbeds(targetUrl, mainController ? mainController.signal : void 0);
       const streams = [];
       const EMBED_LIMIT = 3;
       for (let i = 0; i < rawEmbeds.length; i += EMBED_LIMIT) {
@@ -3634,7 +3635,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           batch.map((embed) => __async(this, null, function* () {
             let currentUrl = embed.url;
             let resolved = null;
-            resolved = yield (0, import_resolvers.resolveEmbed)(currentUrl, mainController.signal);
+            resolved = yield (0, import_resolvers.resolveEmbed)(currentUrl, mainController ? mainController.signal : void 0);
             if (resolved) {
               const results = Array.isArray(resolved) ? resolved : [resolved];
               for (const r of results) {

@@ -1,6 +1,6 @@
 /**
  * pelispop - Built from src/pelispop/
- * Generated: 2026-07-18T22:06:48.051Z
+ * Generated: 2026-07-18T22:14:27.121Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3960,8 +3960,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     const isMovieType = (0, import_helpers.isMovie)(mediaType);
     console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
     const OVERALL_TIMEOUT = 3e4;
-    const mainController = new AbortController();
-    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+    const hasMainAbort = typeof AbortController !== "undefined";
+    const mainController = hasMainAbort ? new AbortController() : null;
+    const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
     try {
       const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
       let mediaTitle = title;
@@ -4095,7 +4096,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         return [];
       const resolvedEmbeds = yield (0, import_parallel.parallelWithLimit)(
         embedUrls,
-        (url) => processEmbed(url, mainController.signal),
+        (url) => processEmbed(url, mainController ? mainController.signal : void 0),
         5
       );
       const streams = resolvedEmbeds.filter(Boolean);

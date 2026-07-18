@@ -16,15 +16,16 @@ function getPelisGoHeaders(referer = BASE) {
 }
 
 function fetchWithTimeout(url, options = {}, timeout = 6000) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  return fetch(url, { ...options, signal: controller.signal })
+  const hasAbort = typeof AbortController !== 'undefined';
+  const controller = hasAbort ? new AbortController() : null;
+  const id = controller ? setTimeout(() => controller.abort(), timeout) : null;
+  return fetch(url, { ...options, signal: hasAbort ? controller.signal : null })
     .then((res) => {
-      clearTimeout(id);
+      if (id) clearTimeout(id);
       return res;
     })
     .catch(() => {
-      clearTimeout(id);
+      if (id) clearTimeout(id);
       return { text: () => '', json: () => ({}), ok: false, status: 404 };
     });
 }

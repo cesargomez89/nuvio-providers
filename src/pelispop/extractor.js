@@ -192,8 +192,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
 
   const OVERALL_TIMEOUT = 30000;
-  const mainController = new AbortController();
-  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+  const hasMainAbort = typeof AbortController !== 'undefined';
+  const mainController = hasMainAbort ? new AbortController() : null;
+  const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
 
   try {
     const realId = cleanTmdbId(tmdbId);
@@ -320,7 +321,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     if (embedUrls.length === 0) return [];
     const resolvedEmbeds = await parallelWithLimit(
       embedUrls,
-      (url) => processEmbed(url, mainController.signal),
+      (url) => processEmbed(url, mainController ? mainController.signal : undefined),
       5
     );
     const streams = resolvedEmbeds.filter(Boolean);

@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-07-18T22:06:48.047Z
+ * Generated: 2026-07-18T22:14:27.119Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3796,8 +3796,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       console.log(`[PelisPlus] Resolving ${rawResults.length} sources...`);
       const candidates = [];
-      const controller = new AbortController();
-      const signal = controller.signal;
+      const hasAbort = typeof AbortController !== "undefined";
+      const controller = hasAbort ? new AbortController() : null;
+      const signal = hasAbort ? controller.signal : null;
       let isFinished = false;
       const TARGET_COUNT = 15;
       const processStream = (res) => __async(this, null, function* () {
@@ -3832,7 +3833,8 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
             if (candidates.length >= TARGET_COUNT) {
               isFinished = true;
               try {
-                controller.abort();
+                if (controller)
+                  controller.abort();
               } catch (e) {
               }
             }
@@ -3848,7 +3850,8 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         timeoutId = setTimeout(() => {
           isFinished = true;
           try {
-            controller.abort();
+            if (controller)
+              controller.abort();
           } catch (e) {
           }
           resolve();

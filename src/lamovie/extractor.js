@@ -195,8 +195,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
   );
 
   const OVERALL_TIMEOUT = 25000;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), OVERALL_TIMEOUT);
+  const hasAbort = typeof AbortController !== 'undefined';
+  const controller = hasAbort ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), OVERALL_TIMEOUT) : null;
 
   try {
     const [tmdbInfo, aliases] = await Promise.all([
@@ -231,7 +232,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
     }
 
     const embeds = data.data.embeds;
-    const results = await Promise.allSettled(embeds.map((e) => processEmbed(e, controller.signal)));
+    const results = await Promise.allSettled(embeds.map((e) => processEmbed(e, controller ? controller.signal : undefined)));
     const streams = results
       .map((r) => (r.status === 'fulfilled' ? r.value : null))
       .filter((r) => r);
