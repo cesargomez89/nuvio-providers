@@ -1,6 +1,7 @@
 import { fetchHtml, getSessionUA } from '../utils/http.js';
 import { resolveEmbed, getDirectCdnHeaders } from '../utils/resolvers.js';
-import { getTmdbTitle } from '../utils/tmdb.js';
+import { getTmdbTitle, getTmdbInfo } from '../utils/tmdb.js';
+import { isMovie } from '../utils/helpers.js';
 
 const BASE = 'https://pelispedia.mov';
 const UA = getSessionUA();
@@ -20,9 +21,9 @@ function normalizeTitle(t) {
     .trim();
 }
 
-export async function extractPlayerEmbeds(url) {
+export async function extractPlayerEmbeds(url, signal) {
   try {
-    const html = await fetchHtml(url, { headers: { Referer: BASE + '/' } });
+    const html = await fetchHtml(url, { headers: { Referer: BASE + '/' }, signal });
     if (!html) return [];
 
     const $ = require('cheerio-without-node-native').load(html);
@@ -78,10 +79,17 @@ export async function extractPlayerEmbeds(url) {
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
   if (!tmdbId && !title) return [];
 
+  const OVERALL_TIMEOUT = 30000;
+  const mainController = new AbortController();
+  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+
   let searchTitle = title;
   if (!searchTitle) {
     console.log(`[PelisPedia] Resolving title for ${tmdbId}...`);
-    searchTitle = await getTmdbTitle(tmdbId, mediaType, 'es-MX');
+    const info = await getTmdbInfo(tmdbId, mediaType, 'es-MX');
+    if (info) {
+      searchTitle = info.title;
+    }
     if (!searchTitle) {
       searchTitle = await getTmdbTitle(tmdbId, mediaType, 'en-US');
     }
@@ -92,34 +100,41 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     return [];
   }
 
+  const isMovieType = isMovie(mediaType);
+  const targetType = isMovieType ? 'pelicula' : 'serie';
   console.log(`[PelisPedia] Looking for: ${searchTitle}`);
 
   try {
     const searchUrl = `${BASE}/search?s=${normalizeTitle(searchTitle).replace(/\s+/g, '+')}`;
-    const html = await fetchHtml(searchUrl, { headers: { Referer: BASE + '/' } });
+    const html = await fetchHtml(searchUrl, {
+      headers: { Referer: BASE + '/' },
+      signal: mainController.signal,
+    });
 
     const re = /href="(https:\/\/pelispedia\.mov\/(pelicula|serie)\/([^"]+))"/gi;
-    const matches = [];
+    let best = null;
     let m;
     while ((m = re.exec(html)) !== null) {
-      matches.push({ url: m[1], type: m[2], slug: m[3] });
+      if (m[2] !== targetType) continue;
+      if (!best) {
+        best = { url: m[1], type: m[2], slug: m[3] };
+      }
     }
 
-    if (matches.length === 0) {
+    if (!best) {
       console.log('[PelisPedia] No results found');
       return [];
     }
 
-    const best = matches[0];
     let targetUrl = best.url;
 
-    if (best.type === 'serie') {
+    if (!isMovieType) {
       targetUrl = `${BASE}/serie/${best.slug}/temporada/${season || 1}/capitulo/${episode || 1}`;
     }
 
     console.log(`[PelisPedia] Found: ${targetUrl}`);
 
-    const rawEmbeds = await extractPlayerEmbeds(targetUrl);
+    const rawEmbeds = await extractPlayerEmbeds(targetUrl, mainController.signal);
     const streams = [];
     const EMBED_LIMIT = 3;
 
@@ -130,12 +145,12 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
           let currentUrl = embed.url;
           let resolved = null;
 
-          resolved = await resolveEmbed(currentUrl);
+          resolved = await resolveEmbed(currentUrl, mainController.signal);
 
           if (resolved) {
             const results = Array.isArray(resolved) ? resolved : [resolved];
             for (const r of results) {
-              if (r.url && (r.url.includes('.m3u8') || r.url.includes('.mp4'))) {
+              if (r.url) {
                 return {
                   name: 'PelisPedia',
                   title: `${r.quality || '1080p'} · Latino · ${r.servername || embed.servername || 'Server'}`,
@@ -156,7 +171,13 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     return streams;
   } catch (e) {
-    console.error('[PelisPedia] Error:', e.message);
+    if (e.name === 'AbortError') {
+      console.log(`[PelisPedia] Timeout tras ${OVERALL_TIMEOUT}ms`);
+    } else {
+      console.error('[PelisPedia] Error:', e.message);
+    }
     return [];
+  } finally {
+    clearTimeout(mainTimer);
   }
 }

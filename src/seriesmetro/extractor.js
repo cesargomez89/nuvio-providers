@@ -1,7 +1,7 @@
 import { fetchHtml, request, getStealthHeaders } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
-import { getTmdbAliases } from '../utils/tmdb.js';
+import { getTmdbAliases, getTmdbInfo } from '../utils/tmdb.js';
 import { buildSlug } from '../utils/title.js';
 import { isMovie, cleanTmdbId } from '../utils/helpers.js';
 import { parallelWithLimit } from '../utils/parallel.js';
@@ -38,7 +38,7 @@ function getBaseHeaders(referer) {
   };
 }
 
-async function findContentUrl(tmdbInfo, mediaType) {
+async function findContentUrl(tmdbInfo, mediaType, signal) {
   const { title, originalTitle, aliases = [] } = tmdbInfo;
   const category = isMovie(mediaType) ? 'pelicula' : 'serie';
 
@@ -51,7 +51,7 @@ async function findContentUrl(tmdbInfo, mediaType) {
 
   const validateUrl = async (url) => {
     try {
-      const data = await fetchHtml(url, { headers: getBaseHeaders(url) });
+      const data = await fetchHtml(url, { headers: getBaseHeaders(url), signal });
       if (data && (data.includes('trembed=') || data.includes('data-post='))) {
         return { url, html: data };
       }
@@ -72,6 +72,7 @@ async function findContentUrl(tmdbInfo, mediaType) {
   try {
     const searchHtml = await fetchHtml(`${BASE}/?s=${encodeURIComponent(searchTerms[0])}`, {
       headers: getBaseHeaders(),
+      signal,
     });
     if (searchHtml) {
       const postRegex =
@@ -95,7 +96,7 @@ async function findContentUrl(tmdbInfo, mediaType) {
   return null;
 }
 
-async function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
+async function getEpisodeUrl(serieUrl, serieHtml, season, episode, signal) {
   const dpostMatch = serieHtml.match(/data-post="(\d+)"/);
   if (!dpostMatch) return null;
   const dpost = dpostMatch[1];
@@ -109,6 +110,7 @@ async function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
         season: String(season),
       }),
       headers: { ...getBaseHeaders(serieUrl), 'Content-Type': 'application/x-www-form-urlencoded' },
+      signal,
     });
     const epData = await res.text();
     const epUrls = [...epData.matchAll(/href="([^"]+\/capitulo\/[^"]+)"/g)].map((m) => m[1]);
@@ -123,9 +125,9 @@ async function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
   }
 }
 
-async function extractStreamsFromPage(pageUrl, referer) {
+async function extractStreamsFromPage(pageUrl, referer, signal) {
   try {
-    const data = await fetchHtml(pageUrl, { headers: getBaseHeaders(referer) });
+    const data = await fetchHtml(pageUrl, { headers: getBaseHeaders(referer), signal });
 
     const optionRegex =
       /href="#options-(\d+)"[^>]*>[\s\S]*?<span class="server">([\s\S]*?)<\/span>/g;
@@ -168,13 +170,13 @@ async function extractStreamsFromPage(pageUrl, referer) {
 
         const embedPage = await fetchHtml(
           `${BASE}/?trembed=${option.id}&trid=${trid}&trtype=${trtype}`,
-          { headers: getBaseHeaders(pageUrl) }
+          { headers: getBaseHeaders(pageUrl), signal }
         );
 
         const iframeMatch = embedPage.match(/<iframe[^>]*src="([^"]+)"/i);
         if (!iframeMatch) return null;
 
-        const result = await resolveEmbed(iframeMatch[1]);
+        const result = await resolveEmbed(iframeMatch[1], signal);
         if (result) {
           return {
             langLabel: lang,
@@ -200,22 +202,30 @@ async function extractStreamsFromPage(pageUrl, referer) {
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
   if (!tmdbId || !mediaType) return [];
 
+  const OVERALL_TIMEOUT = 30000;
+  const mainController = new AbortController();
+  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+
   try {
     const realId = cleanTmdbId(tmdbId);
 
-    let tmdbInfo = { title, originalTitle: title, aliases: [] };
+    let tmdbInfo = { title, originalTitle: title, aliases: [], year: '' };
     if (realId) {
-      const aliases = await getTmdbAliases(realId, mediaType);
+      const [info, aliases] = await Promise.all([
+        getTmdbInfo(realId, mediaType, 'es-MX'),
+        getTmdbAliases(realId, mediaType),
+      ]);
       tmdbInfo = {
-        title: aliases[1] || aliases[0] || title,
+        title: info?.title || aliases[1] || aliases[0] || title,
         originalTitle: aliases[0] || title,
         aliases,
+        year: info?.year || '',
       };
     }
 
     if (!tmdbInfo.title) return [];
 
-    const found = await findContentUrl(tmdbInfo, mediaType);
+    const found = await findContentUrl(tmdbInfo, mediaType, mainController.signal);
     if (!found) {
       console.log(`[SeriesMetro] ✗ No se encontró contenido para: ${tmdbInfo.title}`);
       return [];
@@ -223,15 +233,21 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     let targetUrl = found.url;
     if (!isMovie(mediaType) && season && episode) {
-      const epUrl = await getEpisodeUrl(found.url, found.html, parseInt(season), parseInt(episode));
+      const epUrl = await getEpisodeUrl(found.url, found.html, parseInt(season), parseInt(episode), mainController.signal);
       if (!epUrl) return [];
       targetUrl = epUrl;
     }
 
-    const streams = await extractStreamsFromPage(targetUrl, found.url);
+    const streams = await extractStreamsFromPage(targetUrl, found.url, mainController.signal);
     return await finalizeStreams(streams, 'SeriesMetro', tmdbInfo.title);
   } catch (e) {
-    console.log(`[SeriesMetro] Error: ${e.message}`);
+    if (e.name === 'AbortError') {
+      console.log(`[SeriesMetro] Timeout tras ${OVERALL_TIMEOUT}ms`);
+    } else {
+      console.log(`[SeriesMetro] Error: ${e.message}`);
+    }
     return [];
+  } finally {
+    clearTimeout(mainTimer);
   }
 }

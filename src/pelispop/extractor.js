@@ -18,10 +18,16 @@ const FETCH_TIMEOUT = 10000;
 function fetchWithTimeout(url, options = {}) {
   const hasAbort = typeof AbortController !== 'undefined';
   const controller = hasAbort ? new AbortController() : null;
+  const externalSignal = options.signal || null;
   const timeoutId = setTimeout(() => {
     if (controller) controller.abort();
   }, FETCH_TIMEOUT);
-  return fetchHtml(url, hasAbort ? { ...options, signal: controller.signal } : options).finally(
+  if (externalSignal && controller) {
+    externalSignal.addEventListener('abort', () => controller.abort());
+  }
+  const opts = { ...options };
+  delete opts.signal;
+  return fetchHtml(url, hasAbort ? { ...opts, signal: controller.signal } : opts).finally(
     () => clearTimeout(timeoutId)
   );
 }
@@ -59,11 +65,14 @@ async function getSeriesUrl(slug) {
   const url = `${BASE_URL}/serie/${slug}/`;
   try {
     const html = await fetchWithTimeout(url, { headers: HEADERS });
-    if (!html || html.includes('404 Not Found') || !html.includes('Temporada')) return null;
+    if (!html || html.includes('404 Not Found')) return null;
+    if (!html.includes('Temporada') && !html.includes('temporada') && !html.includes('capitulo') && !html.includes('Episodio')) return null;
     console.log(`[PelisPop] ✓ Encontrado serie: /serie/${slug}/`);
     return url;
   } catch (e) {
-    console.warn(`[PelisPop] Serie /serie/${slug}/ falló: ${e.message}`);
+    if (e.name !== 'AbortError') {
+      console.warn(`[PelisPop] Serie /serie/${slug}/ falló: ${e.message}`);
+    }
     return null;
   }
 }
@@ -101,15 +110,18 @@ async function searchResults(title) {
   }
 }
 
+const DEAD_DOMAINS = ['voe.sx', 'voe-unblock.com'];
+
 function extractIframeUrls(html) {
   const urls = [];
   const iframeRegex = /<iframe[^>]+src="([^"]+)"/g;
   let match;
   while ((match = iframeRegex.exec(html)) !== null) {
     const src = match[1];
-    if (src && src.startsWith('http') && !src.includes('facebook') && !src.includes('google')) {
-      urls.push(src);
-    }
+    if (!src || !src.startsWith('http')) continue;
+    if (DEAD_DOMAINS.some((d) => src.includes(d))) continue;
+    if (src.includes('facebook') || src.includes('google')) continue;
+    urls.push(src);
   }
   return [...new Set(urls)];
 }
@@ -133,9 +145,9 @@ async function getEmbedUrls(movieUrl) {
   }
 }
 
-async function processEmbed(embedUrl) {
+async function processEmbed(embedUrl, signal) {
   try {
-    const result = await resolveEmbed(embedUrl);
+    const result = await resolveEmbed(embedUrl, signal);
     if (!result || !result.url) return null;
     return {
       langLabel: 'Latino',
@@ -144,7 +156,9 @@ async function processEmbed(embedUrl) {
       headers: result.headers || {},
     };
   } catch (e) {
-    console.warn(`[PelisPop] Error procesando embed: ${e.message}`);
+    if (e.name !== 'AbortError') {
+      console.warn(`[PelisPop] Error procesando embed: ${e.message}`);
+    }
     return null;
   }
 }
@@ -170,6 +184,11 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   if (!tmdbId || !mediaType) return [];
   const isMovieType = isMovie(mediaType);
   console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
+
+  const OVERALL_TIMEOUT = 30000;
+  const mainController = new AbortController();
+  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+
   try {
     const realId = cleanTmdbId(tmdbId);
     let mediaTitle = title;
@@ -209,7 +228,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                 break;
               }
             } catch (e) {
-              console.warn(`[PelisPop] Error verificando año en ${result}: ${e.message}`);
+              if (e.name !== 'AbortError') {
+                console.warn(`[PelisPop] Error verificando año en ${result}: ${e.message}`);
+              }
             }
           }
         }
@@ -252,7 +273,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                         return result;
                       }
                     } catch (e) {
-                      console.warn(`[PelisPop] Error verificando alias ${alias}: ${e.message}`);
+                      if (e.name !== 'AbortError') {
+                        console.warn(`[PelisPop] Error verificando alias ${alias}: ${e.message}`);
+                      }
                     }
                   }
                 }
@@ -289,11 +312,21 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       embedUrls = await getSeriesEmbedUrls(selectedUrl, season, episode);
     }
     if (embedUrls.length === 0) return [];
-    const resolvedEmbeds = await parallelWithLimit(embedUrls, processEmbed, 5);
+    const resolvedEmbeds = await parallelWithLimit(
+      embedUrls,
+      (url) => processEmbed(url, mainController.signal),
+      5
+    );
     const streams = resolvedEmbeds.filter(Boolean);
     return await finalizeStreams(streams, 'PelisPop', mediaTitle);
   } catch (e) {
-    console.error(`[PelisPop] Error: ${e.message}`);
+    if (e.name === 'AbortError') {
+      console.log(`[PelisPop] Timeout tras ${OVERALL_TIMEOUT}ms`);
+    } else {
+      console.error(`[PelisPop] Error: ${e.message}`);
+    }
     return [];
+  } finally {
+    clearTimeout(mainTimer);
   }
 }

@@ -1,6 +1,6 @@
 /**
  * pelispop - Built from src/pelispop/
- * Generated: 2026-07-18T18:54:15.433Z
+ * Generated: 2026-07-18T20:00:17.740Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1848,16 +1848,7 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
-            let solvePoW2 = function(challenge, difficulty) {
-              const prefix = "0".repeat(difficulty);
-              let nonce2 = 0;
-              while (true) {
-                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-                if (hash.startsWith(prefix))
-                  return nonce2;
-                nonce2++;
-              }
-            }, decryptLink2 = function(encryptedBase64, key) {
+            let decryptLink2 = function(encryptedBase64, key) {
               const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
               const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
               const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
@@ -1868,7 +1859,7 @@ var require_embed69 = __commonJS({
               });
               return decrypted.toString(CryptoJS2.enc.Utf8);
             };
-            var solvePoW = solvePoW2, decryptLink = decryptLink2;
+            var decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -1885,7 +1876,29 @@ var require_embed69 = __commonJS({
             const powChallenge = powChallengeMatch[1];
             const powDifficulty = parseInt(powDifficultyMatch[1]);
             const powSalt = powSaltMatch[1];
-            const nonce = solvePoW2(powChallenge, powDifficulty);
+            function solvePoW(challenge, difficulty, signal2) {
+              return __async(this, null, function* () {
+                const prefix = "0".repeat(difficulty);
+                let nonce2 = 0;
+                const MAX_ITERATIONS = 5e4;
+                while (nonce2 < MAX_ITERATIONS) {
+                  if (signal2 == null ? void 0 : signal2.aborted)
+                    return null;
+                  for (let i = 0; i < 100; i++) {
+                    const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                    if (hash.startsWith(prefix))
+                      return nonce2;
+                    nonce2++;
+                  }
+                  yield new Promise((r) => setTimeout(r, 0));
+                }
+                console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+                return null;
+              });
+            }
+            const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+            if (nonce === null)
+              return null;
             const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);
             for (const item of items) {
               if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
@@ -3151,7 +3164,7 @@ var require_resolvers = __commonJS({
     var { isMirror } = require_mirrors();
     var { getSessionUA } = require_http();
     var UA = getSessionUA();
-    var DEAD_DOMAINS = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
+    var DEAD_DOMAINS2 = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
@@ -3195,7 +3208,7 @@ var require_resolvers = __commonJS({
         if (!url)
           return null;
         const urlLower = url.toLowerCase();
-        if (DEAD_DOMAINS.some((d) => urlLower.includes(d)))
+        if (DEAD_DOMAINS2.some((d) => urlLower.includes(d)))
           return null;
         if (isMirror(urlLower, "VOE") || url.includes("voe.sx") || url.includes("voe-") || url.includes("voex.sx")) {
           const result = yield resolveVoe(url, signal);
@@ -3740,11 +3753,17 @@ var FETCH_TIMEOUT = 1e4;
 function fetchWithTimeout(url, options = {}) {
   const hasAbort = typeof AbortController !== "undefined";
   const controller = hasAbort ? new AbortController() : null;
+  const externalSignal = options.signal || null;
   const timeoutId = setTimeout(() => {
     if (controller)
       controller.abort();
   }, FETCH_TIMEOUT);
-  return (0, import_http.fetchHtml)(url, hasAbort ? __spreadProps(__spreadValues({}, options), { signal: controller.signal }) : options).finally(
+  if (externalSignal && controller) {
+    externalSignal.addEventListener("abort", () => controller.abort());
+  }
+  const opts = __spreadValues({}, options);
+  delete opts.signal;
+  return (0, import_http.fetchHtml)(url, hasAbort ? __spreadProps(__spreadValues({}, opts), { signal: controller.signal }) : opts).finally(
     () => clearTimeout(timeoutId)
   );
 }
@@ -3784,12 +3803,16 @@ function getSeriesUrl(slug) {
     const url = `${BASE_URL}/serie/${slug}/`;
     try {
       const html = yield fetchWithTimeout(url, { headers: HEADERS });
-      if (!html || html.includes("404 Not Found") || !html.includes("Temporada"))
+      if (!html || html.includes("404 Not Found"))
+        return null;
+      if (!html.includes("Temporada") && !html.includes("temporada") && !html.includes("capitulo") && !html.includes("Episodio"))
         return null;
       console.log(`[PelisPop] \u2713 Encontrado serie: /serie/${slug}/`);
       return url;
     } catch (e) {
-      console.warn(`[PelisPop] Serie /serie/${slug}/ fall\xF3: ${e.message}`);
+      if (e.name !== "AbortError") {
+        console.warn(`[PelisPop] Serie /serie/${slug}/ fall\xF3: ${e.message}`);
+      }
       return null;
     }
   });
@@ -3828,15 +3851,20 @@ function searchResults(title) {
     }
   });
 }
+var DEAD_DOMAINS = ["voe.sx", "voe-unblock.com"];
 function extractIframeUrls(html) {
   const urls = [];
   const iframeRegex = /<iframe[^>]+src="([^"]+)"/g;
   let match;
   while ((match = iframeRegex.exec(html)) !== null) {
     const src = match[1];
-    if (src && src.startsWith("http") && !src.includes("facebook") && !src.includes("google")) {
-      urls.push(src);
-    }
+    if (!src || !src.startsWith("http"))
+      continue;
+    if (DEAD_DOMAINS.some((d) => src.includes(d)))
+      continue;
+    if (src.includes("facebook") || src.includes("google"))
+      continue;
+    urls.push(src);
   }
   return [...new Set(urls)];
 }
@@ -3861,10 +3889,10 @@ function getEmbedUrls(movieUrl) {
     }
   });
 }
-function processEmbed(embedUrl) {
+function processEmbed(embedUrl, signal) {
   return __async(this, null, function* () {
     try {
-      const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
+      const result = yield (0, import_resolvers.resolveEmbed)(embedUrl, signal);
       if (!result || !result.url)
         return null;
       return {
@@ -3874,7 +3902,9 @@ function processEmbed(embedUrl) {
         headers: result.headers || {}
       };
     } catch (e) {
-      console.warn(`[PelisPop] Error procesando embed: ${e.message}`);
+      if (e.name !== "AbortError") {
+        console.warn(`[PelisPop] Error procesando embed: ${e.message}`);
+      }
       return null;
     }
   });
@@ -3901,6 +3931,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       return [];
     const isMovieType = (0, import_helpers.isMovie)(mediaType);
     console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
+    const OVERALL_TIMEOUT = 3e4;
+    const mainController = new AbortController();
+    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
     try {
       const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
       let mediaTitle = title;
@@ -3944,7 +3977,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
                   break;
                 }
               } catch (e) {
-                console.warn(`[PelisPop] Error verificando a\xF1o en ${result}: ${e.message}`);
+                if (e.name !== "AbortError") {
+                  console.warn(`[PelisPop] Error verificando a\xF1o en ${result}: ${e.message}`);
+                }
               }
             }
           }
@@ -3990,7 +4025,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
                           return result;
                         }
                       } catch (e) {
-                        console.warn(`[PelisPop] Error verificando alias ${alias}: ${e.message}`);
+                        if (e.name !== "AbortError") {
+                          console.warn(`[PelisPop] Error verificando alias ${alias}: ${e.message}`);
+                        }
                       }
                     }
                   }
@@ -4028,12 +4065,22 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       if (embedUrls.length === 0)
         return [];
-      const resolvedEmbeds = yield (0, import_parallel.parallelWithLimit)(embedUrls, processEmbed, 5);
+      const resolvedEmbeds = yield (0, import_parallel.parallelWithLimit)(
+        embedUrls,
+        (url) => processEmbed(url, mainController.signal),
+        5
+      );
       const streams = resolvedEmbeds.filter(Boolean);
       return yield (0, import_engine.finalizeStreams)(streams, "PelisPop", mediaTitle);
     } catch (e) {
-      console.error(`[PelisPop] Error: ${e.message}`);
+      if (e.name === "AbortError") {
+        console.log(`[PelisPop] Timeout tras ${OVERALL_TIMEOUT}ms`);
+      } else {
+        console.error(`[PelisPop] Error: ${e.message}`);
+      }
       return [];
+    } finally {
+      clearTimeout(mainTimer);
     }
   });
 }

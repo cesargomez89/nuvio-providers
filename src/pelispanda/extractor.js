@@ -5,6 +5,11 @@ import { getTmdbTitle } from '../utils/tmdb.js';
 
 export async function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
   console.log(`[PelisPanda] Sync-Extracción para TMDB: ${tmdbId} (${mediaType})`);
+
+  const OVERALL_TIMEOUT = 30000;
+  const mainController = new AbortController();
+  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+
   try {
     let searchTitle = providedTitle;
     if (!searchTitle || searchTitle === tmdbId) {
@@ -46,7 +51,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, provide
       const rawUrl = player.url;
       if (!rawUrl) return null;
       try {
-        const resolvedData = await resolveEmbed(rawUrl);
+        const resolvedData = await resolveEmbed(rawUrl, mainController.signal);
         if (!resolvedData || !resolvedData.url) return null;
         const streamData = {
           url: resolvedData.url,
@@ -59,10 +64,16 @@ export async function extractStreams(tmdbId, mediaType, season, episode, provide
             Referer: rawUrl,
           },
         };
-        return await Promise.race([
-          validateStream(streamData).catch(() => streamData),
-          new Promise((resolve) => setTimeout(() => resolve(streamData), 4500)),
-        ]);
+        const validationController = new AbortController();
+        const validationTimer = setTimeout(() => validationController.abort(), 4500);
+        mainController.signal.addEventListener('abort', () => validationController.abort());
+        try {
+          return await validateStream(streamData, validationController.signal);
+        } catch {
+          return streamData;
+        } finally {
+          clearTimeout(validationTimer);
+        }
       } catch {
         return null;
       }
@@ -70,7 +81,13 @@ export async function extractStreams(tmdbId, mediaType, season, episode, provide
     const results = await Promise.all(streamPromises);
     return results.filter(Boolean);
   } catch (error) {
-    console.error(`[PelisPanda] Error: ${error.message}`);
+    if (error.name === 'AbortError') {
+      console.log(`[PelisPanda] Timeout tras ${OVERALL_TIMEOUT}ms`);
+    } else {
+      console.error(`[PelisPanda] Error: ${error.message}`);
+    }
     return [];
+  } finally {
+    clearTimeout(mainTimer);
   }
 }

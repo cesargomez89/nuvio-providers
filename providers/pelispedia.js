@@ -1,6 +1,6 @@
 /**
  * pelispedia - Built from src/pelispedia/
- * Generated: 2026-07-18T18:54:15.426Z
+ * Generated: 2026-07-18T20:00:17.734Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1531,16 +1531,7 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
-            let solvePoW2 = function(challenge, difficulty) {
-              const prefix = "0".repeat(difficulty);
-              let nonce2 = 0;
-              while (true) {
-                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-                if (hash.startsWith(prefix))
-                  return nonce2;
-                nonce2++;
-              }
-            }, decryptLink2 = function(encryptedBase64, key) {
+            let decryptLink2 = function(encryptedBase64, key) {
               const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
               const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
               const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
@@ -1551,7 +1542,7 @@ var require_embed69 = __commonJS({
               });
               return decrypted.toString(CryptoJS2.enc.Utf8);
             };
-            var solvePoW = solvePoW2, decryptLink = decryptLink2;
+            var decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -1568,7 +1559,29 @@ var require_embed69 = __commonJS({
             const powChallenge = powChallengeMatch[1];
             const powDifficulty = parseInt(powDifficultyMatch[1]);
             const powSalt = powSaltMatch[1];
-            const nonce = solvePoW2(powChallenge, powDifficulty);
+            function solvePoW(challenge, difficulty, signal2) {
+              return __async(this, null, function* () {
+                const prefix = "0".repeat(difficulty);
+                let nonce2 = 0;
+                const MAX_ITERATIONS = 5e4;
+                while (nonce2 < MAX_ITERATIONS) {
+                  if (signal2 == null ? void 0 : signal2.aborted)
+                    return null;
+                  for (let i = 0; i < 100; i++) {
+                    const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                    if (hash.startsWith(prefix))
+                      return nonce2;
+                    nonce2++;
+                  }
+                  yield new Promise((r) => setTimeout(r, 0));
+                }
+                console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+                return null;
+              });
+            }
+            const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+            if (nonce === null)
+              return null;
             const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);
             for (const item of items) {
               if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
@@ -3221,7 +3234,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
+    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
       return __async(this, null, function* () {
         try {
           const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
@@ -3237,7 +3250,7 @@ var require_tmdb = __commonJS({
         } catch (e) {
           if (retries > 0) {
             yield new Promise((r) => setTimeout(r, 1e3));
-            return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
+            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
           }
           return null;
         }
@@ -3264,7 +3277,7 @@ var require_tmdb = __commonJS({
             idCache.set(cacheKey, result2);
             return result2;
           }
-          const metaRes = yield getTmdbInfo(tmdbId, mediaType);
+          const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
           const result = {
             imdbId: idRes.imdb_id,
             title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
@@ -3319,7 +3332,106 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
+  }
+});
+
+// src/utils/helpers.js
+var require_helpers = __commonJS({
+  "src/utils/helpers.js"(exports2, module2) {
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+    function padEpisode(episode) {
+      return String(episode).padStart(2, "0");
+    }
+    function isMovie2(mediaType) {
+      return mediaType === "movie" || mediaType === "movies";
+    }
+    function cleanTmdbId(tmdbId) {
+      return tmdbId ? tmdbId.toString().split(":")[0] : tmdbId;
+    }
+    function toDoubleBase64(str) {
+      try {
+        if (typeof btoa !== "undefined")
+          return btoa(str);
+      } catch (e) {
+      }
+      try {
+        if (typeof Buffer !== "undefined")
+          return Buffer.from(str, "utf-8").toString("base64");
+      } catch (e) {
+      }
+      const bytes = [];
+      for (let i = 0; i < str.length; i++) {
+        let c = str.charCodeAt(i);
+        if (c < 128)
+          bytes.push(c);
+        else if (c < 2048)
+          bytes.push(192 | c >> 6, 128 | c & 63);
+        else if (c < 55296 || c >= 57344)
+          bytes.push(224 | c >> 12, 128 | c >> 6 & 63, 128 | c & 63);
+        else {
+          i++;
+          const cp = 65536 + ((c & 1023) << 10 | str.charCodeAt(i) & 1023);
+          bytes.push(
+            240 | cp >> 18,
+            128 | cp >> 12 & 63,
+            128 | cp >> 6 & 63,
+            128 | cp & 63
+          );
+        }
+      }
+      const b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+      let r = "";
+      for (let i = 0; i < bytes.length; i += 3) {
+        const b0 = bytes[i], b1 = bytes[i + 1], b2 = bytes[i + 2];
+        if (b1 === void 0)
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4] + "==";
+        else if (b2 === void 0)
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2] + "=";
+        else
+          r += b64[b0 >> 2] + b64[(b0 & 3) << 4 | b1 >> 4] + b64[(b1 & 15) << 2 | b2 >> 6] + b64[b2 & 63];
+      }
+      return r;
+    }
+    function b64decode(str) {
+      try {
+        if (typeof atob !== "undefined")
+          return atob(str);
+      } catch (e) {
+      }
+      try {
+        if (typeof Buffer !== "undefined")
+          return Buffer.from(str, "base64").toString("utf8");
+      } catch (e) {
+      }
+      try {
+        const s = str.replace(/[\s]/g, "");
+        if (s.length % 4 !== 0)
+          return null;
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        const lookup = {};
+        for (let i = 0; i < chars.length; i++)
+          lookup[chars[i]] = i;
+        let r = "";
+        for (let i = 0; i < s.length; i += 4) {
+          const c0 = lookup[s[i]], c1 = lookup[s[i + 1]], c2 = lookup[s[i + 2]], c3 = lookup[s[i + 3]];
+          if (c0 === void 0 || c1 === void 0 || c2 === void 0 || c3 === void 0)
+            return null;
+          r += String.fromCharCode(c0 << 2 | c1 >> 4);
+          if (c2 !== 64) {
+            r += String.fromCharCode((c1 & 15) << 4 | c2 >> 2);
+            if (c3 !== 64)
+              r += String.fromCharCode((c2 & 3) << 6 | c3);
+          }
+        }
+        return r;
+      } catch (e) {
+        return null;
+      }
+    }
+    module2.exports = { sleep, padEpisode, isMovie: isMovie2, cleanTmdbId, toDoubleBase64, b64decode };
   }
 });
 
@@ -3327,6 +3439,7 @@ var require_tmdb = __commonJS({
 var import_http = __toESM(require_http());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
+var import_helpers = __toESM(require_helpers());
 var BASE = "https://pelispedia.mov";
 var UA = (0, import_http.getSessionUA)();
 function normalizeTitle(t) {
@@ -3334,10 +3447,10 @@ function normalizeTitle(t) {
     return "";
   return t.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 }
-function extractPlayerEmbeds(url) {
+function extractPlayerEmbeds(url, signal) {
   return __async(this, null, function* () {
     try {
-      const html = yield (0, import_http.fetchHtml)(url, { headers: { Referer: BASE + "/" } });
+      const html = yield (0, import_http.fetchHtml)(url, { headers: { Referer: BASE + "/" }, signal });
       if (!html)
         return [];
       const $ = require("cheerio-without-node-native").load(html);
@@ -3393,10 +3506,16 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId && !title)
       return [];
+    const OVERALL_TIMEOUT = 3e4;
+    const mainController = new AbortController();
+    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
     let searchTitle = title;
     if (!searchTitle) {
       console.log(`[PelisPedia] Resolving title for ${tmdbId}...`);
-      searchTitle = yield (0, import_tmdb.getTmdbTitle)(tmdbId, mediaType, "es-MX");
+      const info = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType, "es-MX");
+      if (info) {
+        searchTitle = info.title;
+      }
       if (!searchTitle) {
         searchTitle = yield (0, import_tmdb.getTmdbTitle)(tmdbId, mediaType, "en-US");
       }
@@ -3405,27 +3524,35 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       console.log("[PelisPedia] Could not resolve title");
       return [];
     }
+    const isMovieType = (0, import_helpers.isMovie)(mediaType);
+    const targetType = isMovieType ? "pelicula" : "serie";
     console.log(`[PelisPedia] Looking for: ${searchTitle}`);
     try {
       const searchUrl = `${BASE}/search?s=${normalizeTitle(searchTitle).replace(/\s+/g, "+")}`;
-      const html = yield (0, import_http.fetchHtml)(searchUrl, { headers: { Referer: BASE + "/" } });
+      const html = yield (0, import_http.fetchHtml)(searchUrl, {
+        headers: { Referer: BASE + "/" },
+        signal: mainController.signal
+      });
       const re = /href="(https:\/\/pelispedia\.mov\/(pelicula|serie)\/([^"]+))"/gi;
-      const matches = [];
+      let best = null;
       let m;
       while ((m = re.exec(html)) !== null) {
-        matches.push({ url: m[1], type: m[2], slug: m[3] });
+        if (m[2] !== targetType)
+          continue;
+        if (!best) {
+          best = { url: m[1], type: m[2], slug: m[3] };
+        }
       }
-      if (matches.length === 0) {
+      if (!best) {
         console.log("[PelisPedia] No results found");
         return [];
       }
-      const best = matches[0];
       let targetUrl = best.url;
-      if (best.type === "serie") {
+      if (!isMovieType) {
         targetUrl = `${BASE}/serie/${best.slug}/temporada/${season || 1}/capitulo/${episode || 1}`;
       }
       console.log(`[PelisPedia] Found: ${targetUrl}`);
-      const rawEmbeds = yield extractPlayerEmbeds(targetUrl);
+      const rawEmbeds = yield extractPlayerEmbeds(targetUrl, mainController.signal);
       const streams = [];
       const EMBED_LIMIT = 3;
       for (let i = 0; i < rawEmbeds.length; i += EMBED_LIMIT) {
@@ -3434,11 +3561,11 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           batch.map((embed) => __async(this, null, function* () {
             let currentUrl = embed.url;
             let resolved = null;
-            resolved = yield (0, import_resolvers.resolveEmbed)(currentUrl);
+            resolved = yield (0, import_resolvers.resolveEmbed)(currentUrl, mainController.signal);
             if (resolved) {
               const results = Array.isArray(resolved) ? resolved : [resolved];
               for (const r of results) {
-                if (r.url && (r.url.includes(".m3u8") || r.url.includes(".mp4"))) {
+                if (r.url) {
                   return {
                     name: "PelisPedia",
                     title: `${r.quality || "1080p"} \xB7 Latino \xB7 ${r.servername || embed.servername || "Server"}`,
@@ -3458,8 +3585,14 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       return streams;
     } catch (e) {
-      console.error("[PelisPedia] Error:", e.message);
+      if (e.name === "AbortError") {
+        console.log(`[PelisPedia] Timeout tras ${OVERALL_TIMEOUT}ms`);
+      } else {
+        console.error("[PelisPedia] Error:", e.message);
+      }
       return [];
+    } finally {
+      clearTimeout(mainTimer);
     }
   });
 }

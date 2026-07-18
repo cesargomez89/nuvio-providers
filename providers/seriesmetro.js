@@ -1,6 +1,6 @@
 /**
  * seriesmetro - Built from src/seriesmetro/
- * Generated: 2026-07-18T18:54:15.441Z
+ * Generated: 2026-07-18T20:00:17.749Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1848,16 +1848,7 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
-            let solvePoW2 = function(challenge, difficulty) {
-              const prefix = "0".repeat(difficulty);
-              let nonce2 = 0;
-              while (true) {
-                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-                if (hash.startsWith(prefix))
-                  return nonce2;
-                nonce2++;
-              }
-            }, decryptLink2 = function(encryptedBase64, key) {
+            let decryptLink2 = function(encryptedBase64, key) {
               const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
               const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
               const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
@@ -1868,7 +1859,7 @@ var require_embed69 = __commonJS({
               });
               return decrypted.toString(CryptoJS2.enc.Utf8);
             };
-            var solvePoW = solvePoW2, decryptLink = decryptLink2;
+            var decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -1885,7 +1876,29 @@ var require_embed69 = __commonJS({
             const powChallenge = powChallengeMatch[1];
             const powDifficulty = parseInt(powDifficultyMatch[1]);
             const powSalt = powSaltMatch[1];
-            const nonce = solvePoW2(powChallenge, powDifficulty);
+            function solvePoW(challenge, difficulty, signal2) {
+              return __async(this, null, function* () {
+                const prefix = "0".repeat(difficulty);
+                let nonce2 = 0;
+                const MAX_ITERATIONS = 5e4;
+                while (nonce2 < MAX_ITERATIONS) {
+                  if (signal2 == null ? void 0 : signal2.aborted)
+                    return null;
+                  for (let i = 0; i < 100; i++) {
+                    const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                    if (hash.startsWith(prefix))
+                      return nonce2;
+                    nonce2++;
+                  }
+                  yield new Promise((r) => setTimeout(r, 0));
+                }
+                console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+                return null;
+              });
+            }
+            const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+            if (nonce === null)
+              return null;
             const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);
             for (const item of items) {
               if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
@@ -3421,7 +3434,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
+    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
       return __async(this, null, function* () {
         try {
           const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
@@ -3437,7 +3450,7 @@ var require_tmdb = __commonJS({
         } catch (e) {
           if (retries > 0) {
             yield new Promise((r) => setTimeout(r, 1e3));
-            return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
+            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
           }
           return null;
         }
@@ -3464,7 +3477,7 @@ var require_tmdb = __commonJS({
             idCache.set(cacheKey, result2);
             return result2;
           }
-          const metaRes = yield getTmdbInfo(tmdbId, mediaType);
+          const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
           const result = {
             imdbId: idRes.imdb_id,
             title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
@@ -3519,7 +3532,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    module2.exports = { getTmdbTitle, getTmdbInfo, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
+    module2.exports = { getTmdbTitle, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
   }
 });
 
@@ -3758,7 +3771,7 @@ function getBaseHeaders(referer) {
     Referer: referer || BASE
   });
 }
-function findContentUrl(tmdbInfo, mediaType) {
+function findContentUrl(tmdbInfo, mediaType, signal) {
   return __async(this, null, function* () {
     const { title, originalTitle, aliases = [] } = tmdbInfo;
     const category = (0, import_helpers.isMovie)(mediaType) ? "pelicula" : "serie";
@@ -3768,7 +3781,7 @@ function findContentUrl(tmdbInfo, mediaType) {
     console.log(`[SeriesMetro] Probando Discovery paralelo para: ${searchTerms[0]}`);
     const validateUrl = (url) => __async(this, null, function* () {
       try {
-        const data = yield (0, import_http.fetchHtml)(url, { headers: getBaseHeaders(url) });
+        const data = yield (0, import_http.fetchHtml)(url, { headers: getBaseHeaders(url), signal });
         if (data && (data.includes("trembed=") || data.includes("data-post="))) {
           return { url, html: data };
         }
@@ -3787,7 +3800,8 @@ function findContentUrl(tmdbInfo, mediaType) {
     }
     try {
       const searchHtml = yield (0, import_http.fetchHtml)(`${BASE}/?s=${encodeURIComponent(searchTerms[0])}`, {
-        headers: getBaseHeaders()
+        headers: getBaseHeaders(),
+        signal
       });
       if (searchHtml) {
         const postRegex = /<article[^>]*class="[^"]*post[^"]*"[^>]*>[\s\S]*?<a[^>]*href="([^"]+\/(?:serie|pelicula)\/([^/]+)\/)"[^>]*class="lnk-blk"/g;
@@ -3812,7 +3826,7 @@ function findContentUrl(tmdbInfo, mediaType) {
     return null;
   });
 }
-function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
+function getEpisodeUrl(serieUrl, serieHtml, season, episode, signal) {
   return __async(this, null, function* () {
     const dpostMatch = serieHtml.match(/data-post="(\d+)"/);
     if (!dpostMatch)
@@ -3826,7 +3840,8 @@ function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
           post: dpost,
           season: String(season)
         }),
-        headers: __spreadProps(__spreadValues({}, getBaseHeaders(serieUrl)), { "Content-Type": "application/x-www-form-urlencoded" })
+        headers: __spreadProps(__spreadValues({}, getBaseHeaders(serieUrl)), { "Content-Type": "application/x-www-form-urlencoded" }),
+        signal
       });
       const epData = yield res.text();
       const epUrls = [...epData.matchAll(/href="([^"]+\/capitulo\/[^"]+)"/g)].map((m) => m[1]);
@@ -3839,10 +3854,10 @@ function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
     }
   });
 }
-function extractStreamsFromPage(pageUrl, referer) {
+function extractStreamsFromPage(pageUrl, referer, signal) {
   return __async(this, null, function* () {
     try {
-      const data = yield (0, import_http.fetchHtml)(pageUrl, { headers: getBaseHeaders(referer) });
+      const data = yield (0, import_http.fetchHtml)(pageUrl, { headers: getBaseHeaders(referer), signal });
       const optionRegex = /href="#options-(\d+)"[^>]*>[\s\S]*?<span class="server">([\s\S]*?)<\/span>/g;
       const options = [];
       let m;
@@ -3869,12 +3884,12 @@ function extractStreamsFromPage(pageUrl, referer) {
           const lang = LANG_MAP[langRaw] || langRaw;
           const embedPage = yield (0, import_http.fetchHtml)(
             `${BASE}/?trembed=${option.id}&trid=${trid}&trtype=${trtype}`,
-            { headers: getBaseHeaders(pageUrl) }
+            { headers: getBaseHeaders(pageUrl), signal }
           );
           const iframeMatch = embedPage.match(/<iframe[^>]*src="([^"]+)"/i);
           if (!iframeMatch)
             return null;
-          const result = yield (0, import_resolvers.resolveEmbed)(iframeMatch[1]);
+          const result = yield (0, import_resolvers.resolveEmbed)(iframeMatch[1], signal);
           if (result) {
             return {
               langLabel: lang,
@@ -3901,36 +3916,49 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId || !mediaType)
       return [];
+    const OVERALL_TIMEOUT = 3e4;
+    const mainController = new AbortController();
+    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
     try {
       const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
-      let tmdbInfo = { title, originalTitle: title, aliases: [] };
+      let tmdbInfo = { title, originalTitle: title, aliases: [], year: "" };
       if (realId) {
-        const aliases = yield (0, import_tmdb.getTmdbAliases)(realId, mediaType);
+        const [info, aliases] = yield Promise.all([
+          (0, import_tmdb.getTmdbInfo)(realId, mediaType, "es-MX"),
+          (0, import_tmdb.getTmdbAliases)(realId, mediaType)
+        ]);
         tmdbInfo = {
-          title: aliases[1] || aliases[0] || title,
+          title: (info == null ? void 0 : info.title) || aliases[1] || aliases[0] || title,
           originalTitle: aliases[0] || title,
-          aliases
+          aliases,
+          year: (info == null ? void 0 : info.year) || ""
         };
       }
       if (!tmdbInfo.title)
         return [];
-      const found = yield findContentUrl(tmdbInfo, mediaType);
+      const found = yield findContentUrl(tmdbInfo, mediaType, mainController.signal);
       if (!found) {
         console.log(`[SeriesMetro] \u2717 No se encontr\xF3 contenido para: ${tmdbInfo.title}`);
         return [];
       }
       let targetUrl = found.url;
       if (!(0, import_helpers.isMovie)(mediaType) && season && episode) {
-        const epUrl = yield getEpisodeUrl(found.url, found.html, parseInt(season), parseInt(episode));
+        const epUrl = yield getEpisodeUrl(found.url, found.html, parseInt(season), parseInt(episode), mainController.signal);
         if (!epUrl)
           return [];
         targetUrl = epUrl;
       }
-      const streams = yield extractStreamsFromPage(targetUrl, found.url);
+      const streams = yield extractStreamsFromPage(targetUrl, found.url, mainController.signal);
       return yield (0, import_engine.finalizeStreams)(streams, "SeriesMetro", tmdbInfo.title);
     } catch (e) {
-      console.log(`[SeriesMetro] Error: ${e.message}`);
+      if (e.name === "AbortError") {
+        console.log(`[SeriesMetro] Timeout tras ${OVERALL_TIMEOUT}ms`);
+      } else {
+        console.log(`[SeriesMetro] Error: ${e.message}`);
+      }
       return [];
+    } finally {
+      clearTimeout(mainTimer);
     }
   });
 }

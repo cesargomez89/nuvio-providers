@@ -1,6 +1,6 @@
 /**
  * lamovie - Built from src/lamovie/
- * Generated: 2026-07-18T18:54:15.416Z
+ * Generated: 2026-07-18T20:00:17.723Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1848,16 +1848,7 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
-            let solvePoW2 = function(challenge, difficulty) {
-              const prefix = "0".repeat(difficulty);
-              let nonce2 = 0;
-              while (true) {
-                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-                if (hash.startsWith(prefix))
-                  return nonce2;
-                nonce2++;
-              }
-            }, decryptLink2 = function(encryptedBase64, key) {
+            let decryptLink2 = function(encryptedBase64, key) {
               const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
               const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
               const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
@@ -1868,7 +1859,7 @@ var require_embed69 = __commonJS({
               });
               return decrypted.toString(CryptoJS2.enc.Utf8);
             };
-            var solvePoW = solvePoW2, decryptLink = decryptLink2;
+            var decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -1885,7 +1876,29 @@ var require_embed69 = __commonJS({
             const powChallenge = powChallengeMatch[1];
             const powDifficulty = parseInt(powDifficultyMatch[1]);
             const powSalt = powSaltMatch[1];
-            const nonce = solvePoW2(powChallenge, powDifficulty);
+            function solvePoW(challenge, difficulty, signal2) {
+              return __async(this, null, function* () {
+                const prefix = "0".repeat(difficulty);
+                let nonce2 = 0;
+                const MAX_ITERATIONS = 5e4;
+                while (nonce2 < MAX_ITERATIONS) {
+                  if (signal2 == null ? void 0 : signal2.aborted)
+                    return null;
+                  for (let i = 0; i < 100; i++) {
+                    const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                    if (hash.startsWith(prefix))
+                      return nonce2;
+                    nonce2++;
+                  }
+                  yield new Promise((r) => setTimeout(r, 0));
+                }
+                console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+                return null;
+              });
+            }
+            const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+            if (nonce === null)
+              return null;
             const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);
             for (const item of items) {
               if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
@@ -3481,7 +3494,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    function getTmdbAliases(tmdbId, mediaType) {
+    function getTmdbAliases2(tmdbId, mediaType) {
       return __async(this, null, function* () {
         try {
           const titleEs = yield getTmdbTitle(tmdbId, mediaType);
@@ -3519,7 +3532,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    module2.exports = { getTmdbTitle, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
+    module2.exports = { getTmdbTitle, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases: getTmdbAliases2, TMDB_API_KEY };
   }
 });
 
@@ -3595,10 +3608,10 @@ function getTmdbData(tmdbId, mediaType) {
     }
   });
 }
-function searchById(tmdbInfo) {
+function searchById(tmdbInfo, extraAliases) {
   return __async(this, null, function* () {
     const { title, originalTitle, year } = tmdbInfo;
-    const searchTerms = [title, originalTitle].filter(Boolean);
+    const searchTerms = [title, originalTitle, ...extraAliases || []].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
     for (const term of searchTerms) {
       const url = API_URL + "/search?postType=any&q=" + encodeURIComponent(term) + "&postsPerPage=10";
       try {
@@ -3606,6 +3619,7 @@ function searchById(tmdbInfo) {
         if (!data || !data.data || !data.data.posts)
           continue;
         const normTerm = normalizeTitle(term);
+        const termWords = normTerm.split(/\s+/).filter((w) => w.length > 3);
         let bestMatch = null;
         for (const post of data.data.posts) {
           const normTitle = normalizeTitle(post.title);
@@ -3618,6 +3632,17 @@ function searchById(tmdbInfo) {
             const yearMatch = post.title.match(/\((\d{4})\)/);
             if (yearMatch && yearMatch[1] === String(year)) {
               bestMatch = post;
+            }
+          }
+        }
+        if (!bestMatch) {
+          for (const post of data.data.posts) {
+            const normTitle = normalizeTitle(post.title);
+            const resultWords = normTitle.split(/\s+/);
+            if (termWords.some((w) => resultWords.includes(w))) {
+              bestMatch = post;
+              console.log(`[LaMovie] Word-match: "${post.title}" \u2192 id:${post._id}`);
+              break;
             }
           }
         }
@@ -3661,6 +3686,8 @@ function getEpisodeId(seriesId, seasonNum, episodeNum) {
 }
 function processEmbed(embed, signal) {
   return __async(this, null, function* () {
+    if (!embed.url || embed.url.includes("voe.sx"))
+      return null;
     const resolved = yield (0, import_resolvers.resolveEmbed)(embed.url, signal);
     if (!resolved || !resolved.url) {
       console.log("[LaMovie] Sin resolver para: " + embed.url);
@@ -3688,11 +3715,17 @@ function extractStreams(tmdbId, mediaType, season, episode) {
     console.log(
       `[LaMovie] Buscando: TMDB ${tmdbId} (${resolvedType})${season ? ` S${season}E${episode}` : ""}`
     );
+    const OVERALL_TIMEOUT = 25e3;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), OVERALL_TIMEOUT);
     try {
-      const tmdbInfo = yield getTmdbData(tmdbId, resolvedType);
+      const [tmdbInfo, aliases] = yield Promise.all([
+        getTmdbData(tmdbId, resolvedType),
+        (0, import_tmdb.getTmdbAliases)(tmdbId, resolvedType)
+      ]);
       if (!tmdbInfo)
         return [];
-      const found = yield searchById(tmdbInfo);
+      const found = yield searchById(tmdbInfo, aliases);
       if (!found) {
         console.log("[LaMovie] No encontrado por b\xFAsqueda");
         return [];
@@ -3714,18 +3747,20 @@ function extractStreams(tmdbId, mediaType, season, episode) {
         return [];
       }
       const embeds = data.data.embeds;
-      const EMBED_TIMEOUT = 8e3;
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), EMBED_TIMEOUT);
       const results = yield Promise.allSettled(embeds.map((e) => processEmbed(e, controller.signal)));
-      clearTimeout(timer);
       const streams = results.map((r) => r.status === "fulfilled" ? r.value : null).filter((r) => r);
       const elapsed = ((Date.now() - startTime) / 1e3).toFixed(2);
       console.log(`[LaMovie] \u2713 ${streams.length} streams en ${elapsed}s`);
       return yield (0, import_engine.finalizeStreams)(streams, "LaMovie", tmdbInfo.title);
     } catch (err) {
-      console.log(`[LaMovie] Error: ${err.message}`);
+      if (err.name === "AbortError") {
+        console.log(`[LaMovie] Timeout tras ${OVERALL_TIMEOUT}ms`);
+      } else {
+        console.log(`[LaMovie] Error: ${err.message}`);
+      }
       return [];
+    } finally {
+      clearTimeout(timeoutId);
     }
   });
 }

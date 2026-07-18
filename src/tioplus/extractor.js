@@ -7,11 +7,11 @@ import { isMovie, toDoubleBase64 } from '../utils/helpers.js';
 const BASE_URL = 'https://tioplus.app';
 const UA = getSessionUA();
 
-async function getRedirectUrl(serverEncoded, referer) {
+async function getRedirectUrl(serverEncoded, referer, signal) {
   try {
     const doubleB64 = toDoubleBase64(serverEncoded);
     const playerUrl = `${BASE_URL}/player/${doubleB64}`;
-    const html = await fetchHtml(playerUrl, { headers: { 'User-Agent': UA, Referer: referer } });
+    const html = await fetchHtml(playerUrl, { headers: { 'User-Agent': UA, Referer: referer }, signal });
     if (!html || html.length < 50) return null;
     const match = html.match(/(?:window\.)?location\.href\s*=\s*['"]([^'"]+)['"]/i);
     let finalUrl = match ? match[1] : null;
@@ -28,6 +28,10 @@ async function getRedirectUrl(serverEncoded, referer) {
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
   if (!tmdbId || !mediaType) return [];
   console.log(`[TioPlus] Looking for content: ${tmdbId} (${mediaType})`);
+  const OVERALL_TIMEOUT = 25000;
+  const mainController = new AbortController();
+  const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
+
   try {
     const tmdbInfo = await getTmdbInfo(tmdbId, mediaType, 'es-ES');
     const mediaTitle = tmdbInfo?.title || title;
@@ -46,7 +50,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     const typePrefix = isMovie(mediaType) ? 'pelicula' : 'serie';
     const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
-    const directHtml = await fetchHtml(directUrl, { headers: { 'User-Agent': UA } });
+    const directHtml = await fetchHtml(directUrl, { headers: { 'User-Agent': UA }, signal: mainController.signal });
     if (
       directHtml &&
       !directHtml.includes('404') &&
@@ -58,7 +62,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     if (candidates.length === 0) {
       const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
-      const html = await fetchHtml(searchUrl, { headers: { 'User-Agent': UA } });
+      const html = await fetchHtml(searchUrl, { headers: { 'User-Agent': UA }, signal: mainController.signal });
       if (html) {
         const itemRegex =
           /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;
@@ -92,7 +96,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         targetUrl = cand.url;
       }
     }
-    if (bestScore < 10) return [];
+    if (bestScore < 5) return [];
     let finalMediaUrl = targetUrl;
     if (!isMovie(mediaType)) {
       const s = parseInt(season) || 1;
@@ -101,6 +105,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     }
     const mediaHtml = await fetchHtml(finalMediaUrl, {
       headers: { 'User-Agent': UA, Referer: BASE_URL },
+      signal: mainController.signal,
     });
     if (!mediaHtml) return [];
     const serverRegex = /data-server=['"]([^'"]+)['"][^>]*>[\s\S]*?<span>([^<]+)<\/span>/gi;
@@ -108,43 +113,43 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const encodes = [];
     while ((sMatch = serverRegex.exec(mediaHtml)) !== null) {
       const enc = sMatch[1];
-      const rawServerName = sMatch[2].split('-')[0].trim();
+      const rawServerName = sMatch[2].trim();
+      const parts = rawServerName.split('-').map((s) => s.trim());
+      const serverName = parts[0];
       let lang = 'LAT';
-      if (mediaHtml.includes('audio Latino') || mediaHtml.includes('Español Latino')) lang = 'LAT';
-      else if (mediaHtml.includes('audio Castellano') || mediaHtml.includes('Español España'))
-        lang = 'ESP';
-      else if (mediaHtml.includes('subtulada') || mediaHtml.includes('Subtitu')) lang = 'SUB';
-      encodes.push({ enc, serverName: rawServerName, lang });
+      if (parts.length > 1) {
+        const langPart = parts[1].toUpperCase();
+        if (/LAT|LATINO/.test(langPart)) lang = 'LAT';
+        else if (/ESP|CAST|ESPAÑA|ESPAÑOL/.test(langPart)) lang = 'ESP';
+        else if (/SUB|SUBT/.test(langPart)) lang = 'SUB';
+      }
+      encodes.push({ enc, serverName, lang });
     }
     if (encodes.length === 0) return [];
 
-    const resolveWithTimeout = async (promise, timeoutMs = 15000) => {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), timeoutMs)
-      );
-      return Promise.race([promise, timeoutPromise]);
-    };
-
     const resolutionPromises = encodes.map(async (item) => {
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), 10000);
+      mainController.signal.addEventListener('abort', () => ac.abort());
       try {
-        const realEmbedUrl = await resolveWithTimeout(
-          getRedirectUrl(item.enc, finalMediaUrl),
-          10000
-        );
-        if (realEmbedUrl && realEmbedUrl.startsWith('http')) {
-          const resolved = await resolveWithTimeout(resolveEmbed(realEmbedUrl), 15000);
-          if (resolved && (resolved.url || (Array.isArray(resolved) && resolved.length > 0))) {
-            const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
-            return streamsArray.map((s) => ({
-              ...s,
-              serverLabel: item.serverName,
-              langLabel:
-                item.lang === 'LAT' ? 'Latino' : item.lang === 'ESP' ? 'Español' : 'Subtitulado',
-            }));
-          }
+        const realEmbedUrl = await getRedirectUrl(item.enc, finalMediaUrl, ac.signal);
+        if (!realEmbedUrl || !realEmbedUrl.startsWith('http')) return [];
+        clearTimeout(timer);
+        const resolved = await resolveEmbed(realEmbedUrl, ac.signal);
+        if (resolved && (resolved.url || (Array.isArray(resolved) && resolved.length > 0))) {
+          const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
+          return streamsArray.map((s) => ({
+            ...s,
+            serverLabel: item.serverName,
+            langLabel:
+              item.lang === 'LAT' ? 'Latino' : item.lang === 'ESP' ? 'Español' : 'Subtitulado',
+          }));
         }
-      } catch {}
-      return [];
+      } catch {
+        return [];
+      } finally {
+        clearTimeout(timer);
+      }
     });
 
     const allResolved = await Promise.allSettled(resolutionPromises);
@@ -157,7 +162,13 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     return await finalizeStreams(resolvedStreams, 'TioPlus', mediaTitle);
   } catch (error) {
-    console.error(`[TioPlus] Error: ${error.message}`);
+    if (error.name === 'AbortError') {
+      console.log(`[TioPlus] Timeout tras ${OVERALL_TIMEOUT}ms`);
+    } else {
+      console.error(`[TioPlus] Error: ${error.message}`);
+    }
     return [];
+  } finally {
+    clearTimeout(mainTimer);
   }
 }

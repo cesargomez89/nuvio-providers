@@ -1,6 +1,6 @@
 /**
  * embed69 - Built from src/embed69/
- * Generated: 2026-07-18T18:54:15.397Z
+ * Generated: 2026-07-18T20:00:17.706Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -2085,16 +2085,7 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
-            let solvePoW2 = function(challenge, difficulty) {
-              const prefix = "0".repeat(difficulty);
-              let nonce2 = 0;
-              while (true) {
-                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-                if (hash.startsWith(prefix))
-                  return nonce2;
-                nonce2++;
-              }
-            }, decryptLink2 = function(encryptedBase64, key) {
+            let decryptLink2 = function(encryptedBase64, key) {
               const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
               const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
               const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
@@ -2105,7 +2096,7 @@ var require_embed69 = __commonJS({
               });
               return decrypted.toString(CryptoJS2.enc.Utf8);
             };
-            var solvePoW = solvePoW2, decryptLink = decryptLink2;
+            var decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -2122,7 +2113,29 @@ var require_embed69 = __commonJS({
             const powChallenge = powChallengeMatch[1];
             const powDifficulty = parseInt(powDifficultyMatch[1]);
             const powSalt = powSaltMatch[1];
-            const nonce = solvePoW2(powChallenge, powDifficulty);
+            function solvePoW(challenge, difficulty, signal2) {
+              return __async(this, null, function* () {
+                const prefix = "0".repeat(difficulty);
+                let nonce2 = 0;
+                const MAX_ITERATIONS = 5e4;
+                while (nonce2 < MAX_ITERATIONS) {
+                  if (signal2 == null ? void 0 : signal2.aborted)
+                    return null;
+                  for (let i = 0; i < 100; i++) {
+                    const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                    if (hash.startsWith(prefix))
+                      return nonce2;
+                    nonce2++;
+                  }
+                  yield new Promise((r) => setTimeout(r, 0));
+                }
+                console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+                return null;
+              });
+            }
+            const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+            if (nonce === null)
+              return null;
             const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);
             for (const item of items) {
               if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
@@ -3679,16 +3692,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       return [];
     console.log(`[Embed69] Looking for content: ${tmdbId} (${mediaType})`);
     try {
-      let solvePoW = function(challenge, difficulty) {
-        const prefix = "0".repeat(difficulty);
-        let nonce2 = 0;
-        while (true) {
-          const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-          if (hash.startsWith(prefix))
-            return nonce2;
-          nonce2++;
-        }
-      }, deriveKey = function(challenge, nonce2, salt) {
+      let deriveKey = function(challenge, nonce2, salt) {
         return CryptoJS2.SHA256(challenge + nonce2.toString() + salt);
       }, decryptLink = function(encryptedBase64, key) {
         const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
@@ -3744,8 +3748,32 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const powChallenge = powChallengeMatch[1];
       const powDifficulty = parseInt(powDifficultyMatch[1]);
       const powSalt = powSaltMatch[1];
+      function solvePoW(challenge, difficulty, signal) {
+        return __async(this, null, function* () {
+          const prefix = "0".repeat(difficulty);
+          let nonce2 = 0;
+          const MAX_ITERATIONS = 5e4;
+          while (nonce2 < MAX_ITERATIONS) {
+            if (signal == null ? void 0 : signal.aborted)
+              return null;
+            for (let i = 0; i < 100; i++) {
+              const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+              if (hash.startsWith(prefix))
+                return nonce2;
+              nonce2++;
+            }
+            yield new Promise((r) => setTimeout(r, 0));
+          }
+          console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+          return null;
+        });
+      }
       console.log(`[Embed69] Solving PoW (difficulty: ${powDifficulty})...`);
-      const nonce = solvePoW(powChallenge, powDifficulty);
+      const nonce = yield solvePoW(powChallenge, powDifficulty);
+      if (nonce === null) {
+        console.log(`[Embed69] PoW failed or aborted`);
+        return [];
+      }
       const aesKey = deriveKey(powChallenge, nonce, powSalt);
       console.log(`[Embed69] PoW solved (nonce: ${nonce})`);
       const langMap = { LAT: "Latino", ESP: "Espa\xF1ol", SUB: "Subtitulado" };

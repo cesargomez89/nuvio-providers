@@ -34,14 +34,21 @@ async function resolve(url, signal = null) {
       const powDifficulty = parseInt(powDifficultyMatch[1]);
       const powSalt = powSaltMatch[1];
 
-      function solvePoW(challenge, difficulty) {
+      async function solvePoW(challenge, difficulty, signal) {
         const prefix = '0'.repeat(difficulty);
         let nonce = 0;
-        while (true) {
-          const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
-          if (hash.startsWith(prefix)) return nonce;
-          nonce++;
+        const MAX_ITERATIONS = 50000;
+        while (nonce < MAX_ITERATIONS) {
+          if (signal?.aborted) return null;
+          for (let i = 0; i < 100; i++) {
+            const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
+            if (hash.startsWith(prefix)) return nonce;
+            nonce++;
+          }
+          await new Promise(r => setTimeout(r, 0));
         }
+        console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+        return null;
       }
 
       function decryptLink(encryptedBase64, key) {
@@ -56,7 +63,8 @@ async function resolve(url, signal = null) {
         return decrypted.toString(CryptoJS.enc.Utf8);
       }
 
-      const nonce = solvePoW(powChallenge, powDifficulty);
+      const nonce = await solvePoW(powChallenge, powDifficulty, signal);
+      if (nonce === null) return null;
       const aesKey = CryptoJS.SHA256(powChallenge + nonce.toString() + powSalt);
 
       for (const item of items) {

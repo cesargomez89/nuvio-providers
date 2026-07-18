@@ -1,7 +1,7 @@
 import { fetchJson } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
-import { getTmdbInfo } from '../utils/tmdb.js';
+import { getTmdbInfo, getTmdbAliases } from '../utils/tmdb.js';
 
 const API_URL = 'https://lamovie.org/wp-api/v1';
 function normalizeQuality(quality) {
@@ -73,9 +73,11 @@ async function getTmdbData(tmdbId, mediaType) {
   }
 }
 
-async function searchById(tmdbInfo) {
+async function searchById(tmdbInfo, extraAliases) {
   const { title, originalTitle, year } = tmdbInfo;
-  const searchTerms = [title, originalTitle].filter(Boolean);
+  const searchTerms = [title, originalTitle, ...(extraAliases || [])]
+    .filter(Boolean)
+    .filter((v, i, a) => a.indexOf(v) === i);
 
   for (const term of searchTerms) {
     const url = API_URL + '/search?postType=any&q=' + encodeURIComponent(term) + '&postsPerPage=10';
@@ -84,6 +86,7 @@ async function searchById(tmdbInfo) {
       if (!data || !data.data || !data.data.posts) continue;
 
       const normTerm = normalizeTitle(term);
+      const termWords = normTerm.split(/\s+/).filter(w => w.length > 3);
       let bestMatch = null;
 
       for (const post of data.data.posts) {
@@ -99,6 +102,18 @@ async function searchById(tmdbInfo) {
           const yearMatch = post.title.match(/\((\d{4})\)/);
           if (yearMatch && yearMatch[1] === String(year)) {
             bestMatch = post;
+          }
+        }
+      }
+
+      if (!bestMatch) {
+        for (const post of data.data.posts) {
+          const normTitle = normalizeTitle(post.title);
+          const resultWords = normTitle.split(/\s+/);
+          if (termWords.some(w => resultWords.includes(w))) {
+            bestMatch = post;
+            console.log(`[LaMovie] Word-match: "${post.title}" → id:${post._id}`);
+            break;
           }
         }
       }
@@ -151,6 +166,7 @@ async function getEpisodeId(seriesId, seasonNum, episodeNum) {
 }
 
 async function processEmbed(embed, signal) {
+  if (!embed.url || embed.url.includes('voe.sx')) return null;
   const resolved = await resolveEmbed(embed.url, signal);
   if (!resolved || !resolved.url) {
     console.log('[LaMovie] Sin resolver para: ' + embed.url);
@@ -178,11 +194,18 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
     `[LaMovie] Buscando: TMDB ${tmdbId} (${resolvedType})${season ? ` S${season}E${episode}` : ''}`
   );
 
+  const OVERALL_TIMEOUT = 25000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), OVERALL_TIMEOUT);
+
   try {
-    const tmdbInfo = await getTmdbData(tmdbId, resolvedType);
+    const [tmdbInfo, aliases] = await Promise.all([
+      getTmdbData(tmdbId, resolvedType),
+      getTmdbAliases(tmdbId, resolvedType),
+    ]);
     if (!tmdbInfo) return [];
 
-    const found = await searchById(tmdbInfo);
+    const found = await searchById(tmdbInfo, aliases);
     if (!found) {
       console.log('[LaMovie] No encontrado por búsqueda');
       return [];
@@ -208,11 +231,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
     }
 
     const embeds = data.data.embeds;
-    const EMBED_TIMEOUT = 8000;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), EMBED_TIMEOUT);
     const results = await Promise.allSettled(embeds.map((e) => processEmbed(e, controller.signal)));
-    clearTimeout(timer);
     const streams = results
       .map((r) => (r.status === 'fulfilled' ? r.value : null))
       .filter((r) => r);
@@ -222,7 +241,13 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
 
     return await finalizeStreams(streams, 'LaMovie', tmdbInfo.title);
   } catch (err) {
-    console.log(`[LaMovie] Error: ${err.message}`);
+    if (err.name === 'AbortError') {
+      console.log(`[LaMovie] Timeout tras ${OVERALL_TIMEOUT}ms`);
+    } else {
+      console.log(`[LaMovie] Error: ${err.message}`);
+    }
     return [];
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

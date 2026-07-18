@@ -1,6 +1,6 @@
 /**
  * pelispanda - Built from src/pelispanda/
- * Generated: 2026-07-18T18:54:15.423Z
+ * Generated: 2026-07-18T20:00:17.730Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1531,16 +1531,7 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
-            let solvePoW2 = function(challenge, difficulty) {
-              const prefix = "0".repeat(difficulty);
-              let nonce2 = 0;
-              while (true) {
-                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-                if (hash.startsWith(prefix))
-                  return nonce2;
-                nonce2++;
-              }
-            }, decryptLink2 = function(encryptedBase64, key) {
+            let decryptLink2 = function(encryptedBase64, key) {
               const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
               const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
               const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
@@ -1551,7 +1542,7 @@ var require_embed69 = __commonJS({
               });
               return decrypted.toString(CryptoJS2.enc.Utf8);
             };
-            var solvePoW = solvePoW2, decryptLink = decryptLink2;
+            var decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -1568,7 +1559,29 @@ var require_embed69 = __commonJS({
             const powChallenge = powChallengeMatch[1];
             const powDifficulty = parseInt(powDifficultyMatch[1]);
             const powSalt = powSaltMatch[1];
-            const nonce = solvePoW2(powChallenge, powDifficulty);
+            function solvePoW(challenge, difficulty, signal2) {
+              return __async(this, null, function* () {
+                const prefix = "0".repeat(difficulty);
+                let nonce2 = 0;
+                const MAX_ITERATIONS = 5e4;
+                while (nonce2 < MAX_ITERATIONS) {
+                  if (signal2 == null ? void 0 : signal2.aborted)
+                    return null;
+                  for (let i = 0; i < 100; i++) {
+                    const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                    if (hash.startsWith(prefix))
+                      return nonce2;
+                    nonce2++;
+                  }
+                  yield new Promise((r) => setTimeout(r, 0));
+                }
+                console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+                return null;
+              });
+            }
+            const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+            if (nonce === null)
+              return null;
             const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);
             for (const item of items) {
               if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
@@ -3331,6 +3344,9 @@ var import_tmdb = __toESM(require_tmdb());
 function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
   return __async(this, null, function* () {
     console.log(`[PelisPanda] Sync-Extracci\xF3n para TMDB: ${tmdbId} (${mediaType})`);
+    const OVERALL_TIMEOUT = 3e4;
+    const mainController = new AbortController();
+    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
     try {
       let searchTitle = providedTitle;
       if (!searchTitle || searchTitle === tmdbId) {
@@ -3379,7 +3395,7 @@ function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
         if (!rawUrl)
           return null;
         try {
-          const resolvedData = yield (0, import_resolvers.resolveEmbed)(rawUrl);
+          const resolvedData = yield (0, import_resolvers.resolveEmbed)(rawUrl, mainController.signal);
           if (!resolvedData || !resolvedData.url)
             return null;
           const streamData = {
@@ -3393,10 +3409,16 @@ function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
               Referer: rawUrl
             }
           };
-          return yield Promise.race([
-            (0, import_m3u8.validateStream)(streamData).catch(() => streamData),
-            new Promise((resolve) => setTimeout(() => resolve(streamData), 4500))
-          ]);
+          const validationController = new AbortController();
+          const validationTimer = setTimeout(() => validationController.abort(), 4500);
+          mainController.signal.addEventListener("abort", () => validationController.abort());
+          try {
+            return yield (0, import_m3u8.validateStream)(streamData, validationController.signal);
+          } catch (e) {
+            return streamData;
+          } finally {
+            clearTimeout(validationTimer);
+          }
         } catch (e) {
           return null;
         }
@@ -3404,8 +3426,14 @@ function extractStreams(tmdbId, mediaType, season, episode, providedTitle) {
       const results = yield Promise.all(streamPromises);
       return results.filter(Boolean);
     } catch (error) {
-      console.error(`[PelisPanda] Error: ${error.message}`);
+      if (error.name === "AbortError") {
+        console.log(`[PelisPanda] Timeout tras ${OVERALL_TIMEOUT}ms`);
+      } else {
+        console.error(`[PelisPanda] Error: ${error.message}`);
+      }
       return [];
+    } finally {
+      clearTimeout(mainTimer);
     }
   });
 }

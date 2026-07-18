@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-07-18T18:54:15.447Z
+ * Generated: 2026-07-18T20:00:17.755Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1848,16 +1848,7 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
-            let solvePoW2 = function(challenge, difficulty) {
-              const prefix = "0".repeat(difficulty);
-              let nonce2 = 0;
-              while (true) {
-                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-                if (hash.startsWith(prefix))
-                  return nonce2;
-                nonce2++;
-              }
-            }, decryptLink2 = function(encryptedBase64, key) {
+            let decryptLink2 = function(encryptedBase64, key) {
               const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
               const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
               const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
@@ -1868,7 +1859,7 @@ var require_embed69 = __commonJS({
               });
               return decrypted.toString(CryptoJS2.enc.Utf8);
             };
-            var solvePoW = solvePoW2, decryptLink = decryptLink2;
+            var decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -1885,7 +1876,29 @@ var require_embed69 = __commonJS({
             const powChallenge = powChallengeMatch[1];
             const powDifficulty = parseInt(powDifficultyMatch[1]);
             const powSalt = powSaltMatch[1];
-            const nonce = solvePoW2(powChallenge, powDifficulty);
+            function solvePoW(challenge, difficulty, signal2) {
+              return __async(this, null, function* () {
+                const prefix = "0".repeat(difficulty);
+                let nonce2 = 0;
+                const MAX_ITERATIONS = 5e4;
+                while (nonce2 < MAX_ITERATIONS) {
+                  if (signal2 == null ? void 0 : signal2.aborted)
+                    return null;
+                  for (let i = 0; i < 100; i++) {
+                    const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                    if (hash.startsWith(prefix))
+                      return nonce2;
+                    nonce2++;
+                  }
+                  yield new Promise((r) => setTimeout(r, 0));
+                }
+                console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+                return null;
+              });
+            }
+            const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+            if (nonce === null)
+              return null;
             const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);
             for (const item of items) {
               if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
@@ -3630,12 +3643,12 @@ var import_tmdb = __toESM(require_tmdb());
 var import_helpers = __toESM(require_helpers());
 var BASE_URL = "https://tioplus.app";
 var UA = (0, import_http.getSessionUA)();
-function getRedirectUrl(serverEncoded, referer) {
+function getRedirectUrl(serverEncoded, referer, signal) {
   return __async(this, null, function* () {
     try {
       const doubleB64 = (0, import_helpers.toDoubleBase64)(serverEncoded);
       const playerUrl = `${BASE_URL}/player/${doubleB64}`;
-      const html = yield (0, import_http.fetchHtml)(playerUrl, { headers: { "User-Agent": UA, Referer: referer } });
+      const html = yield (0, import_http.fetchHtml)(playerUrl, { headers: { "User-Agent": UA, Referer: referer }, signal });
       if (!html || html.length < 50)
         return null;
       const match = html.match(/(?:window\.)?location\.href\s*=\s*['"]([^'"]+)['"]/i);
@@ -3656,6 +3669,9 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
     if (!tmdbId || !mediaType)
       return [];
     console.log(`[TioPlus] Looking for content: ${tmdbId} (${mediaType})`);
+    const OVERALL_TIMEOUT = 25e3;
+    const mainController = new AbortController();
+    const mainTimer = setTimeout(() => mainController.abort(), OVERALL_TIMEOUT);
     try {
       const tmdbInfo = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType, "es-ES");
       const mediaTitle = (tmdbInfo == null ? void 0 : tmdbInfo.title) || title;
@@ -3667,13 +3683,13 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const candidates = [];
       const typePrefix = (0, import_helpers.isMovie)(mediaType) ? "pelicula" : "serie";
       const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
-      const directHtml = yield (0, import_http.fetchHtml)(directUrl, { headers: { "User-Agent": UA } });
+      const directHtml = yield (0, import_http.fetchHtml)(directUrl, { headers: { "User-Agent": UA }, signal: mainController.signal });
       if (directHtml && !directHtml.includes("404") && !directHtml.includes("Not Found") && directHtml.length > 1e3) {
         candidates.push({ url: directUrl, title: mediaTitle });
       }
       if (candidates.length === 0) {
         const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
-        const html = yield (0, import_http.fetchHtml)(searchUrl, { headers: { "User-Agent": UA } });
+        const html = yield (0, import_http.fetchHtml)(searchUrl, { headers: { "User-Agent": UA }, signal: mainController.signal });
         if (html) {
           const itemRegex = /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;
           let match;
@@ -3706,7 +3722,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           targetUrl = cand.url;
         }
       }
-      if (bestScore < 10)
+      if (bestScore < 5)
         return [];
       let finalMediaUrl = targetUrl;
       if (!(0, import_helpers.isMovie)(mediaType)) {
@@ -3715,7 +3731,8 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         finalMediaUrl = `${targetUrl}/season/${s}/episode/${e}`;
       }
       const mediaHtml = yield (0, import_http.fetchHtml)(finalMediaUrl, {
-        headers: { "User-Agent": UA, Referer: BASE_URL }
+        headers: { "User-Agent": UA, Referer: BASE_URL },
+        signal: mainController.signal
       });
       if (!mediaHtml)
         return [];
@@ -3724,43 +3741,45 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const encodes = [];
       while ((sMatch = serverRegex.exec(mediaHtml)) !== null) {
         const enc = sMatch[1];
-        const rawServerName = sMatch[2].split("-")[0].trim();
+        const rawServerName = sMatch[2].trim();
+        const parts = rawServerName.split("-").map((s) => s.trim());
+        const serverName = parts[0];
         let lang = "LAT";
-        if (mediaHtml.includes("audio Latino") || mediaHtml.includes("Espa\xF1ol Latino"))
-          lang = "LAT";
-        else if (mediaHtml.includes("audio Castellano") || mediaHtml.includes("Espa\xF1ol Espa\xF1a"))
-          lang = "ESP";
-        else if (mediaHtml.includes("subtulada") || mediaHtml.includes("Subtitu"))
-          lang = "SUB";
-        encodes.push({ enc, serverName: rawServerName, lang });
+        if (parts.length > 1) {
+          const langPart = parts[1].toUpperCase();
+          if (/LAT|LATINO/.test(langPart))
+            lang = "LAT";
+          else if (/ESP|CAST|ESPAÑA|ESPAÑOL/.test(langPart))
+            lang = "ESP";
+          else if (/SUB|SUBT/.test(langPart))
+            lang = "SUB";
+        }
+        encodes.push({ enc, serverName, lang });
       }
       if (encodes.length === 0)
         return [];
-      const resolveWithTimeout = (promise, timeoutMs = 15e3) => __async(this, null, function* () {
-        const timeoutPromise = new Promise(
-          (_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs)
-        );
-        return Promise.race([promise, timeoutPromise]);
-      });
       const resolutionPromises = encodes.map((item) => __async(this, null, function* () {
+        const ac = new AbortController();
+        const timer = setTimeout(() => ac.abort(), 1e4);
+        mainController.signal.addEventListener("abort", () => ac.abort());
         try {
-          const realEmbedUrl = yield resolveWithTimeout(
-            getRedirectUrl(item.enc, finalMediaUrl),
-            1e4
-          );
-          if (realEmbedUrl && realEmbedUrl.startsWith("http")) {
-            const resolved = yield resolveWithTimeout((0, import_resolvers.resolveEmbed)(realEmbedUrl), 15e3);
-            if (resolved && (resolved.url || Array.isArray(resolved) && resolved.length > 0)) {
-              const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
-              return streamsArray.map((s) => __spreadProps(__spreadValues({}, s), {
-                serverLabel: item.serverName,
-                langLabel: item.lang === "LAT" ? "Latino" : item.lang === "ESP" ? "Espa\xF1ol" : "Subtitulado"
-              }));
-            }
+          const realEmbedUrl = yield getRedirectUrl(item.enc, finalMediaUrl, ac.signal);
+          if (!realEmbedUrl || !realEmbedUrl.startsWith("http"))
+            return [];
+          clearTimeout(timer);
+          const resolved = yield (0, import_resolvers.resolveEmbed)(realEmbedUrl, ac.signal);
+          if (resolved && (resolved.url || Array.isArray(resolved) && resolved.length > 0)) {
+            const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
+            return streamsArray.map((s) => __spreadProps(__spreadValues({}, s), {
+              serverLabel: item.serverName,
+              langLabel: item.lang === "LAT" ? "Latino" : item.lang === "ESP" ? "Espa\xF1ol" : "Subtitulado"
+            }));
           }
         } catch (e) {
+          return [];
+        } finally {
+          clearTimeout(timer);
         }
-        return [];
       }));
       const allResolved = yield Promise.allSettled(resolutionPromises);
       const resolvedStreams = [];
@@ -3771,8 +3790,14 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       });
       return yield (0, import_engine.finalizeStreams)(resolvedStreams, "TioPlus", mediaTitle);
     } catch (error) {
-      console.error(`[TioPlus] Error: ${error.message}`);
+      if (error.name === "AbortError") {
+        console.log(`[TioPlus] Timeout tras ${OVERALL_TIMEOUT}ms`);
+      } else {
+        console.error(`[TioPlus] Error: ${error.message}`);
+      }
       return [];
+    } finally {
+      clearTimeout(mainTimer);
     }
   });
 }
