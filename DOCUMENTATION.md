@@ -36,6 +36,19 @@ Providers run locally on the user's device. The Nuvio app uses the **Hermes** Ja
 The Nuvio runtime is React Native + Hermes, so many Node-specific APIs/modules are not available (for example Node built-ins like `crypto`, and some crypto libraries that assume a Node/browser environment such as `node-forge`).
 If your provider uses encryption/decryption or heavy parsing dependencies, always test it in the Nuvio app (Plugin Tester) even if it works locally.
 
+### Available Modules
+
+The following modules are bundled by the app and available for import in your provider:
+
+| Module | Usage |
+|--------|-------|
+| `cheerio-without-node-native` | HTML parsing (Hermes-compatible) |
+| `react-native-cheerio` | React Native Cheerio |
+| `cheerio` | Standard Cheerio |
+| `crypto-js` | Encryption/decryption |
+| `fetch` | Native global (React Native) |
+| `console` | Native global |
+
 ---
 
 ## 2. Getting Started
@@ -189,6 +202,18 @@ Usage: `node build.js --minify [provider_names...]`
 - **Testing**: Test both minified and unminified versions before publishing.
 - **Production/Release**: Use minified builds (`node build.js --minify`) for deployment to users.
 
+### Manifest Generation
+
+You can regenerate `manifest.json` without rebuilding providers:
+
+```bash
+node build.js --manifest
+```
+
+This increments the version number and regenerates the manifest from each provider's `metadata.json`.
+
+**Auto-generation on build**: The manifest is automatically regenerated with a version bump every time you run `node build.js`. You do not need to edit `manifest.json` manually.
+
 ---
 
 ## 6. API Reference
@@ -210,13 +235,13 @@ async function getStreams(tmdbId, mediaType, season, episode) { ... }
 
 ```javascript
 {
-  "name": "MyProvider",            // Short identifier
-  "title": "1080p Stream",         // Display name
+  "name": "PelisGo - 1080p ✅",   // Auto-generated: "ProviderName - quality ✓"
+  "title": "Latino - GoodStream",  // Display: "Language - Server name"
   "url": "https://server.com/...", // Playable URL
   "quality": "1080p",              // 4K, 1080p, 720p, CAM
   "headers": {                     // (Optional)
-    "User-Agent": "Key for playback",
-    "Referer": "..."
+    "Referer": "...",
+    "User-Agent": "Mozilla..."
   }
 }
 ```
@@ -248,7 +273,7 @@ run();
 
 Run it using:
 ```bash
-node test.js
+npm test
 ```
 
 ### 7.2. In-App Testing (Plugin Tester)
@@ -308,7 +333,7 @@ The "Repo Tester" tab allows you to validate an entire plugin repository manifes
     ```bash
     node build.js myprovider
     ```
-2.  **Update Manifest**: Add your provider entry to `manifest.json`.
+2.  **Manifest**: Your provider's `metadata.json` in `src/<name>/` controls the manifest entry (name, description, supported types). The manifest is **auto-generated** when you build — no manual edits needed.
 3.  **Commit & Push**:
     ```bash
     git add .
@@ -335,3 +360,7 @@ Users can then use your raw GitHub repository URL to load the plugins in Nuvio.
 ### The app crashes when loading my provider
 **Cause**: Syntax error or unhandled exception at the root level.
 **Fix**: Check your `index.js`. Ensure you are not doing heavy work (like networking) at the top level. All logic must be inside `getStreams`.
+
+### Error: Provider doesn't appear in the app
+**Cause**: Missing `metadata.json` in `src/<provider>/` directory.
+**Fix**: Create `src/<provider>/metadata.json` with at least a `name` field.

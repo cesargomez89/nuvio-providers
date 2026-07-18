@@ -1,6 +1,6 @@
 {
-  "name": "PoseidonHD2",
-  "description": "Películas y series en Latino desde PoseidonHD2.",
+  "name": "FlixLatam",
+  "description": "Películas y series en Latino desde FlixLatam.",
   "author": "cesargomez89",
   "supportedTypes": ["movie", "tv"],
   "contentLanguage": ["es"],
