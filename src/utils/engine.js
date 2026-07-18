@@ -80,10 +80,12 @@ async function finalizeStreams(streams, providerName) {
         try {
           if (s.isReal === true || s.verified === true) return s;
           if (s.url && (s.url.includes('.m3u8') || s.url.includes('.mp4'))) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 1500);
+            const hasAbort = typeof AbortController !== 'undefined';
+            const controller = hasAbort ? new AbortController() : null;
+            let timeoutId;
+            if (hasAbort) timeoutId = setTimeout(() => controller.abort(), 1500);
             try {
-              const validated = await validateStream(s, controller.signal);
+              const validated = await validateStream(s, hasAbort ? controller.signal : null);
               clearTimeout(timeoutId);
               return validated;
             } catch {

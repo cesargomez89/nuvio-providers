@@ -1,6 +1,6 @@
 /**
  * xupalace - Built from src/xupalace/
- * Generated: 2026-07-18T21:21:24.127Z
+ * Generated: 2026-07-18T21:53:47.979Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -158,10 +158,13 @@ var require_http = __commonJS({
     }
     function fetchWithTimeout(_0) {
       return __async(this, arguments, function* (url, timeout = DEFAULT_TIMEOUT, options = {}) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        const hasAbort = typeof AbortController !== "undefined";
+        const controller = hasAbort ? new AbortController() : null;
+        let timeoutId;
+        if (hasAbort)
+          timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
-          const result = yield request(url, __spreadProps(__spreadValues({}, options), { signal: controller.signal }));
+          const result = yield request(url, __spreadProps(__spreadValues({}, options), { signal: hasAbort ? controller.signal : null }));
           clearTimeout(timeoutId);
           return result;
         } catch (e) {
@@ -3055,6 +3058,13 @@ var require_generic_fuegocine = __commonJS({
 // src/utils/parallel.js
 var require_parallel = __commonJS({
   "src/utils/parallel.js"(exports2, module2) {
+    function allSettled(promises) {
+      return Promise.all(
+        promises.map(
+          (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
+        )
+      );
+    }
     function parallelWithLimit(items, handler, limit = 5) {
       return __async(this, null, function* () {
         const results = [];
@@ -3063,7 +3073,7 @@ var require_parallel = __commonJS({
           const batchPromises = batch.map((item) => {
             return handler(item).catch(() => null);
           });
-          const batchResults = yield Promise.allSettled(batchPromises);
+          const batchResults = yield allSettled(batchPromises);
           results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
         }
         return results;
@@ -3075,7 +3085,7 @@ var require_parallel = __commonJS({
         const promises = items.map((item) => __async(this, null, function* () {
           return yield handler(item);
         }));
-        const settled = yield Promise.allSettled(promises);
+        const settled = yield allSettled(promises);
         settled.forEach((r) => {
           if (r.status === "fulfilled" && r.value)
             results.push(r.value);
@@ -3631,10 +3641,13 @@ var require_engine = __commonJS({
                 if (s.isReal === true || s.verified === true)
                   return s;
                 if (s.url && (s.url.includes(".m3u8") || s.url.includes(".mp4"))) {
-                  const controller = new AbortController();
-                  const timeoutId = setTimeout(() => controller.abort(), 1500);
+                  const hasAbort = typeof AbortController !== "undefined";
+                  const controller = hasAbort ? new AbortController() : null;
+                  let timeoutId;
+                  if (hasAbort)
+                    timeoutId = setTimeout(() => controller.abort(), 1500);
                   try {
-                    const validated = yield validateStream(s, controller.signal);
+                    const validated = yield validateStream(s, hasAbort ? controller.signal : null);
                     clearTimeout(timeoutId);
                     return validated;
                   } catch (e) {

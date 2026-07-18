@@ -98,10 +98,12 @@ async function fetchJson(url, options) {
 }
 
 async function fetchWithTimeout(url, timeout = DEFAULT_TIMEOUT, options = {}) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const hasAbort = typeof AbortController !== 'undefined';
+  const controller = hasAbort ? new AbortController() : null;
+  let timeoutId;
+  if (hasAbort) timeoutId = setTimeout(() => controller.abort(), timeout);
   try {
-    const result = await request(url, { ...options, signal: controller.signal });
+    const result = await request(url, { ...options, signal: hasAbort ? controller.signal : null });
     clearTimeout(timeoutId);
     return result;
   } catch (e) {

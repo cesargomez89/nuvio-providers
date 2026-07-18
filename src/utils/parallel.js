@@ -1,3 +1,13 @@
+function allSettled(promises) {
+  return Promise.all(
+    promises.map((p) =>
+      p
+        .then((value) => ({ status: 'fulfilled', value }))
+        .catch((reason) => ({ status: 'rejected', reason }))
+    )
+  );
+}
+
 async function parallelWithLimit(items, handler, limit = 5) {
   const results = [];
 
@@ -6,7 +16,7 @@ async function parallelWithLimit(items, handler, limit = 5) {
     const batchPromises = batch.map((item) => {
       return handler(item).catch(() => null);
     });
-    const batchResults = await Promise.allSettled(batchPromises);
+    const batchResults = await allSettled(batchPromises);
     results.push(...batchResults.map((r) => (r.status === 'fulfilled' ? r.value : null)));
   }
 
@@ -20,7 +30,7 @@ async function resolveWithLimit(items, handler) {
     return await handler(item);
   });
 
-  const settled = await Promise.allSettled(promises);
+  const settled = await allSettled(promises);
   settled.forEach((r) => {
     if (r.status === 'fulfilled' && r.value) results.push(r.value);
   });

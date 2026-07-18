@@ -1,6 +1,6 @@
 /**
  * brazucaplay - Built from src/brazucaplay/
- * Generated: 2026-07-18T21:21:24.035Z
+ * Generated: 2026-07-18T21:53:47.893Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -158,10 +158,13 @@ var require_http = __commonJS({
     }
     function fetchWithTimeout(_0) {
       return __async(this, arguments, function* (url, timeout = DEFAULT_TIMEOUT, options = {}) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        const hasAbort = typeof AbortController !== "undefined";
+        const controller = hasAbort ? new AbortController() : null;
+        let timeoutId;
+        if (hasAbort)
+          timeoutId = setTimeout(() => controller.abort(), timeout);
         try {
-          const result = yield request(url, __spreadProps(__spreadValues({}, options), { signal: controller.signal }));
+          const result = yield request(url, __spreadProps(__spreadValues({}, options), { signal: hasAbort ? controller.signal : null }));
           clearTimeout(timeoutId);
           return result;
         } catch (e) {
@@ -556,10 +559,13 @@ var require_engine = __commonJS({
                 if (s.isReal === true || s.verified === true)
                   return s;
                 if (s.url && (s.url.includes(".m3u8") || s.url.includes(".mp4"))) {
-                  const controller = new AbortController();
-                  const timeoutId = setTimeout(() => controller.abort(), 1500);
+                  const hasAbort = typeof AbortController !== "undefined";
+                  const controller = hasAbort ? new AbortController() : null;
+                  let timeoutId;
+                  if (hasAbort)
+                    timeoutId = setTimeout(() => controller.abort(), 1500);
                   try {
-                    const validated = yield validateStream(s, controller.signal);
+                    const validated = yield validateStream(s, hasAbort ? controller.signal : null);
                     clearTimeout(timeoutId);
                     return validated;
                   } catch (e) {
