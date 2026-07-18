@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-07-14T07:30:26.363Z
+ * Generated: 2026-07-18T01:27:05.848Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1749,20 +1749,6 @@ var require_okru = __commonJS({
 var require_embed69 = __commonJS({
   "src/resolvers/embed69.js"(exports2, module2) {
     var { getSessionUA } = require_http();
-    function decodeJwtPayload(token) {
-      try {
-        if (!token || typeof token !== "string")
-          return null;
-        const parts = token.split(".");
-        if (parts.length < 2)
-          return null;
-        let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-        payload += "=".repeat((4 - payload.length % 4) % 4);
-        return JSON.parse(atob(payload));
-      } catch (e) {
-        return null;
-      }
-    }
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
@@ -1780,6 +1766,27 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
+            let solvePoW2 = function(challenge, difficulty) {
+              const prefix = "0".repeat(difficulty);
+              let nonce2 = 0;
+              while (true) {
+                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                if (hash.startsWith(prefix))
+                  return nonce2;
+                nonce2++;
+              }
+            }, decryptLink2 = function(encryptedBase64, key) {
+              const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
+              const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
+              const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
+              const decrypted = CryptoJS2.AES.decrypt({ ciphertext: ct }, key, {
+                iv,
+                mode: CryptoJS2.mode.CBC,
+                padding: CryptoJS2.pad.Pkcs7
+              });
+              return decrypted.toString(CryptoJS2.enc.Utf8);
+            };
+            var solvePoW = solvePoW2, decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -1787,17 +1794,28 @@ var require_embed69 = __commonJS({
               return null;
             }
             const items = Array.isArray(rawData) ? rawData : Object.values(rawData);
+            const CryptoJS2 = require("crypto-js");
+            const powChallengeMatch = html.match(/POW_CHALLENGE\s*=\s*['"]([^'"]+)['"]/);
+            const powDifficultyMatch = html.match(/POW_DIFFICULTY\s*=\s*(\d+)/);
+            const powSaltMatch = html.match(/POW_SALT\s*=\s*['"]([^'"]+)['"]/);
+            if (!powChallengeMatch || !powDifficultyMatch || !powSaltMatch)
+              return null;
+            const powChallenge = powChallengeMatch[1];
+            const powDifficulty = parseInt(powDifficultyMatch[1]);
+            const powSalt = powSaltMatch[1];
+            const nonce = solvePoW2(powChallenge, powDifficulty);
+            const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);
             for (const item of items) {
               if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
                 continue;
               for (const embed of item.sortedEmbeds) {
                 if (!embed.link)
                   continue;
-                const payload = decodeJwtPayload(embed.link);
-                if (!payload || !payload.link)
+                const decryptedUrl = decryptLink2(embed.link, aesKey);
+                if (!decryptedUrl || !decryptedUrl.startsWith("http"))
                   continue;
                 const { resolveEmbed: resolveEmbed2 } = require_resolvers();
-                const result = yield resolveEmbed2(payload.link, signal);
+                const result = yield resolveEmbed2(decryptedUrl, signal);
                 if (result && result.url)
                   return result;
               }

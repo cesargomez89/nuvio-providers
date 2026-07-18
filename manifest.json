@@ -1,19 +1,19 @@
 {
   "name": "Latinus Mexico",
-  "version": "1.0.59",
+  "version": "1.0.65",
   "scrapers": [
     {
       "id": "brazucaplay",
       "name": "BrazucaPlay",
       "description": "Películas y series en Português desde Brasil.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
         "tv"
       ],
       "filename": "providers/brazucaplay.js",
-      "enabled": true,
+      "enabled": false,
       "contentLanguage": [
         "es"
       ],
@@ -28,14 +28,14 @@
       "id": "cinecalidad",
       "name": "CineCalidad",
       "description": "Películas en Latino desde CineCalidad.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
         "tv"
       ],
       "filename": "providers/cinecalidad.js",
-      "enabled": false,
+      "enabled": true,
       "contentLanguage": [
         "es"
       ],
@@ -50,7 +50,7 @@
       "id": "cuevana_unbuendato",
       "name": "Cuevana",
       "description": "Películas y series en Latino (Cuevana).",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -72,7 +72,7 @@
       "id": "detodopeliculas",
       "name": "DeTodoPeliculas",
       "description": "Películas y series en Latino desde DeTodoPeliculas.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -94,7 +94,7 @@
       "id": "embed69",
       "name": "Embed69",
       "description": "Streams en Latino/Español desde Embed69.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -113,10 +113,32 @@
       "supportsExternalPlayer": true
     },
     {
+      "id": "flixlatam",
+      "name": "flixlatam",
+      "description": "Streams from flixlatam",
+      "version": "1.0.65",
+      "author": "cesargomez89",
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ],
+      "filename": "providers/flixlatam.js",
+      "enabled": true,
+      "contentLanguage": [
+        "es"
+      ],
+      "formats": [
+        "mp4",
+        "mkv"
+      ],
+      "limited": false,
+      "supportsExternalPlayer": true
+    },
+    {
       "id": "fuegocine",
       "name": "FuegoCine",
       "description": "Películas en Latino desde FuegoCine.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -138,7 +160,7 @@
       "id": "hackstore2",
       "name": "HackStore",
       "description": "Películas y series en Latino desde HackStore.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -160,7 +182,7 @@
       "id": "lamovie",
       "name": "LaMovie",
       "description": "Películas y series en Latino desde LaMovie.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -182,7 +204,7 @@
       "id": "pelisgo",
       "name": "PelisGo",
       "description": "Películas en Latino desde PelisGo.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -204,7 +226,7 @@
       "id": "pelispanda",
       "name": "PelisPanda",
       "description": "Películas y series en Latino desde PelisPanda.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -226,7 +248,7 @@
       "id": "pelispedia",
       "name": "PelisPedia",
       "description": "Películas en Latino desde PelisPedia.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -248,7 +270,7 @@
       "id": "pelisplus",
       "name": "PelisPlus",
       "description": "Películas y series en Latino desde PelisPlus.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -270,7 +292,7 @@
       "id": "pelispop",
       "name": "PelisPop",
       "description": "Películas y series en Latino desde PelisPop.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -292,7 +314,7 @@
       "id": "playhubmax",
       "name": "PlayHubMax",
       "description": "Películas y series en Latino desde PlayHubMax.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -314,7 +336,7 @@
       "id": "seriesmetro",
       "name": "SeriesMetro",
       "description": "Películas y series en Latino/Español desde SeriesMetro.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -336,7 +358,7 @@
       "id": "sololatino",
       "name": "SoloLatino",
       "description": "Películas y series en Latino.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -358,7 +380,7 @@
       "id": "tioplus",
       "name": "Tioplus",
       "description": "Películas y series en Latino desde Tioplus.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
@@ -380,14 +402,14 @@
       "id": "videasy",
       "name": "Videasy",
       "description": "Películas y series en Latino.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
         "tv"
       ],
       "filename": "providers/videasy.js",
-      "enabled": true,
+      "enabled": false,
       "contentLanguage": [
         "es"
       ],
@@ -402,14 +424,14 @@
       "id": "xupalace",
       "name": "Xupalace",
       "description": "Películas y series en Latino desde Xupalace.",
-      "version": "1.0.59",
+      "version": "1.0.65",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",
         "tv"
       ],
       "filename": "providers/xupalace.js",
-      "enabled": true,
+      "enabled": false,
       "contentLanguage": [
         "es"
       ],

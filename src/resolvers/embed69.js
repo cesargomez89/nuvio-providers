@@ -1,18 +1,5 @@
 const { getSessionUA } = require('../utils/http.js');
 
-function decodeJwtPayload(token) {
-  try {
-    if (!token || typeof token !== 'string') return null;
-    const parts = token.split('.');
-    if (parts.length < 2) return null;
-    let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    payload += '='.repeat((4 - (payload.length % 4)) % 4);
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
-
 async function resolve(url, signal = null) {
   try {
     const UA = getSessionUA();
@@ -38,15 +25,49 @@ async function resolve(url, signal = null) {
       }
       const items = Array.isArray(rawData) ? rawData : Object.values(rawData);
 
+      const CryptoJS = require('crypto-js');
+      const powChallengeMatch = html.match(/POW_CHALLENGE\s*=\s*['"]([^'"]+)['"]/);
+      const powDifficultyMatch = html.match(/POW_DIFFICULTY\s*=\s*(\d+)/);
+      const powSaltMatch = html.match(/POW_SALT\s*=\s*['"]([^'"]+)['"]/);
+      if (!powChallengeMatch || !powDifficultyMatch || !powSaltMatch) return null;
+      const powChallenge = powChallengeMatch[1];
+      const powDifficulty = parseInt(powDifficultyMatch[1]);
+      const powSalt = powSaltMatch[1];
+
+      function solvePoW(challenge, difficulty) {
+        const prefix = '0'.repeat(difficulty);
+        let nonce = 0;
+        while (true) {
+          const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
+          if (hash.startsWith(prefix)) return nonce;
+          nonce++;
+        }
+      }
+
+      function decryptLink(encryptedBase64, key) {
+        const raw = CryptoJS.enc.Base64.parse(encryptedBase64);
+        const iv = CryptoJS.lib.WordArray.create(raw.words.slice(0, 4), 16);
+        const ct = CryptoJS.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
+        const decrypted = CryptoJS.AES.decrypt({ ciphertext: ct }, key, {
+          iv,
+          mode: CryptoJS.mode.CBC,
+          padding: CryptoJS.pad.Pkcs7,
+        });
+        return decrypted.toString(CryptoJS.enc.Utf8);
+      }
+
+      const nonce = solvePoW(powChallenge, powDifficulty);
+      const aesKey = CryptoJS.SHA256(powChallenge + nonce.toString() + powSalt);
+
       for (const item of items) {
         if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds)) continue;
         for (const embed of item.sortedEmbeds) {
           if (!embed.link) continue;
-          const payload = decodeJwtPayload(embed.link);
-          if (!payload || !payload.link) continue;
+          const decryptedUrl = decryptLink(embed.link, aesKey);
+          if (!decryptedUrl || !decryptedUrl.startsWith('http')) continue;
 
           const { resolveEmbed } = require('../utils/resolvers.js');
-          const result = await resolveEmbed(payload.link, signal);
+          const result = await resolveEmbed(decryptedUrl, signal);
           if (result && result.url) return result;
         }
       }

@@ -1,6 +1,6 @@
 /**
- * tioplus - Built from src/tioplus/
- * Generated: 2026-07-18T01:27:05.866Z
+ * flixlatam - Built from src/flixlatam/
+ * Generated: 2026-07-18T01:27:05.823Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -74,18 +74,18 @@ var require_http = __commonJS({
       Accept: "*/*",
       Origin: "https://cineby.sc",
       Referer: "https://cineby.sc/",
-      "User-Agent": getSessionUA2()
+      "User-Agent": getSessionUA()
     };
     var sessionUA = null;
     function setSessionUA(ua) {
       sessionUA = ua;
     }
-    function getSessionUA2() {
+    function getSessionUA() {
       return sessionUA || DEFAULT_CHROME_UA;
     }
     function getStealthHeaders() {
       return {
-        "User-Agent": getSessionUA2(),
+        "User-Agent": getSessionUA(),
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6",
         Connection: "keep-alive",
@@ -99,12 +99,12 @@ var require_http = __commonJS({
         "Upgrade-Insecure-Requests": "1"
       };
     }
-    var DEFAULT_UA = getSessionUA2();
-    var MOBILE_UA = getSessionUA2();
+    var DEFAULT_UA = getSessionUA();
+    var MOBILE_UA = getSessionUA();
     function request(_0) {
       return __async(this, arguments, function* (url, options = {}) {
         const opt = options || {};
-        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA2();
+        const currentUA = opt.headers && opt.headers["User-Agent"] ? opt.headers["User-Agent"] : getSessionUA();
         const headers = Object.assign(
           {
             "User-Agent": currentUA,
@@ -173,7 +173,7 @@ var require_http = __commonJS({
       fetchHtml: fetchHtml2,
       fetchJson,
       fetchWithTimeout,
-      getSessionUA: getSessionUA2,
+      getSessionUA,
       setSessionUA,
       getStealthHeaders,
       CINEBY_HEADERS,
@@ -187,7 +187,7 @@ var require_http = __commonJS({
 // src/utils/m3u8.js
 var require_m3u8 = __commonJS({
   "src/utils/m3u8.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function getQualityFromHeight(height) {
       if (!height)
         return "1080p";
@@ -261,7 +261,7 @@ var require_m3u8 = __commonJS({
           const fetchOptions = {
             method: isMp4 ? "HEAD" : "GET",
             headers: __spreadValues({
-              "User-Agent": getSessionUA2()
+              "User-Agent": getSessionUA()
             }, headers || {})
           };
           if (signal)
@@ -615,7 +615,7 @@ var require_engine = __commonJS({
 // src/resolvers/voe.js
 var require_voe = __commonJS({
   "src/resolvers/voe.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var { validateStream } = require_m3u8();
     var VOE_MIRRORS = ["voe.sx", "voe-sx", "voex.sx"];
     function localAtob(input) {
@@ -633,7 +633,7 @@ var require_voe = __commonJS({
     }
     function tryResolve(url, signal) {
       return __async(this, null, function* () {
-        const currentUA = getSessionUA2();
+        const currentUA = getSessionUA();
         console.log(`[VOE] TV-Resolving: ${url}`);
         const response = yield fetch(url, {
           headers: { "User-Agent": currentUA },
@@ -736,7 +736,7 @@ var require_voe = __commonJS({
 // src/resolvers/hlswish.js
 var require_hlswish = __commonJS({
   "src/resolvers/hlswish.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var { validateStream } = require_m3u8();
     function unpackEval(payload, radix, symtab) {
       const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -760,7 +760,7 @@ var require_hlswish = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const rawId = url.split("/").pop().replace(/\.html$/, "");
           const mirrors = [
             `https://hanerix.com/e/${rawId}`,
@@ -939,8 +939,8 @@ var require_aes_gcm = __commonJS({
 var require_filemoon = __commonJS({
   "src/resolvers/filemoon.js"(exports2, module2) {
     var { decryptByse } = require_aes_gcm();
-    var { getSessionUA: getSessionUA2 } = require_http();
-    var UA_CHROME = getSessionUA2();
+    var { getSessionUA } = require_http();
+    var UA_CHROME = getSessionUA();
     function unpack(p, a, c, k) {
       while (c--)
         if (k[c])
@@ -1048,7 +1048,7 @@ var require_filemoon = __commonJS({
 // src/resolvers/vidhide.js
 var require_vidhide = __commonJS({
   "src/resolvers/vidhide.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2, getStealthHeaders } = require_http();
+    var { getSessionUA, getStealthHeaders } = require_http();
     var { validateStream } = require_m3u8();
     function unpackVidHide(script) {
       try {
@@ -1082,7 +1082,7 @@ var require_vidhide = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const currentUA = getSessionUA2();
+          const currentUA = getSessionUA();
           console.log(`[VidHide] TV-Resolving: ${url}`);
           const urlObj = new URL(url);
           const domain = urlObj.hostname;
@@ -1154,7 +1154,7 @@ var require_vidhide = __commonJS({
 // src/resolvers/doodstream.js
 var require_doodstream = __commonJS({
   "src/resolvers/doodstream.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     var RAND_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     function randomStr(len) {
       let r = "";
@@ -1165,7 +1165,7 @@ var require_doodstream = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const urlObj = new URL(url);
           const domain = urlObj.origin;
           const pathMatch = urlObj.pathname.match(/\/[ed]\/([a-z0-9]+)/i);
@@ -1254,11 +1254,11 @@ var require_packer = __commonJS({
 var require_dropcdn = __commonJS({
   "src/resolvers/dropcdn.js"(exports2, module2) {
     var { unpackPacker } = require_packer();
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -1318,7 +1318,7 @@ var require_dropcdn = __commonJS({
 // src/resolvers/quality.js
 var require_quality = __commonJS({
   "src/resolvers/quality.js"(exports2, module2) {
-    var { request, getSessionUA: getSessionUA2 } = require_http();
+    var { request, getSessionUA } = require_http();
     function detectQuality(_0) {
       return __async(this, arguments, function* (url, headers = {}) {
         try {
@@ -1327,7 +1327,7 @@ var require_quality = __commonJS({
           const res = yield request(url, {
             timeout: 5e3,
             headers: __spreadValues({
-              "User-Agent": getSessionUA2()
+              "User-Agent": getSessionUA()
             }, headers)
           });
           const data = yield res.text();
@@ -1370,11 +1370,11 @@ var require_quality = __commonJS({
 var require_goodstream = __commonJS({
   "src/resolvers/goodstream.js"(exports2, module2) {
     var { detectQuality } = require_quality();
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(embedUrl, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           console.log(`[GoodStream] Resolviendo: ${embedUrl}`);
           const response = yield fetch(embedUrl, {
             signal,
@@ -1498,10 +1498,10 @@ var require_fastream = __commonJS({
 // src/resolvers/vimeos.js
 var require_vimeos = __commonJS({
   "src/resolvers/vimeos.js"(exports2, module2) {
-    var { fetchHtml: fetchHtml2, fetchJson, getSessionUA: getSessionUA2 } = require_http();
+    var { fetchHtml: fetchHtml2, fetchJson, getSessionUA } = require_http();
     function resolve(embedUrl, signal = null) {
       return __async(this, null, function* () {
-        const UA2 = getSessionUA2();
+        const UA2 = getSessionUA();
         try {
           console.log("[Vimeos] Resolviendo: " + embedUrl);
           var html = yield fetchHtml2(embedUrl, {
@@ -1601,14 +1601,14 @@ var require_vimeos = __commonJS({
 // src/resolvers/supervideo.js
 var require_supervideo = __commonJS({
   "src/resolvers/supervideo.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2, getStealthHeaders } = require_http();
+    var { getSessionUA, getStealthHeaders } = require_http();
     var { unpackPacker } = require_packer();
     var { validateStream } = require_m3u8();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         var _a, _b, _c, _d;
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           console.log(`[Supervideo] Resolving: ${url}`);
           const resp = yield fetch(url, {
             signal,
@@ -1680,11 +1680,11 @@ var require_supervideo = __commonJS({
 // src/resolvers/pixeldrain.js
 var require_pixeldrain = __commonJS({
   "src/resolvers/pixeldrain.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const pathMatch = url.match(/pixeldrain\.com\/u\/([a-zA-Z0-9]+)/i);
           if (!pathMatch)
             return null;
@@ -1713,11 +1713,11 @@ var require_pixeldrain = __commonJS({
 // src/resolvers/lulustream.js
 var require_lulustream = __commonJS({
   "src/resolvers/lulustream.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -1771,11 +1771,11 @@ var require_lulustream = __commonJS({
 // src/resolvers/okru.js
 var require_okru = __commonJS({
   "src/resolvers/okru.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const resp = yield fetch(url, {
             signal,
             headers: {
@@ -1828,11 +1828,11 @@ var require_okru = __commonJS({
 // src/resolvers/embed69.js
 var require_embed69 = __commonJS({
   "src/resolvers/embed69.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const resp = yield fetch(url, {
             signal,
             headers: {
@@ -1930,11 +1930,11 @@ var require_embed69 = __commonJS({
 // src/resolvers/xupalace.js
 var require_xupalace = __commonJS({
   "src/resolvers/xupalace.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -1989,7 +1989,7 @@ var require_xupalace = __commonJS({
 // src/resolvers/mixdrop.js
 var require_mixdrop = __commonJS({
   "src/resolvers/mixdrop.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function decodeMixdropSource(html) {
       const rcdMatch = html.match(/["']([a-zA-Z0-9]+)["']\s*\+\s*["']([a-zA-Z0-9]+)["']/);
       if (rcdMatch) {
@@ -2003,7 +2003,7 @@ var require_mixdrop = __commonJS({
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const resp = yield fetch(url, {
             signal,
             headers: {
@@ -2041,11 +2041,11 @@ var require_mixdrop = __commonJS({
 // src/resolvers/verhdlink.js
 var require_verhdlink = __commonJS({
   "src/resolvers/verhdlink.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2094,11 +2094,11 @@ var require_verhdlink = __commonJS({
 // src/resolvers/streamtape.js
 var require_streamtape = __commonJS({
   "src/resolvers/streamtape.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const resp = yield fetch(url, {
             signal,
             headers: {
@@ -2151,11 +2151,11 @@ var require_streamtape = __commonJS({
 // src/resolvers/playhydrax.js
 var require_playhydrax = __commonJS({
   "src/resolvers/playhydrax.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2200,11 +2200,11 @@ var require_playhydrax = __commonJS({
 // src/resolvers/sololatino.js
 var require_sololatino = __commonJS({
   "src/resolvers/sololatino.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2245,11 +2245,11 @@ var require_sololatino = __commonJS({
 // src/resolvers/krakenfiles.js
 var require_krakenfiles = __commonJS({
   "src/resolvers/krakenfiles.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2294,11 +2294,11 @@ var require_krakenfiles = __commonJS({
 // src/resolvers/unlimplay.js
 var require_unlimplay = __commonJS({
   "src/resolvers/unlimplay.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2348,11 +2348,11 @@ var require_unlimplay = __commonJS({
 // src/resolvers/vibuxer.js
 var require_vibuxer = __commonJS({
   "src/resolvers/vibuxer.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2402,11 +2402,11 @@ var require_vibuxer = __commonJS({
 // src/resolvers/emturbovid.js
 var require_emturbovid = __commonJS({
   "src/resolvers/emturbovid.js"(exports2, module2) {
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const domain = new URL(url).origin;
           const resp = yield fetch(url, {
             signal,
@@ -2706,11 +2706,11 @@ var require_vidsrc = __commonJS({
 var require_embedseek = __commonJS({
   "src/resolvers/embedseek.js"(exports2, module2) {
     var CryptoJS2 = require("crypto-js");
-    var { getSessionUA: getSessionUA2 } = require_http();
+    var { getSessionUA } = require_http();
     function resolve(url, signal = null) {
       return __async(this, null, function* () {
         try {
-          const UA2 = getSessionUA2();
+          const UA2 = getSessionUA();
           const parsedUrl = new URL(url);
           const hostname = parsedUrl.hostname;
           const hash = parsedUrl.hash;
@@ -3147,8 +3147,8 @@ var require_resolvers = __commonJS({
     var { resolve: resolvePlaymogo } = require_playmogo();
     var { resolve: resolveGeneric } = require_generic_fuegocine();
     var { isMirror } = require_mirrors();
-    var { getSessionUA: getSessionUA2 } = require_http();
-    var UA2 = getSessionUA2();
+    var { getSessionUA } = require_http();
+    var UA2 = getSessionUA();
     var DEAD_DOMAINS = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
     function getDirectCdnHeaders(url) {
       if (!url)
@@ -3394,7 +3394,7 @@ var require_tmdb = __commonJS({
     ][Math.floor(Math.random() * 3)];
     var titleCache = /* @__PURE__ */ new Map();
     var idCache = /* @__PURE__ */ new Map();
-    function getTmdbTitle(tmdbId, mediaType, retries = 2) {
+    function getTmdbTitle2(tmdbId, mediaType, retries = 2) {
       return __async(this, null, function* () {
         var _a, _b, _c, _d;
         const cacheKey = `${mediaType}_${tmdbId}`;
@@ -3413,13 +3413,13 @@ var require_tmdb = __commonJS({
           return result;
         } catch (e) {
           if (retries > 0)
-            return getTmdbTitle(tmdbId, mediaType, retries - 1);
+            return getTmdbTitle2(tmdbId, mediaType, retries - 1);
           titleCache.set(cacheKey, null);
           return null;
         }
       });
     }
-    function getTmdbInfo2(tmdbId, mediaType, lang, retries = 2) {
+    function getTmdbInfo(tmdbId, mediaType, lang, retries = 2) {
       return __async(this, null, function* () {
         try {
           const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
@@ -3435,7 +3435,7 @@ var require_tmdb = __commonJS({
         } catch (e) {
           if (retries > 0) {
             yield new Promise((r) => setTimeout(r, 1e3));
-            return getTmdbInfo2(tmdbId, mediaType, lang, retries - 1);
+            return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
           }
           return null;
         }
@@ -3462,7 +3462,7 @@ var require_tmdb = __commonJS({
             idCache.set(cacheKey, result2);
             return result2;
           }
-          const metaRes = yield getTmdbInfo2(tmdbId, mediaType);
+          const metaRes = yield getTmdbInfo(tmdbId, mediaType);
           const result = {
             imdbId: idRes.imdb_id,
             title: (metaRes == null ? void 0 : metaRes.title) || "Contenido",
@@ -3482,7 +3482,7 @@ var require_tmdb = __commonJS({
     function getTmdbAliases(tmdbId, mediaType) {
       return __async(this, null, function* () {
         try {
-          const titleEs = yield getTmdbTitle(tmdbId, mediaType);
+          const titleEs = yield getTmdbTitle2(tmdbId, mediaType);
           const titleEn = yield (() => __async(this, null, function* () {
             try {
               const type = mediaType === "movie" || mediaType === "movies" ? "movie" : "tv";
@@ -3517,7 +3517,7 @@ var require_tmdb = __commonJS({
         }
       });
     }
-    module2.exports = { getTmdbTitle, getTmdbInfo: getTmdbInfo2, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
+    module2.exports = { getTmdbTitle: getTmdbTitle2, getTmdbInfo, getCorrectImdbId, getTmdbAliases, TMDB_API_KEY };
   }
 });
 
@@ -3527,16 +3527,16 @@ var require_helpers = __commonJS({
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
-    function padEpisode(episode) {
+    function padEpisode2(episode) {
       return String(episode).padStart(2, "0");
     }
-    function isMovie2(mediaType) {
+    function isMovie(mediaType) {
       return mediaType === "movie" || mediaType === "movies";
     }
-    function cleanTmdbId(tmdbId) {
+    function cleanTmdbId2(tmdbId) {
       return tmdbId ? tmdbId.toString().split(":")[0] : tmdbId;
     }
-    function toDoubleBase642(str) {
+    function toDoubleBase64(str) {
       try {
         if (typeof btoa !== "undefined")
           return btoa(str);
@@ -3616,172 +3616,270 @@ var require_helpers = __commonJS({
         return null;
       }
     }
-    module2.exports = { sleep, padEpisode, isMovie: isMovie2, cleanTmdbId, toDoubleBase64: toDoubleBase642, b64decode };
+    module2.exports = { sleep, padEpisode: padEpisode2, isMovie, cleanTmdbId: cleanTmdbId2, toDoubleBase64, b64decode };
   }
 });
 
-// src/tioplus/extractor.js
+// src/utils/title.js
+var require_title = __commonJS({
+  "src/utils/title.js"(exports2, module2) {
+    function normalizeTitle(t) {
+      if (!t)
+        return "";
+      return t.toLowerCase().replace(/[áàäâ]/g, "a").replace(/[éèëê]/g, "e").replace(/[íìïî]/g, "i").replace(/[óòöô]/g, "o").replace(/[úùüû]/g, "u").replace(/ñ/g, "n").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    }
+    function titleMatch2(query, target, minRatio = 0.8) {
+      const q = normalizeTitle(query);
+      const t = normalizeTitle(target);
+      if (!q || !t)
+        return false;
+      if (q === t)
+        return true;
+      const qWords = q.split(" ").filter((w) => w.length > 2);
+      const tWords = t.split(" ");
+      if (qWords.length === 0)
+        return q === t;
+      const matchCount = qWords.filter((w) => tWords.includes(w)).length;
+      const ratio = matchCount / qWords.length;
+      return ratio >= minRatio;
+    }
+    function buildSlug(title) {
+      return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    }
+    function levenshtein(a, b) {
+      if (!a || !b)
+        return Math.max((a || "").length, (b || "").length);
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++)
+        matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++)
+        matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+    module2.exports = { normalizeTitle, titleMatch: titleMatch2, levenshtein, buildSlug };
+  }
+});
+
+// src/flixlatam/extractor.js
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
 var import_helpers = __toESM(require_helpers());
-var BASE_URL = "https://tioplus.app";
-var UA = (0, import_http.getSessionUA)();
-function getRedirectUrl(serverEncoded, referer) {
-  return __async(this, null, function* () {
-    try {
-      const doubleB64 = (0, import_helpers.toDoubleBase64)(serverEncoded);
-      const playerUrl = `${BASE_URL}/player/${doubleB64}`;
-      const html = yield (0, import_http.fetchHtml)(playerUrl, { headers: { "User-Agent": UA, Referer: referer } });
-      if (!html || html.length < 50)
-        return null;
-      const match = html.match(/(?:window\.)?location\.href\s*=\s*['"]([^'"]+)['"]/i);
-      let finalUrl = match ? match[1] : null;
-      if (finalUrl && finalUrl.includes("up.asdasd")) {
-        const netuIdMatch = finalUrl.match(/\.site(.*?)$/);
-        if (netuIdMatch)
-          finalUrl = "https://netu.to" + netuIdMatch[1];
-      }
-      return finalUrl;
-    } catch (e) {
-      return null;
-    }
+var import_title = __toESM(require_title());
+var BASE_URL = "https://flixlatam.com";
+var UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+var HEADERS = { "User-Agent": UA, "Accept-Language": "es-MX,es;q=0.9,en;q=0.8" };
+function parseSearchResults(html) {
+  const cheerio = require("cheerio-without-node-native");
+  const $ = cheerio.load(html);
+  const results = [];
+  $("article.item").each((_, el) => {
+    const $el = $(el);
+    const link = $el.find("h3 a");
+    const href = link.attr("href");
+    const title = link.text().trim();
+    const yearText = $el.find("span").text().trim();
+    if (href && title)
+      results.push({ href, title, year: yearText });
   });
+  return results;
+}
+function findMatch(results, searchTitle) {
+  for (const r of results) {
+    if ((0, import_title.titleMatch)(searchTitle, r.title))
+      return r;
+  }
+  return null;
+}
+function determineTypeFromPath(path) {
+  const urlPath = path.startsWith("http") ? new URL(path).pathname : path;
+  if (urlPath.startsWith("/pelicula/"))
+    return "movie";
+  if (urlPath.startsWith("/serie/"))
+    return "serie";
+  if (urlPath.startsWith("/anime/"))
+    return "anime";
+  return null;
 }
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
-    if (!tmdbId || !mediaType)
+    if (!tmdbId)
       return [];
-    console.log(`[TioPlus] Looking for content: ${tmdbId} (${mediaType})`);
+    console.log(`[FlixLatam] Looking for content: ${tmdbId} (${mediaType})`);
     try {
-      const tmdbInfo = yield (0, import_tmdb.getTmdbInfo)(tmdbId, mediaType, "es-ES");
-      const mediaTitle = (tmdbInfo == null ? void 0 : tmdbInfo.title) || title;
-      const releaseYear = (tmdbInfo == null ? void 0 : tmdbInfo.year) || "";
-      if (!mediaTitle)
-        return [];
-      console.log(`[TioPlus] Searching: ${mediaTitle} (${releaseYear})`);
-      const searchQuery = mediaTitle.split(/[:(]/)[0].trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      const candidates = [];
-      const typePrefix = (0, import_helpers.isMovie)(mediaType) ? "pelicula" : "serie";
-      const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
-      const directHtml = yield (0, import_http.fetchHtml)(directUrl, { headers: { "User-Agent": UA } });
-      if (directHtml && !directHtml.includes("404") && !directHtml.includes("Not Found") && directHtml.length > 1e3) {
-        candidates.push({ url: directUrl, title: mediaTitle });
-      }
-      if (candidates.length === 0) {
-        const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
-        const html = yield (0, import_http.fetchHtml)(searchUrl, { headers: { "User-Agent": UA } });
-        if (html) {
-          const itemRegex = /<article[^>]*class=['"]item[^>]*>[\s\S]*?<a[^>]*href=['"]([^'"]+)['"][\s\S]*?<h2>([\s\S]*?)<\/h2>/gi;
-          let match;
-          while ((match = itemRegex.exec(html)) !== null) {
-            candidates.push({ url: match[1], title: match[2].trim() });
-          }
+      let solvePoW = function(challenge, difficulty) {
+        const prefix = "0".repeat(difficulty);
+        let nonce2 = 0;
+        while (true) {
+          const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+          if (hash.startsWith(prefix))
+            return nonce2;
+          nonce2++;
         }
-      }
-      if (candidates.length === 0)
-        return [];
-      let targetUrl = null;
-      let bestScore = -1;
-      const keywords = mediaTitle.toLowerCase().split(/[: ]/).filter((w) => w.length > 2);
-      for (const cand of candidates) {
-        const candTitle = cand.title.toLowerCase();
-        let score = 0;
-        if (keywords.length > 0 && candTitle.startsWith(keywords[0]))
-          score += 10;
-        keywords.forEach((word) => {
-          if (candTitle.includes(word))
-            score += 5;
+      }, deriveKey = function(challenge, nonce2, salt) {
+        return CryptoJS2.SHA256(challenge + nonce2.toString() + salt);
+      }, decryptLink = function(encryptedBase64, key) {
+        const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
+        const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
+        const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
+        const decrypted = CryptoJS2.AES.decrypt({ ciphertext: ct }, key, {
+          iv,
+          mode: CryptoJS2.mode.CBC,
+          padding: CryptoJS2.pad.Pkcs7
         });
-        if (releaseYear && cand.title.includes(`(${releaseYear})`))
-          score += 50;
-        if (candTitle.includes(mediaTitle.toLowerCase()))
-          score += 10;
-        const isCorrectType = (0, import_helpers.isMovie)(mediaType) && cand.url.includes("/pelicula/") || !(0, import_helpers.isMovie)(mediaType) && cand.url.includes("/serie/");
-        if (isCorrectType && score > bestScore) {
-          bestScore = score;
-          targetUrl = cand.url;
-        }
-      }
-      if (bestScore < 10)
+        return decrypted.toString(CryptoJS2.enc.Utf8);
+      };
+      const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
+      const s = season !== void 0 && season !== null ? parseInt(season) : null;
+      const e = episode !== void 0 && episode !== null ? parseInt(episode) : null;
+      let searchTitle = title;
+      if (!searchTitle)
+        searchTitle = yield (0, import_tmdb.getTmdbTitle)(realId, mediaType);
+      if (!searchTitle) {
+        console.log(`[FlixLatam] No title found for ${realId}`);
         return [];
-      let finalMediaUrl = targetUrl;
-      if (!(0, import_helpers.isMovie)(mediaType)) {
-        const s = parseInt(season) || 1;
-        const e = parseInt(episode) || 1;
-        finalMediaUrl = `${targetUrl}/season/${s}/episode/${e}`;
       }
-      const mediaHtml = yield (0, import_http.fetchHtml)(finalMediaUrl, {
-        headers: { "User-Agent": UA, Referer: BASE_URL }
+      console.log(`[FlixLatam] Searching for: "${searchTitle}"`);
+      const searchUrl = `${BASE_URL}/search?s=${encodeURIComponent(searchTitle)}`;
+      const searchHtml = yield (0, import_http.fetchHtml)(searchUrl, { headers: HEADERS });
+      const results = parseSearchResults(searchHtml);
+      if (results.length === 0) {
+        console.log(`[FlixLatam] No search results found`);
+        return [];
+      }
+      const match = findMatch(results, searchTitle);
+      if (!match) {
+        console.log(`[FlixLatam] No title match for "${searchTitle}"`);
+        return [];
+      }
+      const contentType = determineTypeFromPath(match.href);
+      if (!contentType) {
+        console.log(`[FlixLatam] Unknown content type in path: ${match.href}`);
+        return [];
+      }
+      console.log(`[FlixLatam] Matched: ${match.title} (${contentType}) -> ${match.href}`);
+      const contentPath = match.href.startsWith("http") ? new URL(match.href).pathname : match.href;
+      let contentUrl = `${BASE_URL}${contentPath}`;
+      if (contentType !== "movie" && s !== null && e !== null) {
+        const ep = (0, import_helpers.padEpisode)(e);
+        contentUrl = `${BASE_URL}${contentPath.replace(/\/$/, "")}/temporada/${s}/capitulo/${ep}/`;
+      }
+      console.log(`[FlixLatam] Fetching content page: ${contentUrl}`);
+      const contentHtml = yield (0, import_http.fetchHtml)(contentUrl, {
+        headers: __spreadProps(__spreadValues({}, HEADERS), { Referer: searchUrl })
       });
-      if (!mediaHtml)
+      const iframeMatch = contentHtml.match(/<iframe[^>]*src=["']([^"']*\/vidurl\/([^"']+?))["']/i);
+      if (!iframeMatch) {
+        console.log(`[FlixLatam] No vidurl iframe found`);
         return [];
-      const serverRegex = /data-server=['"]([^'"]+)['"][^>]*>[\s\S]*?<span>([^<]+)<\/span>/gi;
-      let sMatch;
-      const encodes = [];
-      while ((sMatch = serverRegex.exec(mediaHtml)) !== null) {
-        const enc = sMatch[1];
-        const rawServerName = sMatch[2].split("-")[0].trim();
-        let lang = "LAT";
-        if (mediaHtml.includes("audio Latino") || mediaHtml.includes("Espa\xF1ol Latino"))
-          lang = "LAT";
-        else if (mediaHtml.includes("audio Castellano") || mediaHtml.includes("Espa\xF1ol Espa\xF1a"))
-          lang = "ESP";
-        else if (mediaHtml.includes("subtulada") || mediaHtml.includes("Subtitu"))
-          lang = "SUB";
-        encodes.push({ enc, serverName: rawServerName, lang });
       }
-      if (encodes.length === 0)
-        return [];
-      const resolveWithTimeout = (promise, timeoutMs = 15e3) => __async(this, null, function* () {
-        const timeoutPromise = new Promise(
-          (_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs)
-        );
-        return Promise.race([promise, timeoutPromise]);
+      const vidurlPath = iframeMatch[1].startsWith("http") ? iframeMatch[1] : `${BASE_URL}${iframeMatch[1]}`;
+      console.log(`[FlixLatam] Vidurl: ${vidurlPath}`);
+      const vidurlHtml = yield (0, import_http.fetchHtml)(vidurlPath, {
+        headers: __spreadProps(__spreadValues({}, HEADERS), { Referer: contentUrl })
       });
-      const resolutionPromises = encodes.map((item) => __async(this, null, function* () {
-        try {
-          const realEmbedUrl = yield resolveWithTimeout(
-            getRedirectUrl(item.enc, finalMediaUrl),
-            1e4
-          );
-          if (realEmbedUrl && realEmbedUrl.startsWith("http")) {
-            const resolved = yield resolveWithTimeout((0, import_resolvers.resolveEmbed)(realEmbedUrl), 15e3);
-            if (resolved && (resolved.url || Array.isArray(resolved) && resolved.length > 0)) {
-              const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
-              return streamsArray.map((s) => __spreadProps(__spreadValues({}, s), {
-                serverLabel: item.serverName,
-                langLabel: item.lang === "LAT" ? "Latino" : item.lang === "ESP" ? "Espa\xF1ol" : "Subtitulado"
-              }));
+      const challengeMatch = vidurlHtml.match(/const\s+POW_CHALLENGE\s*=\s*['"]([^'"]+)['"]/);
+      const difficultyMatch = vidurlHtml.match(/const\s+POW_DIFFICULTY\s*=\s*(\d+)/);
+      const saltMatch = vidurlHtml.match(/const\s+POW_SALT\s*=\s*['"]([^'"]+)['"]/);
+      if (!challengeMatch || !difficultyMatch || !saltMatch) {
+        console.log(`[FlixLatam] PoW params not found`);
+        return [];
+      }
+      const powChallenge = challengeMatch[1];
+      const powDifficulty = parseInt(difficultyMatch[1]);
+      const powSalt = saltMatch[1];
+      const dataLinkMatch = vidurlHtml.match(/(?:let|const|var)\s+dataLink\s*=\s*(\[[\s\S]*?\])\s*;/);
+      if (!dataLinkMatch) {
+        console.log(`[FlixLatam] dataLink not found`);
+        return [];
+      }
+      let dataLink;
+      try {
+        dataLink = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
+      } catch (e2) {
+        console.log(`[FlixLatam] Failed to parse dataLink JSON`);
+        return [];
+      }
+      if (!Array.isArray(dataLink))
+        dataLink = [dataLink];
+      const CryptoJS2 = require("crypto-js");
+      console.log(`[FlixLatam] Solving PoW (difficulty: ${powDifficulty})...`);
+      const nonce = solvePoW(powChallenge, powDifficulty);
+      const aesKey = deriveKey(powChallenge, nonce, powSalt);
+      console.log(`[FlixLatam] PoW solved (nonce: ${nonce})`);
+      const embeds = [];
+      for (const item of dataLink) {
+        const vLang = (item.video_language || "").toUpperCase();
+        if (vLang !== "LAT")
+          continue;
+        if (!item.sortedEmbeds || !Array.isArray(item.sortedEmbeds))
+          continue;
+        for (const embed of item.sortedEmbeds) {
+          if (!embed.link)
+            continue;
+          try {
+            const decryptedUrl = decryptLink(embed.link, aesKey);
+            if (decryptedUrl && decryptedUrl.startsWith("http")) {
+              embeds.push({ url: decryptedUrl, servername: embed.servername || "Server" });
             }
+          } catch (e2) {
+            console.log(
+              `[FlixLatam] Decrypt failed for ${embed.servername || "unknown"}: ${e2.message}`
+            );
           }
-        } catch (e) {
         }
+      }
+      if (embeds.length === 0) {
+        console.log(`[FlixLatam] No LAT embeds found or decrypted`);
         return [];
-      }));
-      const allResolved = yield Promise.allSettled(resolutionPromises);
-      const resolvedStreams = [];
-      allResolved.forEach((r) => {
-        if (r.status === "fulfilled" && r.value) {
-          resolvedStreams.push(...r.value);
+      }
+      console.log(`[FlixLatam] Resolving ${embeds.length} embeds...`);
+      const streams = [];
+      for (const emb of embeds) {
+        try {
+          const resolved = yield (0, import_resolvers.resolveEmbed)(emb.url);
+          if (resolved && resolved.url) {
+            streams.push({
+              url: resolved.url,
+              quality: resolved.quality || "1080p",
+              serverLabel: resolved.serverName || emb.servername,
+              language: "Latino",
+              headers: resolved.headers || { "User-Agent": UA, Referer: BASE_URL + "/" }
+            });
+          }
+        } catch (e2) {
+          console.log(`[FlixLatam] Resolve failed for ${emb.servername}: ${e2.message}`);
         }
-      });
-      return yield (0, import_engine.finalizeStreams)(resolvedStreams, "TioPlus", mediaTitle);
+      }
+      return yield (0, import_engine.finalizeStreams)(streams, "FlixLatam", searchTitle);
     } catch (error) {
-      console.error(`[TioPlus] Error: ${error.message}`);
+      console.error(`[FlixLatam] Error: ${error.message}`);
       return [];
     }
   });
 }
 
-// src/tioplus/index.js
+// src/flixlatam/index.js
 function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
       return yield extractStreams(tmdbId, mediaType, season, episode);
     } catch (e) {
-      console.error(`[TioPlus] Error: ${e.message}`);
+      console.error(`[FlixLatam] Error: ${e.message}`);
       return [];
     }
   });

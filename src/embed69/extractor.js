@@ -7,19 +7,6 @@ import { resolveEmbed } from '../utils/resolvers.js';
 const BASE_URL = 'https://embed69.org';
 const RESOLVER_TIMEOUT = 10000;
 
-function decodeJwtPayload(token) {
-  try {
-    if (!token || typeof token !== 'string') return null;
-    const parts = token.split('.');
-    if (parts.length < 2) return null;
-    let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    payload += '='.repeat((4 - (payload.length % 4)) % 4);
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
-
 function applyPipingLocal(result) {
   if (!result || !result.url) return result;
   let url = result.url;
@@ -92,6 +79,50 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     let rawData = JSON.parse(match[1].replace(/\\\//g, '/'));
     let data = Array.isArray(rawData) ? rawData : Object.values(rawData);
 
+    const CryptoJS = require('crypto-js');
+
+    const powChallengeMatch = html.match(/POW_CHALLENGE\s*=\s*['"]([^'"]+)['"]/);
+    const powDifficultyMatch = html.match(/POW_DIFFICULTY\s*=\s*(\d+)/);
+    const powSaltMatch = html.match(/POW_SALT\s*=\s*['"]([^'"]+)['"]/);
+    if (!powChallengeMatch || !powDifficultyMatch || !powSaltMatch) {
+      console.log(`[Embed69] PoW params not found`);
+      return [];
+    }
+    const powChallenge = powChallengeMatch[1];
+    const powDifficulty = parseInt(powDifficultyMatch[1]);
+    const powSalt = powSaltMatch[1];
+
+    function solvePoW(challenge, difficulty) {
+      const prefix = '0'.repeat(difficulty);
+      let nonce = 0;
+      while (true) {
+        const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
+        if (hash.startsWith(prefix)) return nonce;
+        nonce++;
+      }
+    }
+
+    function deriveKey(challenge, nonce, salt) {
+      return CryptoJS.SHA256(challenge + nonce.toString() + salt);
+    }
+
+    function decryptLink(encryptedBase64, key) {
+      const raw = CryptoJS.enc.Base64.parse(encryptedBase64);
+      const iv = CryptoJS.lib.WordArray.create(raw.words.slice(0, 4), 16);
+      const ct = CryptoJS.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
+      const decrypted = CryptoJS.AES.decrypt({ ciphertext: ct }, key, {
+        iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7,
+      });
+      return decrypted.toString(CryptoJS.enc.Utf8);
+    }
+
+    console.log(`[Embed69] Solving PoW (difficulty: ${powDifficulty})...`);
+    const nonce = solvePoW(powChallenge, powDifficulty);
+    const aesKey = deriveKey(powChallenge, nonce, powSalt);
+    console.log(`[Embed69] PoW solved (nonce: ${nonce})`);
+
     const langMap = { LAT: 'Latino', ESP: 'Español', SUB: 'Subtitulado' };
     const langPriority = ['LAT', 'ESP', 'SUB'];
 
@@ -112,12 +143,12 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       const embeds = [];
       for (const embed of item.sortedEmbeds) {
         if (!embed.link) continue;
-        const payload = decodeJwtPayload(embed.link);
-        if (!payload || !payload.link) {
-          console.log(`[Embed69] JWT decode failed for ${embed.servername || 'unknown'}`);
+        const decryptedUrl = decryptLink(embed.link, aesKey);
+        if (!decryptedUrl || !decryptedUrl.startsWith('http')) {
+          console.log(`[Embed69] Decrypt failed for ${embed.servername || 'unknown'}`);
           continue;
         }
-        embeds.push({ url: payload.link, servername: embed.servername });
+        embeds.push({ url: decryptedUrl, servername: embed.servername });
       }
 
       if (embeds.length === 0) continue;
