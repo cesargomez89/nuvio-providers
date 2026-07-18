@@ -1,0 +1,8 @@
+{
+  "name": "Cineby",
+  "description": "Películas y series en Español desde Cineby.",
+  "author": "cesargomez89",
+  "supportedTypes": ["movie", "tv"],
+  "contentLanguage": ["es", "en"],
+  "formats": ["mp4", "mkv"]
+}

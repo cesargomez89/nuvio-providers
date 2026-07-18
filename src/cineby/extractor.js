@@ -118,7 +118,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
       headers: s.headers || { 'User-Agent': UA, Referer: VIDKING_BASE + '/' },
     }));
 
-    return await finalizeStreams(rawStreams, 'Cineby', title);
+    return await finalizeStreams(rawStreams, 'Cineby');
   } catch (error) {
     console.error(`[Cineby] Error: ${error.message}`);
     return [];

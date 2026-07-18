@@ -56,7 +56,7 @@ function _keystream(seed, media_id, length) {
   while (pos < length) {
     const a = acc >>> 0;
     const i = a % 61;
-    const mask = stateCopy.hasOwnProperty(i) ? _MASK : 0;
+    const mask = Object.prototype.hasOwnProperty.call(stateCopy, i) ? _MASK : 0;
     const low = (stateCopy[i] || 0) >>> 0;
     const n = (low ^ _imul(_GOLDEN, counter + 1)) >>> 0;
     let c = ((a ^ n) | (a & n & mask)) >>> 0;

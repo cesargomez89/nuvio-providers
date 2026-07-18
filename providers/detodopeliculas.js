@@ -1,6 +1,6 @@
 /**
  * detodopeliculas - Built from src/detodopeliculas/
- * Generated: 2026-07-18T20:00:17.701Z
+ * Generated: 2026-07-18T20:29:41.195Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
