@@ -39,7 +39,7 @@ const { getSessionUA } = require('../utils/http.js');
 
 const UA = getSessionUA();
 
-const DEAD_DOMAINS = ['supervideo', 'voe.sx', 'mixdrop', 'verhdlink', 'waaw.to'];
+const DEAD_DOMAINS = ['supervideo', 'mixdrop', 'verhdlink', 'waaw.to'];
 
 function getDirectCdnHeaders(url) {
   if (!url) return null;

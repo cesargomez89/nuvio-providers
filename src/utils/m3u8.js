@@ -59,8 +59,9 @@ async function validateStream(stream, signal = null) {
   if (VALIDATION_CACHE.has(url)) return { ...stream, ...VALIDATION_CACHE.get(url) };
 
   try {
+    const isMp4 = url.toLowerCase().includes('.mp4');
     const fetchOptions = {
-      method: 'HEAD',
+      method: isMp4 ? 'HEAD' : 'GET',
       headers: {
         'User-Agent': getSessionUA(),
         ...(headers || {}),
@@ -74,27 +75,13 @@ async function validateStream(stream, signal = null) {
       return { ...stream, verified: false };
     }
 
-    if (stream.quality) {
-      const resultData = { verified: true, quality: stream.quality, isReal: true };
-      VALIDATION_CACHE.set(url, resultData);
-      return { ...stream, ...resultData };
-    }
-
-    const isMp4 = url.toLowerCase().includes('.mp4');
     if (isMp4) {
-      const resultData = { verified: true, quality: '1080p', isReal: true };
+      const resultData = { verified: true, quality: stream.quality || '1080p', isReal: true };
       VALIDATION_CACHE.set(url, resultData);
       return { ...stream, ...resultData };
     }
 
-    fetchOptions.method = 'GET';
-    const getResponse = await fetch(url, fetchOptions);
-    if (!getResponse.ok) {
-      await getResponse.text().catch(() => {});
-      return { ...stream, verified: false };
-    }
-
-    const text = await getResponse.text();
+    const text = await response.text();
     const info = parseBestQuality(text, url);
     const resultData = {
       verified: true,

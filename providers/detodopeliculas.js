@@ -1,6 +1,6 @@
 /**
  * detodopeliculas - Built from src/detodopeliculas/
- * Generated: 2026-07-19T04:58:57.388Z
+ * Generated: 2026-07-19T05:08:51.474Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -275,8 +275,9 @@ var require_m3u8 = __commonJS({
         if (VALIDATION_CACHE.has(url))
           return __spreadValues(__spreadValues({}, stream), VALIDATION_CACHE.get(url));
         try {
+          const isMp4 = url.toLowerCase().includes(".mp4");
           const fetchOptions = {
-            method: "HEAD",
+            method: isMp4 ? "HEAD" : "GET",
             headers: __spreadValues({
               "User-Agent": getSessionUA()
             }, headers || {})
@@ -289,25 +290,12 @@ var require_m3u8 = __commonJS({
             });
             return __spreadProps(__spreadValues({}, stream), { verified: false });
           }
-          if (stream.quality) {
-            const resultData2 = { verified: true, quality: stream.quality, isReal: true };
-            VALIDATION_CACHE.set(url, resultData2);
-            return __spreadValues(__spreadValues({}, stream), resultData2);
-          }
-          const isMp4 = url.toLowerCase().includes(".mp4");
           if (isMp4) {
-            const resultData2 = { verified: true, quality: "1080p", isReal: true };
+            const resultData2 = { verified: true, quality: stream.quality || "1080p", isReal: true };
             VALIDATION_CACHE.set(url, resultData2);
             return __spreadValues(__spreadValues({}, stream), resultData2);
           }
-          fetchOptions.method = "GET";
-          const getResponse = yield fetch(url, fetchOptions);
-          if (!getResponse.ok) {
-            yield getResponse.text().catch(() => {
-            });
-            return __spreadProps(__spreadValues({}, stream), { verified: false });
-          }
-          const text = yield getResponse.text();
+          const text = yield response.text();
           const info = parseBestQuality(text, url);
           const resultData = {
             verified: true,
@@ -3265,7 +3253,7 @@ var require_resolvers = __commonJS({
     var { isMirror } = require_mirrors();
     var { getSessionUA } = require_http();
     var UA = getSessionUA();
-    var DEAD_DOMAINS = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
+    var DEAD_DOMAINS = ["supervideo", "mixdrop", "verhdlink", "waaw.to"];
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
