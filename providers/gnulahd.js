@@ -1,6 +1,6 @@
 /**
  * gnulahd - Built from src/gnulahd/
- * Generated: 2026-07-19T17:27:27.739Z
+ * Generated: 2026-07-19T23:03:30.512Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3762,12 +3762,12 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
             try {
               const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
               if (result && result.url) {
-                return {
+                return __spreadValues(__spreadValues({
                   langLabel: section.language,
                   url: result.url,
                   quality: result.quality || section.quality,
                   headers: result.headers || {}
-                };
+                }, result.verified && { verified: true }), result.isReal && { isReal: true });
               }
             } catch (e) {
               console.warn(`[GnulaHD] Error procesando embed: ${e.message}`);
