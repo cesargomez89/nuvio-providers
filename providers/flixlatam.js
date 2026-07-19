@@ -1,6 +1,6 @@
 /**
  * flixlatam - Built from src/flixlatam/
- * Generated: 2026-07-19T04:44:53.177Z
+ * Generated: 2026-07-19T04:58:57.396Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3265,7 +3265,7 @@ var require_resolvers = __commonJS({
     var { isMirror } = require_mirrors();
     var { getSessionUA } = require_http();
     var UA2 = getSessionUA();
-    var DEAD_DOMAINS = ["supervideo", "mixdrop", "verhdlink", "waaw.to"];
+    var DEAD_DOMAINS = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;

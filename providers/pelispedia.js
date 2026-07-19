@@ -1,6 +1,6 @@
 /**
  * pelispedia - Built from src/pelispedia/
- * Generated: 2026-07-19T04:44:53.201Z
+ * Generated: 2026-07-19T04:58:57.419Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3051,7 +3051,7 @@ var require_resolvers = __commonJS({
     var { isMirror } = require_mirrors();
     var { getSessionUA: getSessionUA2 } = require_http();
     var UA2 = getSessionUA2();
-    var DEAD_DOMAINS = ["supervideo", "mixdrop", "verhdlink", "waaw.to"];
+    var DEAD_DOMAINS = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
     function getDirectCdnHeaders2(url) {
       if (!url)
         return null;

@@ -1,6 +1,6 @@
 /**
  * fuegocine - Built from src/fuegocine/
- * Generated: 2026-07-19T04:44:53.181Z
+ * Generated: 2026-07-19T04:58:57.400Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3189,7 +3189,7 @@ var require_resolvers = __commonJS({
     var { isMirror } = require_mirrors();
     var { getSessionUA: getSessionUA2 } = require_http();
     var UA = getSessionUA2();
-    var DEAD_DOMAINS = ["supervideo", "mixdrop", "verhdlink", "waaw.to"];
+    var DEAD_DOMAINS = ["supervideo", "voe.sx", "mixdrop", "verhdlink", "waaw.to"];
     function getDirectCdnHeaders(url) {
       if (!url)
         return null;
