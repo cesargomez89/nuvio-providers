@@ -1,6 +1,6 @@
 /**
  * verteleseriesonline - Built from src/verteleseriesonline/
- * Generated: 2026-07-19T23:03:30.557Z
+ * Generated: 2026-07-19T23:13:15.365Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3570,17 +3570,8 @@ var HEADERS = {
   "Accept-Language": "es-MX,es;q=0.9",
   Referer: `${BASE_URL}/`
 };
-var FETCH_TIMEOUT = 1e4;
 function fetchWithTimeout(url, options = {}) {
-  const hasAbort = typeof AbortController !== "undefined";
-  const controller = hasAbort ? new AbortController() : null;
-  const timeoutId = setTimeout(() => {
-    if (controller)
-      controller.abort();
-  }, FETCH_TIMEOUT);
-  return (0, import_http.fetchHtml)(url, hasAbort ? __spreadProps(__spreadValues({}, options), { signal: controller.signal }) : options).finally(
-    () => clearTimeout(timeoutId)
-  );
+  return (0, import_http.fetchHtml)(url, options);
 }
 function extractEpisodeLinks(html) {
   const links = [];

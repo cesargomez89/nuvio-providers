@@ -14,17 +14,8 @@ const HEADERS = {
   Referer: `${BASE_URL}/`,
 };
 
-const FETCH_TIMEOUT = 10000;
-
 function fetchWithTimeout(url, options = {}) {
-  const hasAbort = typeof AbortController !== 'undefined';
-  const controller = hasAbort ? new AbortController() : null;
-  const timeoutId = setTimeout(() => {
-    if (controller) controller.abort();
-  }, FETCH_TIMEOUT);
-  return fetchHtml(url, hasAbort ? { ...options, signal: controller.signal } : options).finally(
-    () => clearTimeout(timeoutId)
-  );
+  return fetchHtml(url, options);
 }
 
 function extractLanguageFromEm(text) {

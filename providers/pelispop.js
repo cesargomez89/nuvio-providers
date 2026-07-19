@@ -1,6 +1,6 @@
 /**
  * pelispop - Built from src/pelispop/
- * Generated: 2026-07-19T23:03:30.536Z
+ * Generated: 2026-07-19T23:13:15.346Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3568,23 +3568,10 @@ var HEADERS = __spreadProps(__spreadValues({}, (0, import_http.getStealthHeaders
   "Accept-Language": "es-MX,es;q=0.9",
   Referer: `${BASE_URL}/`
 });
-var FETCH_TIMEOUT = 1e4;
 function fetchWithTimeout(url, options = {}) {
-  const hasAbort = typeof AbortController !== "undefined";
-  const controller = hasAbort ? new AbortController() : null;
-  const externalSignal = options.signal || null;
-  const timeoutId = setTimeout(() => {
-    if (controller)
-      controller.abort();
-  }, FETCH_TIMEOUT);
-  if (externalSignal && controller) {
-    externalSignal.addEventListener("abort", () => controller.abort());
-  }
   const opts = __spreadValues({}, options);
   delete opts.signal;
-  return (0, import_http.fetchHtml)(url, hasAbort ? __spreadProps(__spreadValues({}, opts), { signal: controller.signal }) : opts).finally(
-    () => clearTimeout(timeoutId)
-  );
+  return (0, import_http.fetchHtml)(url, opts);
 }
 function isYearValid(html, expectedYear) {
   if (!expectedYear)

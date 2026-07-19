@@ -13,23 +13,10 @@ const HEADERS = {
   Referer: `${BASE_URL}/`,
 };
 
-const FETCH_TIMEOUT = 10000;
-
 function fetchWithTimeout(url, options = {}) {
-  const hasAbort = typeof AbortController !== 'undefined';
-  const controller = hasAbort ? new AbortController() : null;
-  const externalSignal = options.signal || null;
-  const timeoutId = setTimeout(() => {
-    if (controller) controller.abort();
-  }, FETCH_TIMEOUT);
-  if (externalSignal && controller) {
-    externalSignal.addEventListener('abort', () => controller.abort());
-  }
   const opts = { ...options };
   delete opts.signal;
-  return fetchHtml(url, hasAbort ? { ...opts, signal: controller.signal } : opts).finally(() =>
-    clearTimeout(timeoutId)
-  );
+  return fetchHtml(url, opts);
 }
 
 function isYearValid(html, expectedYear) {
