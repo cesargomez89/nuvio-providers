@@ -1,6 +1,6 @@
 /**
  * embed69 - Built from src/embed69/
- * Generated: 2026-07-19T07:19:46.195Z
+ * Generated: 2026-07-19T16:59:54.259Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3604,7 +3604,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       if (!match)
         return [];
       let rawData = JSON.parse(match[1].replace(/\\\//g, "/"));
-      let data = Array.isArray(rawData) ? rawData : Object.values(rawData);
+      let data = Array.isArray(rawData) ? rawData : Object.keys(rawData).map((k) => rawData[k]);
       const CryptoJS2 = require("crypto-js");
       const powChallengeMatch = html.match(/POW_CHALLENGE\s*=\s*['"]([^'"]+)['"]/);
       const powDifficultyMatch = html.match(/POW_DIFFICULTY\s*=\s*(\d+)/);

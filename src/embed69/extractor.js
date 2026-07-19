@@ -78,7 +78,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const match = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
     if (!match) return [];
     let rawData = JSON.parse(match[1].replace(/\\\//g, '/'));
-    let data = Array.isArray(rawData) ? rawData : Object.values(rawData);
+    let data = Array.isArray(rawData) ? rawData : Object.keys(rawData).map(k => rawData[k]);
 
     const CryptoJS = require('crypto-js');
 
