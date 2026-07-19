@@ -5,7 +5,7 @@ import { resolveEmbed } from '../utils/resolvers.js';
 import { validateStream } from '../utils/m3u8.js';
 import { normalizeTitle, titleMatch } from '../utils/title.js';
 
-const cheerio = require('cheerio');
+const cheerio = require('cheerio-without-node-native');
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
   if (!tmdbId) return [];

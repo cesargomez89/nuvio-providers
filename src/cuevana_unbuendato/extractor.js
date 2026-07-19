@@ -44,9 +44,16 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         entries.push({ url, serverKey, langLabel });
       }
     }
+    const hasAbort = typeof AbortController !== 'undefined';
+    const ac = hasAbort ? new AbortController() : null;
+    const signal = hasAbort ? ac.signal : null;
+    let globalTimeoutId;
+    if (hasAbort) globalTimeoutId = setTimeout(() => ac.abort(), 30000);
+
     const results = await parallelWithLimit(entries, async (entry) => {
       try {
-        const res = await resolveEmbed(entry.url);
+        if (signal?.aborted) return null;
+        const res = await resolveEmbed(entry.url, signal);
         if (res) {
           return {
             ...res,
@@ -58,6 +65,8 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       } catch {}
       return null;
     }, 5);
+
+    clearTimeout(globalTimeoutId);
     const rawStreams = results.filter(Boolean);
     return await finalizeStreams(rawStreams, 'Cuevana UBD', data.title || title);
   } catch (e) {

@@ -38,9 +38,9 @@ function extractEmbedUrl(playerHtml) {
   return match ? match[1] : null;
 }
 
-async function fetchPlayerEmbed(playerUrl) {
+async function fetchPlayerEmbed(playerUrl, signal) {
   try {
-    const html = await fetchHtml(playerUrl, { headers: HEADERS });
+    const html = await fetchHtml(playerUrl, { headers: HEADERS, signal });
     return extractEmbedUrl(html);
   } catch (e) {
     console.warn(`[PoseidonHD2] Error en player: ${e.message}`);
@@ -102,15 +102,22 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
 
     if (videoEntries.length === 0) return [];
 
+    const hasAbort = typeof AbortController !== 'undefined';
+    const ac = hasAbort ? new AbortController() : null;
+    const signal = hasAbort ? ac.signal : null;
+    let globalTimeoutId;
+    if (hasAbort) globalTimeoutId = setTimeout(() => ac.abort(), 30000);
+
     const rawStreams = [];
     const resolved = await parallelWithLimit(
       videoEntries,
       async (entry) => {
         try {
-          const embedUrl = await fetchPlayerEmbed(entry.playerUrl);
+          if (signal?.aborted) return null;
+          const embedUrl = await fetchPlayerEmbed(entry.playerUrl, signal);
           if (!embedUrl) return null;
 
-          const result = await resolveEmbed(embedUrl);
+          const result = await resolveEmbed(embedUrl, signal);
           if (result && result.url) {
             return {
               langLabel: entry.language,
@@ -127,6 +134,8 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
       },
       5
     );
+
+    clearTimeout(globalTimeoutId);
     rawStreams.push(...resolved.filter(Boolean));
 
     return await finalizeStreams(rawStreams, 'PoseidonHD2');

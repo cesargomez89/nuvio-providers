@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-07-19T00:41:56.409Z
+ * Generated: 2026-07-19T03:00:50.229Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3627,7 +3627,7 @@ var import_tmdb = __toESM(require_tmdb());
 var import_resolvers = __toESM(require_resolvers());
 var import_m3u8 = __toESM(require_m3u8());
 var import_title = __toESM(require_title());
-var cheerio = require("cheerio");
+var cheerio = require("cheerio-without-node-native");
 function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId)

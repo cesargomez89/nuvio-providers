@@ -1,6 +1,6 @@
 /**
  * flixlatam - Built from src/flixlatam/
- * Generated: 2026-07-19T00:41:56.382Z
+ * Generated: 2026-07-19T03:00:50.203Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -581,10 +581,21 @@ var require_engine = __commonJS({
                   const hasAbort = typeof AbortController !== "undefined";
                   const controller = hasAbort ? new AbortController() : null;
                   let timeoutId;
-                  if (hasAbort)
+                  if (hasAbort) {
                     timeoutId = setTimeout(() => controller.abort(), 5e3);
+                  }
                   try {
-                    const validated = yield validateStream(s, hasAbort ? controller.signal : null);
+                    let validated;
+                    if (hasAbort) {
+                      validated = yield validateStream(s, controller.signal);
+                    } else {
+                      validated = yield Promise.race([
+                        validateStream(s, null),
+                        new Promise((_, reject) => {
+                          timeoutId = setTimeout(() => reject(new Error("timeout")), 5e3);
+                        })
+                      ]);
+                    }
                     clearTimeout(timeoutId);
                     return validated;
                   } catch (e) {
@@ -3831,16 +3842,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       return [];
     console.log(`[FlixLatam] Looking for content: ${tmdbId} (${mediaType})`);
     try {
-      let solvePoW = function(challenge, difficulty) {
-        const prefix = "0".repeat(difficulty);
-        let nonce2 = 0;
-        while (true) {
-          const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-          if (hash.startsWith(prefix))
-            return nonce2;
-          nonce2++;
-        }
-      }, deriveKey = function(challenge, nonce2, salt) {
+      let deriveKey = function(challenge, nonce2, salt) {
         return CryptoJS2.SHA256(challenge + nonce2.toString() + salt);
       }, decryptLink = function(encryptedBase64, key) {
         const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
@@ -3927,8 +3929,39 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       if (!Array.isArray(dataLink))
         dataLink = [dataLink];
       const CryptoJS2 = require("crypto-js");
+      const hasAbort = typeof AbortController !== "undefined";
+      const ac = hasAbort ? new AbortController() : null;
+      const signal = hasAbort ? ac.signal : null;
+      let powTimeoutId;
+      if (hasAbort)
+        powTimeoutId = setTimeout(() => ac.abort(), 3e4);
+      function solvePoW(challenge, difficulty, signal2) {
+        return __async(this, null, function* () {
+          const prefix = "0".repeat(difficulty);
+          let nonce2 = 0;
+          const MAX_ITERATIONS = 5e4;
+          while (nonce2 < MAX_ITERATIONS) {
+            if (signal2 == null ? void 0 : signal2.aborted)
+              return null;
+            for (let i = 0; i < 100; i++) {
+              const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+              if (hash.startsWith(prefix))
+                return nonce2;
+              nonce2++;
+            }
+            yield new Promise((r) => setTimeout(r, 0));
+          }
+          console.log(`[FlixLatam] PoW exceeded ${MAX_ITERATIONS} iterations`);
+          return null;
+        });
+      }
       console.log(`[FlixLatam] Solving PoW (difficulty: ${powDifficulty})...`);
-      const nonce = solvePoW(powChallenge, powDifficulty);
+      const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+      clearTimeout(powTimeoutId);
+      if (nonce === null) {
+        console.log(`[FlixLatam] PoW failed or aborted`);
+        return [];
+      }
       const aesKey = deriveKey(powChallenge, nonce, powSalt);
       console.log(`[FlixLatam] PoW solved (nonce: ${nonce})`);
       const embeds = [];

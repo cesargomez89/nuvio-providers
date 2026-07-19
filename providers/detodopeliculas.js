@@ -1,6 +1,6 @@
 /**
  * detodopeliculas - Built from src/detodopeliculas/
- * Generated: 2026-07-19T00:41:56.374Z
+ * Generated: 2026-07-19T03:00:50.195Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -581,10 +581,21 @@ var require_engine = __commonJS({
                   const hasAbort = typeof AbortController !== "undefined";
                   const controller = hasAbort ? new AbortController() : null;
                   let timeoutId;
-                  if (hasAbort)
+                  if (hasAbort) {
                     timeoutId = setTimeout(() => controller.abort(), 5e3);
+                  }
                   try {
-                    const validated = yield validateStream(s, hasAbort ? controller.signal : null);
+                    let validated;
+                    if (hasAbort) {
+                      validated = yield validateStream(s, controller.signal);
+                    } else {
+                      validated = yield Promise.race([
+                        validateStream(s, null),
+                        new Promise((_, reject) => {
+                          timeoutId = setTimeout(() => reject(new Error("timeout")), 5e3);
+                        })
+                      ]);
+                    }
                     clearTimeout(timeoutId);
                     return validated;
                   } catch (e) {

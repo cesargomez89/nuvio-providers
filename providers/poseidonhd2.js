@@ -1,6 +1,6 @@
 /**
  * poseidonhd2 - Built from src/poseidonhd2/
- * Generated: 2026-07-19T00:41:56.419Z
+ * Generated: 2026-07-19T03:00:50.240Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -581,10 +581,21 @@ var require_engine = __commonJS({
                   const hasAbort = typeof AbortController !== "undefined";
                   const controller = hasAbort ? new AbortController() : null;
                   let timeoutId;
-                  if (hasAbort)
+                  if (hasAbort) {
                     timeoutId = setTimeout(() => controller.abort(), 5e3);
+                  }
                   try {
-                    const validated = yield validateStream(s, hasAbort ? controller.signal : null);
+                    let validated;
+                    if (hasAbort) {
+                      validated = yield validateStream(s, controller.signal);
+                    } else {
+                      validated = yield Promise.race([
+                        validateStream(s, null),
+                        new Promise((_, reject) => {
+                          timeoutId = setTimeout(() => reject(new Error("timeout")), 5e3);
+                        })
+                      ]);
+                    }
                     clearTimeout(timeoutId);
                     return validated;
                   } catch (e) {
@@ -3819,10 +3830,10 @@ function extractEmbedUrl(playerHtml) {
   const match = playerHtml.match(/(?:var|let)\s+url\s*=\s*['"]([^'"]+)['"]/);
   return match ? match[1] : null;
 }
-function fetchPlayerEmbed(playerUrl) {
+function fetchPlayerEmbed(playerUrl, signal) {
   return __async(this, null, function* () {
     try {
-      const html = yield (0, import_http.fetchHtml)(playerUrl, { headers: HEADERS });
+      const html = yield (0, import_http.fetchHtml)(playerUrl, { headers: HEADERS, signal });
       return extractEmbedUrl(html);
     } catch (e) {
       console.warn(`[PoseidonHD2] Error en player: ${e.message}`);
@@ -3885,15 +3896,23 @@ function extractStreams(tmdbId, mediaType, season, episode) {
       }
       if (videoEntries.length === 0)
         return [];
+      const hasAbort = typeof AbortController !== "undefined";
+      const ac = hasAbort ? new AbortController() : null;
+      const signal = hasAbort ? ac.signal : null;
+      let globalTimeoutId;
+      if (hasAbort)
+        globalTimeoutId = setTimeout(() => ac.abort(), 3e4);
       const rawStreams = [];
       const resolved = yield (0, import_parallel.parallelWithLimit)(
         videoEntries,
         (entry) => __async(this, null, function* () {
           try {
-            const embedUrl = yield fetchPlayerEmbed(entry.playerUrl);
+            if (signal == null ? void 0 : signal.aborted)
+              return null;
+            const embedUrl = yield fetchPlayerEmbed(entry.playerUrl, signal);
             if (!embedUrl)
               return null;
-            const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
+            const result = yield (0, import_resolvers.resolveEmbed)(embedUrl, signal);
             if (result && result.url) {
               return {
                 langLabel: entry.language,
@@ -3910,6 +3929,7 @@ function extractStreams(tmdbId, mediaType, season, episode) {
         }),
         5
       );
+      clearTimeout(globalTimeoutId);
       rawStreams.push(...resolved.filter(Boolean));
       return yield (0, import_engine.finalizeStreams)(rawStreams, "PoseidonHD2");
     } catch (e) {

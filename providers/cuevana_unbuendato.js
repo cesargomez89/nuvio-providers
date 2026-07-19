@@ -1,6 +1,6 @@
 /**
  * cuevana_unbuendato - Built from src/cuevana_unbuendato/
- * Generated: 2026-07-19T00:41:56.369Z
+ * Generated: 2026-07-19T03:00:50.191Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -581,10 +581,21 @@ var require_engine = __commonJS({
                   const hasAbort = typeof AbortController !== "undefined";
                   const controller = hasAbort ? new AbortController() : null;
                   let timeoutId;
-                  if (hasAbort)
+                  if (hasAbort) {
                     timeoutId = setTimeout(() => controller.abort(), 5e3);
+                  }
                   try {
-                    const validated = yield validateStream(s, hasAbort ? controller.signal : null);
+                    let validated;
+                    if (hasAbort) {
+                      validated = yield validateStream(s, controller.signal);
+                    } else {
+                      validated = yield Promise.race([
+                        validateStream(s, null),
+                        new Promise((_, reject) => {
+                          timeoutId = setTimeout(() => reject(new Error("timeout")), 5e3);
+                        })
+                      ]);
+                    }
                     clearTimeout(timeoutId);
                     return validated;
                   } catch (e) {
@@ -3630,9 +3641,17 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           entries.push({ url, serverKey, langLabel });
         }
       }
+      const hasAbort = typeof AbortController !== "undefined";
+      const ac = hasAbort ? new AbortController() : null;
+      const signal = hasAbort ? ac.signal : null;
+      let globalTimeoutId;
+      if (hasAbort)
+        globalTimeoutId = setTimeout(() => ac.abort(), 3e4);
       const results = yield (0, import_parallel.parallelWithLimit)(entries, (entry) => __async(this, null, function* () {
         try {
-          const res = yield (0, import_resolvers.resolveEmbed)(entry.url);
+          if (signal == null ? void 0 : signal.aborted)
+            return null;
+          const res = yield (0, import_resolvers.resolveEmbed)(entry.url, signal);
           if (res) {
             return __spreadProps(__spreadValues({}, res), {
               serverName: res.serverName || entry.serverKey.charAt(0).toUpperCase() + entry.serverKey.slice(1),
@@ -3643,6 +3662,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         }
         return null;
       }), 5);
+      clearTimeout(globalTimeoutId);
       const rawStreams = results.filter(Boolean);
       return yield (0, import_engine.finalizeStreams)(rawStreams, "Cuevana UBD", data.title || title);
     } catch (e) {
