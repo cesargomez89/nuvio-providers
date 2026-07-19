@@ -99,7 +99,7 @@ async function _resolveEmbed(url, signal = null) {
     url.includes('voe-') ||
     url.includes('voex.sx')
   ) {
-    const result = await withTimeout(resolveVoe(url, signal), 5000);
+    const result = await resolveVoe(url, signal);
     if (result) return result;
   }
   if (
@@ -108,11 +108,11 @@ async function _resolveEmbed(url, signal = null) {
     url.includes('hlswish') ||
     url.includes('filelions')
   ) {
-    const result = await withTimeout(resolveHlswish(url, signal), 5000);
+    const result = await resolveHlswish(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'FILEMOON') || url.includes('filemoon')) {
-    const result = await withTimeout(resolveFilemoon(url, signal), 5000);
+    const result = await resolveFilemoon(url, signal);
     if (result) return result;
   }
   if (
@@ -121,131 +121,131 @@ async function _resolveEmbed(url, signal = null) {
     url.includes('vidhidepro') ||
     url.includes('vidoza')
   ) {
-    const result = await withTimeout(resolveVidhide(url, signal), 5000);
+    const result = await resolveVidhide(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'DOODSTREAM')) {
-    const result = await withTimeout(resolveDoodstream(url, signal), 5000);
+    const result = await resolveDoodstream(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'DROPCDN')) {
-    const result = await withTimeout(resolveDropcdn(url, signal), 5000);
+    const result = await resolveDropcdn(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'GOODSTREAM') || url.includes('goodstream') || url.includes('gs.one')) {
-    const result = await withTimeout(resolveGoodstream(url, signal), 5000);
+    const result = await resolveGoodstream(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'FASTREAM') || url.includes('fastream') || url.includes('fembed')) {
-    const result = await withTimeout(resolveFastream(url, signal), 5000);
+    const result = await resolveFastream(url, signal);
     if (result) return result;
   }
   if (url.includes('vimeos') || url.includes('vimeo') || url.includes('vms.sh')) {
-    const result = await withTimeout(resolveVimeos(url, signal), 5000);
+    const result = await resolveVimeos(url, signal);
     if (result) return result;
   }
   if (url.includes('supervideo')) {
-    const result = await withTimeout(resolveSupervideo(url, signal), 5000);
+    const result = await resolveSupervideo(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'PIXELDRAIN')) {
-    const result = await withTimeout(resolvePixeldrain(url, signal), 5000);
+    const result = await resolvePixeldrain(url, signal);
     if (result) return applyPiping(result);
   }
   if (isMirror(urlLower, 'LULUSTREAM')) {
-    const result = await withTimeout(resolveLulustream(url, signal), 5000);
+    const result = await resolveLulustream(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'OKRU')) {
-    const result = await withTimeout(resolveOkru(url, signal), 5000);
+    const result = await resolveOkru(url, signal);
     if (result) return result;
   }
   if (url.includes('embed69.org') || url.includes('embed69')) {
-    const result = await withTimeout(resolveEmbed69(url, signal), 5000);
+    const result = await resolveEmbed69(url, signal);
     if (result) return result;
   }
   if (url.includes('xupalace.org') || url.includes('xupalace')) {
-    const result = await withTimeout(resolveXupalace(url, signal), 5000);
+    const result = await resolveXupalace(url, signal);
     if (result) return result;
   }
   if (url.includes('mixdrop') || url.includes('m1xdrop')) {
-    const result = await withTimeout(resolveMixdrop(url, signal), 5000);
+    const result = await resolveMixdrop(url, signal);
     if (result) return result;
   }
   if (url.includes('verhdlink')) {
-    const result = await withTimeout(resolveVerhdlink(url, signal), 5000);
+    const result = await resolveVerhdlink(url, signal);
     if (result) return result;
   }
   if (url.includes('streamtape') || url.includes('bysejikuar')) {
-    const result = await withTimeout(resolveStreamtape(url, signal), 5000);
+    const result = await resolveStreamtape(url, signal);
     if (result) return result;
   }
   if (url.includes('playhydrax')) {
-    const result = await withTimeout(resolvePlayhydrax(url, signal), 5000);
+    const result = await resolvePlayhydrax(url, signal);
     if (result) return result;
   }
   if (url.includes('sololatino.xyz')) {
-    const result = await withTimeout(resolveSololatino(url, signal), 5000);
+    const result = await resolveSololatino(url, signal);
     if (result) return result;
   }
   if (url.includes('krakenfiles')) {
-    const result = await withTimeout(resolveKrakenfiles(url, signal), 5000);
+    const result = await resolveKrakenfiles(url, signal);
     if (result) return result;
   }
   if (url.includes('unlimplay')) {
-    const result = await withTimeout(resolveUnlimplay(url, signal), 5000);
+    const result = await resolveUnlimplay(url, signal);
     if (result) return result;
   }
   if (url.includes('vibuxer')) {
-    const result = await withTimeout(resolveVibuxer(url, signal), 5000);
+    const result = await resolveVibuxer(url, signal);
     if (result) return result;
   }
   if (url.includes('emturbovid') || url.includes('turbovidhls')) {
-    const result = await withTimeout(resolveEmturbovid(url, signal), 5000);
+    const result = await resolveEmturbovid(url, signal);
     if (result) return result;
   }
   if (url.includes('buzzheavier') || url.includes('bzh.sh')) {
-    const result = await withTimeout(resolveBuzzheavier(url, signal), 5000);
+    const result = await resolveBuzzheavier(url, signal);
     if (result) return applyPiping(result);
   }
   if (url.includes('tplayer.pelisgo.online')) {
-    const result = await withTimeout(resolveTplayer(url, signal), 5000);
+    const result = await resolveTplayer(url, signal);
     if (result) return applyPiping(result);
   }
   if (url.includes('vidsrc') || url.includes('moviesapi.to') || url.includes('moviesapi.club')) {
-    const result = await withTimeout(resolveVidsrc(url, signal), 5000);
+    const result = await resolveVidsrc(url, signal);
     if (result) return result;
   }
   if (url.includes('embedseek') || url.includes('seekplays') || url.includes('seekstreaming')) {
-    const result = await withTimeout(resolveEmbedseek(url, signal), 5000);
+    const result = await resolveEmbedseek(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'VIDNEST')) {
-    const result = await withTimeout(resolveVidnest(url, signal), 5000);
+    const result = await resolveVidnest(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'VIDSONIC')) {
-    const result = await withTimeout(resolveVidsonic(url, signal), 5000);
+    const result = await resolveVidsonic(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'BARMONREY')) {
-    const result = await withTimeout(resolveBarmonrey(url, signal), 5000);
+    const result = await resolveBarmonrey(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'VIDMOLY')) {
-    const result = await withTimeout(resolveVidmoly(url, signal), 5000);
+    const result = await resolveVidmoly(url, signal);
     if (result) return result;
   }
   if (isMirror(urlLower, 'UPNS')) {
-    const result = await withTimeout(resolveRpmvid(url, signal), 5000);
+    const result = await resolveRpmvid(url, signal);
     if (result) return result;
   }
   if (url.includes('playmogo')) {
-    const result = await withTimeout(resolvePlaymogo(url, signal), 5000);
+    const result = await resolvePlaymogo(url, signal);
     if (result) return applyPiping(result);
   }
   if (isMirror(urlLower, 'UNLIMPLAY') || isMirror(urlLower, 'KRAKENFILES')) {
-    const result = await withTimeout(resolveGeneric(url, signal), 5000);
+    const result = await resolveGeneric(url, signal);
     if (result) return result;
   }
 

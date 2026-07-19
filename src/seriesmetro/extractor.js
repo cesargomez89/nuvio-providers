@@ -205,7 +205,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   const OVERALL_TIMEOUT = 30000;
   const hasAbort = typeof AbortController !== 'undefined';
   const mainController = hasAbort ? new AbortController() : null;
-  const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
+  const mainTimer = mainController
+    ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT)
+    : null;
 
   try {
     const realId = cleanTmdbId(tmdbId);
@@ -226,7 +228,11 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     if (!tmdbInfo.title) return [];
 
-    const found = await findContentUrl(tmdbInfo, mediaType, mainController ? mainController.signal : undefined);
+    const found = await findContentUrl(
+      tmdbInfo,
+      mediaType,
+      mainController ? mainController.signal : undefined
+    );
     if (!found) {
       console.log(`[SeriesMetro] ✗ No se encontró contenido para: ${tmdbInfo.title}`);
       return [];
@@ -245,7 +251,11 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       targetUrl = epUrl;
     }
 
-    const streams = await extractStreamsFromPage(targetUrl, found.url, mainController ? mainController.signal : undefined);
+    const streams = await extractStreamsFromPage(
+      targetUrl,
+      found.url,
+      mainController ? mainController.signal : undefined
+    );
     return await finalizeStreams(streams, 'SeriesMetro', tmdbInfo.title);
   } catch (e) {
     if (e.name === 'AbortError') {

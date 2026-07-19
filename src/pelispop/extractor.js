@@ -194,7 +194,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   const OVERALL_TIMEOUT = 30000;
   const hasMainAbort = typeof AbortController !== 'undefined';
   const mainController = hasMainAbort ? new AbortController() : null;
-  const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
+  const mainTimer = mainController
+    ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT)
+    : null;
 
   try {
     const realId = cleanTmdbId(tmdbId);

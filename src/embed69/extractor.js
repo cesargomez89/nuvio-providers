@@ -166,9 +166,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       if (embeds.length === 0) continue;
 
       console.log(`[Embed69] Resolving ${embeds.length} embeds (${lang})...`);
-      const resolvedResults = await allSettled(
-        embeds.map((emb) => resolveEmbedLocal(emb.url))
-      );
+      const resolvedResults = await allSettled(embeds.map((emb) => resolveEmbedLocal(emb.url)));
       const resolved = resolvedResults
         .filter((r) => r.status === 'fulfilled' && r.value && r.value.url)
         .map((r) => r.value)

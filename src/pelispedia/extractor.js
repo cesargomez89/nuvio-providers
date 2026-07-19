@@ -83,7 +83,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   const OVERALL_TIMEOUT = 30000;
   const hasAbort = typeof AbortController !== 'undefined';
   const mainController = hasAbort ? new AbortController() : null;
-  const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
+  const mainTimer = mainController
+    ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT)
+    : null;
 
   let searchTitle = title;
   if (!searchTitle) {
@@ -136,7 +138,10 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     console.log(`[PelisPedia] Found: ${targetUrl}`);
 
-    const rawEmbeds = await extractPlayerEmbeds(targetUrl, mainController ? mainController.signal : undefined);
+    const rawEmbeds = await extractPlayerEmbeds(
+      targetUrl,
+      mainController ? mainController.signal : undefined
+    );
     const streams = [];
     const EMBED_LIMIT = 3;
 
@@ -147,7 +152,10 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
           let currentUrl = embed.url;
           let resolved = null;
 
-          resolved = await resolveEmbed(currentUrl, mainController ? mainController.signal : undefined);
+          resolved = await resolveEmbed(
+            currentUrl,
+            mainController ? mainController.signal : undefined
+          );
 
           if (resolved) {
             const results = Array.isArray(resolved) ? resolved : [resolved];

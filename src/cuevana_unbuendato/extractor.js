@@ -50,21 +50,26 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     let globalTimeoutId;
     if (hasAbort) globalTimeoutId = setTimeout(() => ac.abort(), 30000);
 
-    const results = await parallelWithLimit(entries, async (entry) => {
-      try {
-        if (signal?.aborted) return null;
-        const res = await resolveEmbed(entry.url, signal);
-        if (res) {
-          return {
-            ...res,
-            serverName:
-              res.serverName || entry.serverKey.charAt(0).toUpperCase() + entry.serverKey.slice(1),
-            lang: entry.langLabel,
-          };
-        }
-      } catch {}
-      return null;
-    }, 5);
+    const results = await parallelWithLimit(
+      entries,
+      async (entry) => {
+        try {
+          if (signal?.aborted) return null;
+          const res = await resolveEmbed(entry.url, signal);
+          if (res) {
+            return {
+              ...res,
+              serverName:
+                res.serverName ||
+                entry.serverKey.charAt(0).toUpperCase() + entry.serverKey.slice(1),
+              lang: entry.langLabel,
+            };
+          }
+        } catch {}
+        return null;
+      },
+      5
+    );
 
     clearTimeout(globalTimeoutId);
     const rawStreams = results.filter(Boolean);

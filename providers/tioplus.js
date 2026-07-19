@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-07-19T05:08:51.539Z
+ * Generated: 2026-07-19T05:20:18.316Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3307,177 +3307,177 @@ var require_resolvers = __commonJS({
         if (DEAD_DOMAINS.some((d) => urlLower.includes(d)))
           return null;
         if (isMirror(urlLower, "VOE") || url.includes("voe.sx") || url.includes("voe-") || url.includes("voex.sx")) {
-          const result = yield withTimeout(resolveVoe(url, signal), 5e3);
+          const result = yield resolveVoe(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "STREAMWISH") || url.includes("streamwish") || url.includes("hlswish") || url.includes("filelions")) {
-          const result = yield withTimeout(resolveHlswish(url, signal), 5e3);
+          const result = yield resolveHlswish(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "FILEMOON") || url.includes("filemoon")) {
-          const result = yield withTimeout(resolveFilemoon(url, signal), 5e3);
+          const result = yield resolveFilemoon(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "VIDHIDE") || url.includes("vidhide") || url.includes("vidhidepro") || url.includes("vidoza")) {
-          const result = yield withTimeout(resolveVidhide(url, signal), 5e3);
+          const result = yield resolveVidhide(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "DOODSTREAM")) {
-          const result = yield withTimeout(resolveDoodstream(url, signal), 5e3);
+          const result = yield resolveDoodstream(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "DROPCDN")) {
-          const result = yield withTimeout(resolveDropcdn(url, signal), 5e3);
+          const result = yield resolveDropcdn(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "GOODSTREAM") || url.includes("goodstream") || url.includes("gs.one")) {
-          const result = yield withTimeout(resolveGoodstream(url, signal), 5e3);
+          const result = yield resolveGoodstream(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "FASTREAM") || url.includes("fastream") || url.includes("fembed")) {
-          const result = yield withTimeout(resolveFastream(url, signal), 5e3);
+          const result = yield resolveFastream(url, signal);
           if (result)
             return result;
         }
         if (url.includes("vimeos") || url.includes("vimeo") || url.includes("vms.sh")) {
-          const result = yield withTimeout(resolveVimeos(url, signal), 5e3);
+          const result = yield resolveVimeos(url, signal);
           if (result)
             return result;
         }
         if (url.includes("supervideo")) {
-          const result = yield withTimeout(resolveSupervideo(url, signal), 5e3);
+          const result = yield resolveSupervideo(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "PIXELDRAIN")) {
-          const result = yield withTimeout(resolvePixeldrain(url, signal), 5e3);
+          const result = yield resolvePixeldrain(url, signal);
           if (result)
             return applyPiping(result);
         }
         if (isMirror(urlLower, "LULUSTREAM")) {
-          const result = yield withTimeout(resolveLulustream(url, signal), 5e3);
+          const result = yield resolveLulustream(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "OKRU")) {
-          const result = yield withTimeout(resolveOkru(url, signal), 5e3);
+          const result = yield resolveOkru(url, signal);
           if (result)
             return result;
         }
         if (url.includes("embed69.org") || url.includes("embed69")) {
-          const result = yield withTimeout(resolveEmbed69(url, signal), 5e3);
+          const result = yield resolveEmbed69(url, signal);
           if (result)
             return result;
         }
         if (url.includes("xupalace.org") || url.includes("xupalace")) {
-          const result = yield withTimeout(resolveXupalace(url, signal), 5e3);
+          const result = yield resolveXupalace(url, signal);
           if (result)
             return result;
         }
         if (url.includes("mixdrop") || url.includes("m1xdrop")) {
-          const result = yield withTimeout(resolveMixdrop(url, signal), 5e3);
+          const result = yield resolveMixdrop(url, signal);
           if (result)
             return result;
         }
         if (url.includes("verhdlink")) {
-          const result = yield withTimeout(resolveVerhdlink(url, signal), 5e3);
+          const result = yield resolveVerhdlink(url, signal);
           if (result)
             return result;
         }
         if (url.includes("streamtape") || url.includes("bysejikuar")) {
-          const result = yield withTimeout(resolveStreamtape(url, signal), 5e3);
+          const result = yield resolveStreamtape(url, signal);
           if (result)
             return result;
         }
         if (url.includes("playhydrax")) {
-          const result = yield withTimeout(resolvePlayhydrax(url, signal), 5e3);
+          const result = yield resolvePlayhydrax(url, signal);
           if (result)
             return result;
         }
         if (url.includes("sololatino.xyz")) {
-          const result = yield withTimeout(resolveSololatino(url, signal), 5e3);
+          const result = yield resolveSololatino(url, signal);
           if (result)
             return result;
         }
         if (url.includes("krakenfiles")) {
-          const result = yield withTimeout(resolveKrakenfiles(url, signal), 5e3);
+          const result = yield resolveKrakenfiles(url, signal);
           if (result)
             return result;
         }
         if (url.includes("unlimplay")) {
-          const result = yield withTimeout(resolveUnlimplay(url, signal), 5e3);
+          const result = yield resolveUnlimplay(url, signal);
           if (result)
             return result;
         }
         if (url.includes("vibuxer")) {
-          const result = yield withTimeout(resolveVibuxer(url, signal), 5e3);
+          const result = yield resolveVibuxer(url, signal);
           if (result)
             return result;
         }
         if (url.includes("emturbovid") || url.includes("turbovidhls")) {
-          const result = yield withTimeout(resolveEmturbovid(url, signal), 5e3);
+          const result = yield resolveEmturbovid(url, signal);
           if (result)
             return result;
         }
         if (url.includes("buzzheavier") || url.includes("bzh.sh")) {
-          const result = yield withTimeout(resolveBuzzheavier(url, signal), 5e3);
+          const result = yield resolveBuzzheavier(url, signal);
           if (result)
             return applyPiping(result);
         }
         if (url.includes("tplayer.pelisgo.online")) {
-          const result = yield withTimeout(resolveTplayer(url, signal), 5e3);
+          const result = yield resolveTplayer(url, signal);
           if (result)
             return applyPiping(result);
         }
         if (url.includes("vidsrc") || url.includes("moviesapi.to") || url.includes("moviesapi.club")) {
-          const result = yield withTimeout(resolveVidsrc(url, signal), 5e3);
+          const result = yield resolveVidsrc(url, signal);
           if (result)
             return result;
         }
         if (url.includes("embedseek") || url.includes("seekplays") || url.includes("seekstreaming")) {
-          const result = yield withTimeout(resolveEmbedseek(url, signal), 5e3);
+          const result = yield resolveEmbedseek(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "VIDNEST")) {
-          const result = yield withTimeout(resolveVidnest(url, signal), 5e3);
+          const result = yield resolveVidnest(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "VIDSONIC")) {
-          const result = yield withTimeout(resolveVidsonic(url, signal), 5e3);
+          const result = yield resolveVidsonic(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "BARMONREY")) {
-          const result = yield withTimeout(resolveBarmonrey(url, signal), 5e3);
+          const result = yield resolveBarmonrey(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "VIDMOLY")) {
-          const result = yield withTimeout(resolveVidmoly(url, signal), 5e3);
+          const result = yield resolveVidmoly(url, signal);
           if (result)
             return result;
         }
         if (isMirror(urlLower, "UPNS")) {
-          const result = yield withTimeout(resolveRpmvid(url, signal), 5e3);
+          const result = yield resolveRpmvid(url, signal);
           if (result)
             return result;
         }
         if (url.includes("playmogo")) {
-          const result = yield withTimeout(resolvePlaymogo(url, signal), 5e3);
+          const result = yield resolvePlaymogo(url, signal);
           if (result)
             return applyPiping(result);
         }
         if (isMirror(urlLower, "UNLIMPLAY") || isMirror(urlLower, "KRAKENFILES")) {
-          const result = yield withTimeout(resolveGeneric(url, signal), 5e3);
+          const result = yield resolveGeneric(url, signal);
           if (result)
             return result;
         }
@@ -3871,7 +3871,11 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         if (mainController && ac)
           mainController.signal.addEventListener("abort", () => ac.abort());
         try {
-          const realEmbedUrl = yield getRedirectUrl(item.enc, finalMediaUrl, ac ? ac.signal : void 0);
+          const realEmbedUrl = yield getRedirectUrl(
+            item.enc,
+            finalMediaUrl,
+            ac ? ac.signal : void 0
+          );
           if (!realEmbedUrl || !realEmbedUrl.startsWith("http"))
             return [];
           clearTimeout(timer);

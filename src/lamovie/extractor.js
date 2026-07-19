@@ -233,7 +233,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
     }
 
     const embeds = data.data.embeds;
-    const results = await allSettled(embeds.map((e) => processEmbed(e, controller ? controller.signal : undefined)));
+    const results = await allSettled(
+      embeds.map((e) => processEmbed(e, controller ? controller.signal : undefined))
+    );
     const streams = results
       .map((r) => (r.status === 'fulfilled' ? r.value : null))
       .filter((r) => r);

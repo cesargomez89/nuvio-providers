@@ -35,7 +35,9 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   const OVERALL_TIMEOUT = 25000;
   const hasAbort = typeof AbortController !== 'undefined';
   const mainController = hasAbort ? new AbortController() : null;
-  const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
+  const mainTimer = mainController
+    ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT)
+    : null;
 
   try {
     const tmdbInfo = await getTmdbInfo(tmdbId, mediaType, 'es-ES');
@@ -143,7 +145,11 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       const timer = ac ? setTimeout(() => ac.abort(), 10000) : null;
       if (mainController && ac) mainController.signal.addEventListener('abort', () => ac.abort());
       try {
-        const realEmbedUrl = await getRedirectUrl(item.enc, finalMediaUrl, ac ? ac.signal : undefined);
+        const realEmbedUrl = await getRedirectUrl(
+          item.enc,
+          finalMediaUrl,
+          ac ? ac.signal : undefined
+        );
         if (!realEmbedUrl || !realEmbedUrl.startsWith('http')) return [];
         clearTimeout(timer);
         const resolved = await resolveEmbed(realEmbedUrl, ac ? ac.signal : undefined);
