@@ -1,6 +1,6 @@
 /**
  * verteleseriesonline - Built from src/verteleseriesonline/
- * Generated: 2026-07-19T00:37:35.991Z
+ * Generated: 2026-07-19T00:41:56.434Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;

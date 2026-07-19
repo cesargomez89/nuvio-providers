@@ -1,8 +1,0 @@
-{
-  "name": "BrazucaPlay",
-  "description": "Películas y series en Português desde Brasil.",
-  "author": "cesargomez89",
-  "supportedTypes": ["movie", "tv"],
-  "contentLanguage": ["es"],
-  "formats": ["mp4", "mkv"]
-}

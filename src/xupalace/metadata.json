@@ -1,8 +1,0 @@
-{
-  "name": "Xupalace",
-  "description": "Películas y series en Latino desde Xupalace.",
-  "author": "cesargomez89",
-  "supportedTypes": ["movie", "tv"],
-  "contentLanguage": ["es"],
-  "formats": ["mp4", "mkv"]
-}
