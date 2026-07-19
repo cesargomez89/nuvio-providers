@@ -7,14 +7,11 @@ const { resolve: resolveDropcdn } = require('../resolvers/dropcdn.js');
 const { resolve: resolveGoodstream } = require('../resolvers/goodstream.js');
 const { resolve: resolveFastream } = require('../resolvers/fastream.js');
 const { resolve: resolveVimeos } = require('../resolvers/vimeos.js');
-const { resolve: resolveSupervideo } = require('../resolvers/supervideo.js');
 const { resolve: resolvePixeldrain } = require('../resolvers/pixeldrain.js');
 const { resolve: resolveLulustream } = require('../resolvers/lulustream.js');
 const { resolve: resolveOkru } = require('../resolvers/okru.js');
 const { resolve: resolveEmbed69 } = require('../resolvers/embed69.js');
 const { resolve: resolveXupalace } = require('../resolvers/xupalace.js');
-const { resolve: resolveMixdrop } = require('../resolvers/mixdrop.js');
-const { resolve: resolveVerhdlink } = require('../resolvers/verhdlink.js');
 const { resolve: resolveStreamtape } = require('../resolvers/streamtape.js');
 const { resolve: resolvePlayhydrax } = require('../resolvers/playhydrax.js');
 const { resolve: resolveSololatino } = require('../resolvers/sololatino.js');
@@ -38,7 +35,7 @@ const { getSessionUA } = require('../utils/http.js');
 
 const UA = getSessionUA();
 
-const DEAD_DOMAINS = ['supervideo', 'mixdrop', 'verhdlink', 'waaw.to'];
+const DEAD_DOMAINS = ['waaw.to'];
 
 function getDirectCdnHeaders(url) {
   if (!url) return null;
@@ -138,10 +135,6 @@ async function resolveEmbed(url, signal = null) {
     const result = await resolveVimeos(url, signal);
     if (result) return result;
   }
-  if (url.includes('supervideo')) {
-    const result = await resolveSupervideo(url, signal);
-    if (result) return result;
-  }
   if (isMirror(urlLower, 'PIXELDRAIN')) {
     const result = await resolvePixeldrain(url, signal);
     if (result) return applyPiping(result);
@@ -160,14 +153,6 @@ async function resolveEmbed(url, signal = null) {
   }
   if (url.includes('xupalace.org') || url.includes('xupalace')) {
     const result = await resolveXupalace(url, signal);
-    if (result) return result;
-  }
-  if (url.includes('mixdrop') || url.includes('m1xdrop')) {
-    const result = await resolveMixdrop(url, signal);
-    if (result) return result;
-  }
-  if (url.includes('verhdlink')) {
-    const result = await resolveVerhdlink(url, signal);
     if (result) return result;
   }
   if (url.includes('streamtape') || url.includes('bysejikuar')) {
