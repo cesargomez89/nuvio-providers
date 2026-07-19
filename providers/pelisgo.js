@@ -1,6 +1,6 @@
 /**
  * pelisgo - Built from src/pelisgo/
- * Generated: 2026-07-19T23:21:17.292Z
+ * Generated: 2026-07-19T23:29:10.476Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -49,15 +49,15 @@ var __async = (__this, __arguments, generator) => {
     var fulfilled = (value) => {
       try {
         step(generator.next(value));
-      } catch (e2) {
-        reject(e2);
+      } catch (e) {
+        reject(e);
       }
     };
     var rejected = (value) => {
       try {
         step(generator.throw(value));
-      } catch (e2) {
-        reject(e2);
+      } catch (e) {
+        reject(e);
       }
     };
     var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
@@ -180,9 +180,9 @@ var require_http = __commonJS({
           const result = yield request(url, __spreadProps(__spreadValues({}, options), { signal: hasAbort ? controller.signal : null }));
           clearTimeout(timeoutId);
           return result;
-        } catch (e2) {
+        } catch (e) {
           clearTimeout(timeoutId);
-          throw e2;
+          throw e;
         }
       });
     }
@@ -304,7 +304,7 @@ var require_m3u8 = __commonJS({
           };
           VALIDATION_CACHE.set(url, resultData);
           return __spreadValues(__spreadValues({}, stream), resultData);
-        } catch (e2) {
+        } catch (e) {
           const info = parseBestQuality("", url);
           const resultData = { quality: info.quality, verified: true, isReal: false };
           VALIDATION_CACHE.set(url, resultData);
@@ -540,7 +540,7 @@ var require_engine = __commonJS({
           const domainParts = new URL(url).hostname.replace("www.", "").split(".");
           const mainName = domainParts.length > 1 ? domainParts[domainParts.length - 2] : domainParts[0];
           return mainName.charAt(0).toUpperCase() + mainName.slice(1);
-        } catch (e2) {
+        } catch (e) {
         }
       }
       return server || "Servidor";
@@ -575,12 +575,12 @@ var require_engine = __commonJS({
                     const validated = yield validateStream(s, hasAbort ? controller.signal : null);
                     clearTimeout(timeoutId);
                     return validated;
-                  } catch (e2) {
+                  } catch (e) {
                     clearTimeout(timeoutId);
                     return __spreadProps(__spreadValues({}, s), { verified: false, isReal: false });
                   }
                 }
-              } catch (e2) {
+              } catch (e) {
               }
               return s;
             }))
@@ -855,7 +855,7 @@ var require_hlswish = __commonJS({
                     m3u8Url = mirrorOrigin + m3u8Url;
                   resolveRace({ url: m3u8Url, mirror });
                 }
-              } catch (e2) {
+              } catch (e) {
               } finally {
                 pending--;
                 if (pending === 0 && !resolved)
@@ -888,7 +888,7 @@ var require_hlswish = __commonJS({
             serverName: "StreamWish",
             headers: reqHeaders
           };
-        } catch (e2) {
+        } catch (e) {
           return null;
         }
       });
@@ -907,7 +907,7 @@ var require_aes_gcm = __commonJS({
       try {
         const normalized = b64.replace(/-/g, "+").replace(/_/g, "/");
         return _CryptoJS.enc.Base64.parse(normalized);
-      } catch (e2) {
+      } catch (e) {
         return null;
       }
     }
@@ -932,8 +932,8 @@ var require_aes_gcm = __commonJS({
           padding: _CryptoJS.pad.NoPadding
         });
         return decrypted.toString(_CryptoJS.enc.Utf8);
-      } catch (e2) {
-        console.error("[AES-GCM] Error:", e2.message);
+      } catch (e) {
+        console.error("[AES-GCM] Error:", e.message);
         return null;
       }
     }
@@ -950,8 +950,8 @@ var require_aes_gcm = __commonJS({
         const ivWA = parseB64(playback.iv);
         const ciphertextWithTagWA = parseB64(playback.payload);
         return decryptGCM(keyWA, ivWA, ciphertextWithTagWA);
-      } catch (e2) {
-        console.error("[Byse] Failed:", e2.message);
+      } catch (e) {
+        console.error("[Byse] Failed:", e.message);
         return null;
       }
     }
@@ -1009,7 +1009,7 @@ var require_filemoon = __commonJS({
                         console.log("[Filemoon] \u274C URL de video caducada (404).");
                         return null;
                       }
-                    } catch (e2) {
+                    } catch (e) {
                     }
                     return {
                       url: directUrl,
@@ -1027,8 +1027,8 @@ var require_filemoon = __commonJS({
                 }
               }
             }
-          } catch (e2) {
-            console.log(`[Filemoon] Shield Fall\xF3: ${e2.message}`);
+          } catch (e) {
+            console.log(`[Filemoon] Shield Fall\xF3: ${e.message}`);
           }
           const resp = yield fetch(url, { headers: { "User-Agent": UA_CHROME, Referer: urlObj.origin } });
           const html1 = yield resp.text();
@@ -1099,7 +1099,7 @@ var require_vidhide = __commonJS({
           return s < k.length && k[s] ? k[s] : decode(s, a);
         });
         return unpacked;
-      } catch (e2) {
+      } catch (e) {
         return null;
       }
     }
@@ -1165,8 +1165,8 @@ var require_vidhide = __commonJS({
             serverName: "VidHide",
             headers: reqHeaders
           };
-        } catch (e2) {
-          console.error(`[VidHide] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[VidHide] Error: ${e.message}`);
           return null;
         }
       });
@@ -1241,8 +1241,8 @@ var require_doodstream = __commonJS({
               Origin: domain
             }
           };
-        } catch (e2) {
-          console.error(`[DoodStream] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[DoodStream] Error: ${e.message}`);
           return null;
         }
       });
@@ -1329,8 +1329,8 @@ var require_dropcdn = __commonJS({
               Origin: domain
             }
           };
-        } catch (e2) {
-          console.error(`[DropCDN] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[DropCDN] Error: ${e.message}`);
           return null;
         }
       });
@@ -1381,7 +1381,7 @@ var require_quality = __commonJS({
             return `${maxRes}p`;
           }
           return "1080p";
-        } catch (e2) {
+        } catch (e) {
           return "1080p";
         }
       });
@@ -1479,7 +1479,7 @@ var require_fastream = __commonJS({
           if (bestHeight >= 480)
             return "480p";
           return bestHeight > 0 ? `${bestHeight}p` : "1080p";
-        } catch (e2) {
+        } catch (e) {
           return "1080p";
         }
       });
@@ -1509,8 +1509,8 @@ var require_fastream = __commonJS({
             quality,
             headers: { "User-Agent": UA, Referer: "https://www3.seriesmetro.net/" }
           };
-        } catch (e2) {
-          console.error("[Fastream] Error:", e2.message);
+        } catch (e) {
+          console.error("[Fastream] Error:", e.message);
           return null;
         }
       });
@@ -1579,7 +1579,7 @@ var require_vimeos = __commonJS({
                   }
                 };
               }
-            } catch (e2) {
+            } catch (e) {
             }
           }
           var packMatch = html.match(
@@ -1612,8 +1612,8 @@ var require_vimeos = __commonJS({
             }
           }
           return null;
-        } catch (e2) {
-          console.error("[Vimeos] Error:", e2.message);
+        } catch (e) {
+          console.error("[Vimeos] Error:", e.message);
           return null;
         }
       });
@@ -1645,8 +1645,8 @@ var require_pixeldrain = __commonJS({
               Origin: "https://pixeldrain.com"
             }
           };
-        } catch (e2) {
-          console.error(`[Pixeldrain] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Pixeldrain] Error: ${e.message}`);
           return null;
         }
       });
@@ -1703,8 +1703,8 @@ var require_lulustream = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error(`[LuluStream] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[LuluStream] Error: ${e.message}`);
           return null;
         }
       });
@@ -1760,8 +1760,8 @@ var require_okru = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error(`[OKru] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[OKru] Error: ${e.message}`);
           return null;
         }
       });
@@ -1818,7 +1818,7 @@ var require_embed69 = __commonJS({
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
-            } catch (e2) {
+            } catch (e) {
               return null;
             }
             const items = Array.isArray(rawData) ? rawData : Object.keys(rawData).map((k) => rawData[k]);
@@ -1867,8 +1867,8 @@ var require_embed69 = __commonJS({
             return yield resolveEmbed2(iframeMatch[1], signal);
           }
           return null;
-        } catch (e2) {
-          console.error(`[Embed69] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Embed69] Error: ${e.message}`);
           return null;
         }
       });
@@ -1926,8 +1926,8 @@ var require_xupalace = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error(`[Xupalace] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Xupalace] Error: ${e.message}`);
           return null;
         }
       });
@@ -1983,8 +1983,8 @@ var require_streamtape = __commonJS({
             return yield resolveEmbed2(iframeMatch[1], signal);
           }
           return null;
-        } catch (e2) {
-          console.error(`[Streamtape] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Streamtape] Error: ${e.message}`);
           return null;
         }
       });
@@ -2032,8 +2032,8 @@ var require_playhydrax = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error(`[PlayHydrax] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[PlayHydrax] Error: ${e.message}`);
           return null;
         }
       });
@@ -2077,8 +2077,8 @@ var require_sololatino = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error(`[Sololatino] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Sololatino] Error: ${e.message}`);
           return null;
         }
       });
@@ -2126,8 +2126,8 @@ var require_krakenfiles = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error(`[Krakenfiles] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Krakenfiles] Error: ${e.message}`);
           return null;
         }
       });
@@ -2180,8 +2180,8 @@ var require_unlimplay = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error(`[Unlimplay] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Unlimplay] Error: ${e.message}`);
           return null;
         }
       });
@@ -2234,8 +2234,8 @@ var require_vibuxer = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error(`[Vibuxer] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Vibuxer] Error: ${e.message}`);
           return null;
         }
       });
@@ -2305,8 +2305,8 @@ var require_emturbovid = __commonJS({
             return null;
           }
           return null;
-        } catch (e2) {
-          console.error(`[Emturbovid] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[Emturbovid] Error: ${e.message}`);
           return null;
         }
       });
@@ -2420,7 +2420,7 @@ var require_tplayer = __commonJS({
             const raw = embedResp.headers.get("set-cookie");
             if (raw)
               cookies = raw.split(",").map((c) => c.split(";")[0].trim()).join("; ");
-          } catch (e2) {
+          } catch (e) {
           }
           if (cookies)
             baseHeaders["Cookie"] = cookies;
@@ -2443,8 +2443,8 @@ var require_tplayer = __commonJS({
               Cookie: cookies
             }
           };
-        } catch (e2) {
-          console.error(`[TPlayer] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[TPlayer] Error: ${e.message}`);
           return null;
         }
       });
@@ -2500,8 +2500,8 @@ var require_vidsrc = __commonJS({
               Origin: new URL(nextUrl).origin
             }
           };
-        } catch (e2) {
-          console.error(`[VidSrc] Error: ${e2.message}`);
+        } catch (e) {
+          console.error(`[VidSrc] Error: ${e.message}`);
           return null;
         }
       });
@@ -2539,7 +2539,7 @@ var require_vidsrc = __commonJS({
           return Array.from(decoded).map((ch) => String.fromCharCode(ch.charCodeAt(0) - shift)).join("");
         }
         return null;
-      } catch (e2) {
+      } catch (e) {
         return null;
       }
     }
@@ -2595,8 +2595,8 @@ var require_embedseek = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
-          console.error("[EmbedSeek] Error:", e2.message);
+        } catch (e) {
+          console.error("[EmbedSeek] Error:", e.message);
           return null;
         }
       });
@@ -2671,7 +2671,7 @@ var require_vidnest = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
+        } catch (e) {
           return null;
         }
       });
@@ -2735,7 +2735,7 @@ var require_vidsonic = __commonJS({
             }
           }
           return null;
-        } catch (e2) {
+        } catch (e) {
           return null;
         }
       });
@@ -2768,7 +2768,7 @@ var require_barmonrey = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
+        } catch (e) {
           return null;
         }
       });
@@ -2812,7 +2812,7 @@ var require_vidmoly = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
+        } catch (e) {
           return null;
         }
       });
@@ -2870,7 +2870,7 @@ var require_rpmvid = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
+        } catch (e) {
           return null;
         }
       });
@@ -2897,8 +2897,8 @@ var require_playmogo = __commonJS({
               Origin: "https://dsvplay.com"
             }
           };
-        } catch (e2) {
-          console.error("[Playmogo] Error: " + e2.message);
+        } catch (e) {
+          console.error("[Playmogo] Error: " + e.message);
           return null;
         }
       });
@@ -2944,7 +2944,7 @@ var require_generic_fuegocine = __commonJS({
             };
           }
           return null;
-        } catch (e2) {
+        } catch (e) {
           return null;
         }
       });
@@ -3013,7 +3013,7 @@ var require_resolvers = __commonJS({
           }
         }
         return headers;
-      } catch (e2) {
+      } catch (e) {
         return { "User-Agent": UA, referer: url.split("?")[0] };
       }
     }
@@ -3293,7 +3293,7 @@ var require_tmdb = __commonJS({
           const result = title || null;
           titleCache.set(cacheKey, result);
           return result;
-        } catch (e2) {
+        } catch (e) {
           if (retries > 0)
             return getTmdbTitle(tmdbId, mediaType, retries - 1);
           titleCache.set(cacheKey, null);
@@ -3314,7 +3314,7 @@ var require_tmdb = __commonJS({
             genres: (data.genres || []).map((g) => g.id),
             originCountries: data.origin_country || (data.production_countries || []).map((c) => c.iso_3166_1) || []
           };
-        } catch (e2) {
+        } catch (e) {
           if (retries > 0) {
             yield new Promise((r) => setTimeout(r, 1e3));
             return getTmdbInfo(tmdbId, mediaType, lang, retries - 1);
@@ -3354,7 +3354,7 @@ var require_tmdb = __commonJS({
           };
           idCache.set(cacheKey, result);
           return result;
-        } catch (e2) {
+        } catch (e) {
           const result = { imdbId: null, title: "Contenido", offset: 0, fromMapping: false };
           idCache.set(cacheKey, result);
           return result;
@@ -3371,7 +3371,7 @@ var require_tmdb = __commonJS({
               const url = `https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US`;
               const data = yield fetchJson(url);
               return data.title || data.name || null;
-            } catch (e2) {
+            } catch (e) {
               return null;
             }
           }))();
@@ -3390,11 +3390,11 @@ var require_tmdb = __commonJS({
               if (altTitle && !aliases.includes(altTitle))
                 aliases.push(altTitle);
             }
-          } catch (e2) {
+          } catch (e) {
             console.warn(`[TMDB-Aliases] Alternative titles fetch failed`);
           }
           return aliases;
-        } catch (e2) {
+        } catch (e) {
           return [];
         }
       });
@@ -3534,15 +3534,15 @@ function getOnlineStreams(rawHtml) {
               return null;
             seenUrls.add(directUrl);
             const resEmbed = yield (0, import_resolvers.resolveEmbed)(directUrl);
-            return {
+            return __spreadValues(__spreadValues({
               name: "PelisGo",
               langLabel: finalLang,
               serverLabel: serverName,
               url: resEmbed ? resEmbed.url : directUrl,
               quality: (resEmbed ? resEmbed.quality : quality) || "1080p",
               headers: (resEmbed ? resEmbed.headers : null) || getPelisGoHeaders(directUrl)
-            };
-          } catch (e2) {
+            }, (resEmbed == null ? void 0 : resEmbed.verified) && { verified: true }), (resEmbed == null ? void 0 : resEmbed.isReal) && { isReal: true });
+          } catch (e) {
             return null;
           }
         }))()
@@ -3591,7 +3591,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       const streams = yield getOnlineStreams(html);
       return yield (0, import_engine.finalizeStreams)(streams, "PelisGo", mediaTitle);
-    } catch (e2) {
+    } catch (e) {
       console.error(`[PelisGo] Error: ${e.message}`);
       return [];
     }
@@ -3603,8 +3603,8 @@ function getStreams(tmdbId, mediaType, season, episode) {
   return __async(this, null, function* () {
     try {
       return yield extractStreams(tmdbId, mediaType, season, episode);
-    } catch (e2) {
-      console.error(`[PelisGo] Error: ${e2.message}`);
+    } catch (e) {
+      console.error(`[PelisGo] Error: ${e.message}`);
       return [];
     }
   });

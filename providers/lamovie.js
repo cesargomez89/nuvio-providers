@@ -1,6 +1,6 @@
 /**
  * lamovie - Built from src/lamovie/
- * Generated: 2026-07-19T23:21:17.289Z
+ * Generated: 2026-07-19T23:29:10.473Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3563,7 +3563,7 @@ function processEmbed(embed, signal) {
     }
     const quality = normalizeQuality(embed.quality || "1080p");
     const serverName = getServerName(embed.url);
-    return {
+    return __spreadValues(__spreadValues({
       name: "LaMovie",
       title: quality + " \xB7 " + serverName,
       url: resolved.url,
@@ -3571,7 +3571,7 @@ function processEmbed(embed, signal) {
       headers: resolved.headers || {},
       serverLabel: serverName,
       langLabel: "Latino"
-    };
+    }, resolved.verified && { verified: true }), resolved.isReal && { isReal: true });
   });
 }
 function extractStreams(tmdbId, mediaType, season, episode) {

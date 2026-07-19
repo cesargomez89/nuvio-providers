@@ -156,6 +156,8 @@ async function getOnlineStreams(rawHtml) {
             url: resEmbed ? resEmbed.url : directUrl,
             quality: (resEmbed ? resEmbed.quality : quality) || '1080p',
             headers: (resEmbed ? resEmbed.headers : null) || getPelisGoHeaders(directUrl),
+            ...(resEmbed?.verified && { verified: true }),
+            ...(resEmbed?.isReal && { isReal: true }),
           };
         } catch {
           return null;
@@ -222,7 +224,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     const streams = await getOnlineStreams(html);
     return await finalizeStreams(streams, 'PelisGo', mediaTitle);
-  } catch {
+  } catch (e) {
     console.error(`[PelisGo] Error: ${e.message}`);
     return [];
   }

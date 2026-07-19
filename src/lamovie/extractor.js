@@ -183,6 +183,8 @@ async function processEmbed(embed, signal) {
     headers: resolved.headers || {},
     serverLabel: serverName,
     langLabel: 'Latino',
+    ...(resolved.verified && { verified: true }),
+    ...(resolved.isReal && { isReal: true }),
   };
 }
 
