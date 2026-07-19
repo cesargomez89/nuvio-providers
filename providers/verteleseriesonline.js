@@ -1,6 +1,6 @@
 /**
  * verteleseriesonline - Built from src/verteleseriesonline/
- * Generated: 2026-07-19T07:16:27.283Z
+ * Generated: 2026-07-19T07:19:46.250Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1791,7 +1791,19 @@ var require_embed69 = __commonJS({
           const html = yield resp.text();
           const dataLinkMatch = html.match(/let\s+dataLink\s*=\s*((\[[\s\S]*?\])|(\{[\s\S]*?\}))\s*;/);
           if (dataLinkMatch) {
-            let decryptLink2 = function(encryptedBase64, key) {
+            let solvePoW2 = function(challenge, difficulty) {
+              const prefix = "0".repeat(difficulty);
+              let nonce2 = 0;
+              const MAX_ITERATIONS = 5e5;
+              while (nonce2 < MAX_ITERATIONS) {
+                const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+                if (hash.startsWith(prefix))
+                  return nonce2;
+                nonce2++;
+              }
+              console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
+              return null;
+            }, decryptLink2 = function(encryptedBase64, key) {
               const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
               const iv = CryptoJS2.lib.WordArray.create(raw.words.slice(0, 4), 16);
               const ct = CryptoJS2.lib.WordArray.create(raw.words.slice(4), raw.sigBytes - 16);
@@ -1802,7 +1814,7 @@ var require_embed69 = __commonJS({
               });
               return decrypted.toString(CryptoJS2.enc.Utf8);
             };
-            var decryptLink = decryptLink2;
+            var solvePoW = solvePoW2, decryptLink = decryptLink2;
             let rawData;
             try {
               rawData = JSON.parse(dataLinkMatch[1].replace(/\\\//g, "/"));
@@ -1819,24 +1831,7 @@ var require_embed69 = __commonJS({
             const powChallenge = powChallengeMatch[1];
             const powDifficulty = parseInt(powDifficultyMatch[1]);
             const powSalt = powSaltMatch[1];
-            function solvePoW(challenge, difficulty, signal2) {
-              return __async(this, null, function* () {
-                const prefix = "0".repeat(difficulty);
-                let nonce2 = 0;
-                const MAX_ITERATIONS = 5e5;
-                while (nonce2 < MAX_ITERATIONS) {
-                  if (signal2 == null ? void 0 : signal2.aborted)
-                    return null;
-                  const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-                  if (hash.startsWith(prefix))
-                    return nonce2;
-                  nonce2++;
-                }
-                console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
-                return null;
-              });
-            }
-            const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
+            const nonce = solvePoW2(powChallenge, powDifficulty);
             if (nonce === null)
               return null;
             const aesKey = CryptoJS2.SHA256(powChallenge + nonce.toString() + powSalt);

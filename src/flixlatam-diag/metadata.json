@@ -1,7 +1,0 @@
-{
-  "name": "FlixDiag",
-  "description": "Diagnostic provider to test flixlatam compatibility",
-  "enabled": true,
-  "limited": true,
-  "supportsExternalPlayer": false
-}

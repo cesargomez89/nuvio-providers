@@ -34,12 +34,11 @@ async function resolve(url, signal = null) {
       const powDifficulty = parseInt(powDifficultyMatch[1]);
       const powSalt = powSaltMatch[1];
 
-      async function solvePoW(challenge, difficulty, signal) {
+      function solvePoW(challenge, difficulty) {
         const prefix = '0'.repeat(difficulty);
         let nonce = 0;
         const MAX_ITERATIONS = 500000;
         while (nonce < MAX_ITERATIONS) {
-          if (signal?.aborted) return null;
           const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
           if (hash.startsWith(prefix)) return nonce;
           nonce++;
@@ -60,7 +59,7 @@ async function resolve(url, signal = null) {
         return decrypted.toString(CryptoJS.enc.Utf8);
       }
 
-      const nonce = await solvePoW(powChallenge, powDifficulty, signal);
+      const nonce = solvePoW(powChallenge, powDifficulty);
       if (nonce === null) return null;
       const aesKey = CryptoJS.SHA256(powChallenge + nonce.toString() + powSalt);
 
