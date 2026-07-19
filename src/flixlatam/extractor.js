@@ -132,18 +132,11 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     const CryptoJS = require('crypto-js');
 
-    const hasAbort = typeof AbortController !== 'undefined';
-    const ac = hasAbort ? new AbortController() : null;
-    const signal = hasAbort ? ac.signal : null;
-    let powTimeoutId;
-    if (hasAbort) powTimeoutId = setTimeout(() => ac.abort(), 60000);
-
-    async function solvePoW(challenge, difficulty, signal) {
+    function solvePoW(challenge, difficulty) {
       const prefix = '0'.repeat(difficulty);
       let nonce = 0;
       const MAX_ITERATIONS = 500000;
       while (nonce < MAX_ITERATIONS) {
-        if (signal?.aborted) return null;
         const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
         if (hash.startsWith(prefix)) return nonce;
         nonce++;
@@ -169,8 +162,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     }
 
     console.log(`[FlixLatam] Solving PoW (difficulty: ${powDifficulty})...`);
-    const nonce = await solvePoW(powChallenge, powDifficulty, signal);
-    clearTimeout(powTimeoutId);
+    const nonce = solvePoW(powChallenge, powDifficulty);
     if (nonce === null) {
       console.log(`[FlixLatam] PoW failed or aborted`);
       return [];

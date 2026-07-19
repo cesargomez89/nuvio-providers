@@ -1,6 +1,6 @@
 /**
  * flixlatam - Built from src/flixlatam/
- * Generated: 2026-07-19T06:39:21.817Z
+ * Generated: 2026-07-19T07:16:27.230Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3553,7 +3553,19 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       return [];
     console.log(`[FlixLatam] Looking for content: ${tmdbId} (${mediaType})`);
     try {
-      let deriveKey = function(challenge, nonce2, salt) {
+      let solvePoW = function(challenge, difficulty) {
+        const prefix = "0".repeat(difficulty);
+        let nonce2 = 0;
+        const MAX_ITERATIONS = 5e5;
+        while (nonce2 < MAX_ITERATIONS) {
+          const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
+          if (hash.startsWith(prefix))
+            return nonce2;
+          nonce2++;
+        }
+        console.log(`[FlixLatam] PoW exceeded ${MAX_ITERATIONS} iterations`);
+        return null;
+      }, deriveKey = function(challenge, nonce2, salt) {
         return CryptoJS2.SHA256(challenge + nonce2.toString() + salt);
       }, decryptLink = function(encryptedBase64, key) {
         const raw = CryptoJS2.enc.Base64.parse(encryptedBase64);
@@ -3640,32 +3652,8 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       if (!Array.isArray(dataLink))
         dataLink = [dataLink];
       const CryptoJS2 = require("crypto-js");
-      const hasAbort = typeof AbortController !== "undefined";
-      const ac = hasAbort ? new AbortController() : null;
-      const signal = hasAbort ? ac.signal : null;
-      let powTimeoutId;
-      if (hasAbort)
-        powTimeoutId = setTimeout(() => ac.abort(), 6e4);
-      function solvePoW(challenge, difficulty, signal2) {
-        return __async(this, null, function* () {
-          const prefix = "0".repeat(difficulty);
-          let nonce2 = 0;
-          const MAX_ITERATIONS = 5e5;
-          while (nonce2 < MAX_ITERATIONS) {
-            if (signal2 == null ? void 0 : signal2.aborted)
-              return null;
-            const hash = CryptoJS2.SHA256(challenge + nonce2.toString()).toString(CryptoJS2.enc.Hex);
-            if (hash.startsWith(prefix))
-              return nonce2;
-            nonce2++;
-          }
-          console.log(`[FlixLatam] PoW exceeded ${MAX_ITERATIONS} iterations`);
-          return null;
-        });
-      }
       console.log(`[FlixLatam] Solving PoW (difficulty: ${powDifficulty})...`);
-      const nonce = yield solvePoW(powChallenge, powDifficulty, signal);
-      clearTimeout(powTimeoutId);
+      const nonce = solvePoW(powChallenge, powDifficulty);
       if (nonce === null) {
         console.log(`[FlixLatam] PoW failed or aborted`);
         return [];
