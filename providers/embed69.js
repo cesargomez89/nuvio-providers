@@ -1,6 +1,6 @@
 /**
  * embed69 - Built from src/embed69/
- * Generated: 2026-07-19T05:20:18.255Z
+ * Generated: 2026-07-19T05:46:31.770Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -668,21 +668,10 @@ var require_engine = __commonJS({
                   const hasAbort = typeof AbortController !== "undefined";
                   const controller = hasAbort ? new AbortController() : null;
                   let timeoutId;
-                  if (hasAbort) {
+                  if (hasAbort)
                     timeoutId = setTimeout(() => controller.abort(), 5e3);
-                  }
                   try {
-                    let validated;
-                    if (hasAbort) {
-                      validated = yield validateStream(s, controller.signal);
-                    } else {
-                      validated = yield Promise.race([
-                        validateStream(s, null),
-                        new Promise((_, reject) => {
-                          timeoutId = setTimeout(() => reject(new Error("timeout")), 5e3);
-                        })
-                      ]);
-                    }
+                    const validated = yield validateStream(s, hasAbort ? controller.signal : null);
                     clearTimeout(timeoutId);
                     return validated;
                   } catch (e) {
@@ -3486,7 +3475,6 @@ var require_resolvers = __commonJS({
     var { resolve: resolveRpmvid } = require_rpmvid();
     var { resolve: resolvePlaymogo } = require_playmogo();
     var { resolve: resolveGeneric } = require_generic_fuegocine();
-    var { withTimeout } = require_parallel();
     var { isMirror } = require_mirrors();
     var { getSessionUA: getSessionUA2 } = require_http();
     var UA = getSessionUA2();
@@ -3530,13 +3518,6 @@ var require_resolvers = __commonJS({
       return result;
     }
     function resolveEmbed2(url, signal = null) {
-      return __async(this, null, function* () {
-        if (!url)
-          return null;
-        return withTimeout(_resolveEmbed(url, signal), 15e3).catch(() => null);
-      });
-    }
-    function _resolveEmbed(url, signal = null) {
       return __async(this, null, function* () {
         if (!url)
           return null;

@@ -33,7 +33,6 @@ const { resolve: resolveVidmoly } = require('../resolvers/vidmoly.js');
 const { resolve: resolveRpmvid } = require('../resolvers/rpmvid.js');
 const { resolve: resolvePlaymogo } = require('../resolvers/playmogo.js');
 const { resolve: resolveGeneric } = require('../resolvers/generic_fuegocine.js');
-const { withTimeout } = require('../utils/parallel.js');
 const { isMirror } = require('../utils/mirrors.js');
 const { getSessionUA } = require('../utils/http.js');
 
@@ -85,11 +84,6 @@ function applyPiping(result) {
 }
 
 async function resolveEmbed(url, signal = null) {
-  if (!url) return null;
-  return withTimeout(_resolveEmbed(url, signal), 15000).catch(() => null);
-}
-
-async function _resolveEmbed(url, signal = null) {
   if (!url) return null;
   const urlLower = url.toLowerCase();
   if (DEAD_DOMAINS.some((d) => urlLower.includes(d))) return null;

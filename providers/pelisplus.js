@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-07-19T05:20:18.290Z
+ * Generated: 2026-07-19T05:46:31.804Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3062,61 +3062,6 @@ var require_generic_fuegocine = __commonJS({
   }
 });
 
-// src/utils/parallel.js
-var require_parallel = __commonJS({
-  "src/utils/parallel.js"(exports2, module2) {
-    function allSettled(promises) {
-      return Promise.all(
-        promises.map(
-          (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
-        )
-      );
-    }
-    function parallelWithLimit(items, handler, limit = 5) {
-      return __async(this, null, function* () {
-        const results = [];
-        for (let i = 0; i < items.length; i += limit) {
-          const batch = items.slice(i, i + limit);
-          const batchPromises = batch.map((item) => {
-            return handler(item).catch(() => null);
-          });
-          const batchResults = yield allSettled(batchPromises);
-          results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
-        }
-        return results;
-      });
-    }
-    function resolveWithLimit(items, handler) {
-      return __async(this, null, function* () {
-        const results = [];
-        const promises = items.map((item) => __async(this, null, function* () {
-          return yield handler(item);
-        }));
-        const settled = yield allSettled(promises);
-        settled.forEach((r) => {
-          if (r.status === "fulfilled" && r.value)
-            results.push(r.value);
-        });
-        return results;
-      });
-    }
-    function withTimeout(promise, ms = 1e4) {
-      return __async(this, null, function* () {
-        let timer;
-        const timeout = new Promise((_, reject) => {
-          timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms);
-        });
-        try {
-          return yield Promise.race([promise, timeout]);
-        } finally {
-          clearTimeout(timer);
-        }
-      });
-    }
-    module2.exports = { allSettled, parallelWithLimit, resolveWithLimit, withTimeout };
-  }
-});
-
 // src/utils/mirrors.js
 var require_mirrors = __commonJS({
   "src/utils/mirrors.js"(exports2, module2) {
@@ -3272,7 +3217,6 @@ var require_resolvers = __commonJS({
     var { resolve: resolveRpmvid } = require_rpmvid();
     var { resolve: resolvePlaymogo } = require_playmogo();
     var { resolve: resolveGeneric } = require_generic_fuegocine();
-    var { withTimeout } = require_parallel();
     var { isMirror } = require_mirrors();
     var { getSessionUA } = require_http();
     var UA = getSessionUA();
@@ -3316,13 +3260,6 @@ var require_resolvers = __commonJS({
       return result;
     }
     function resolveEmbed2(url, signal = null) {
-      return __async(this, null, function* () {
-        if (!url)
-          return null;
-        return withTimeout(_resolveEmbed(url, signal), 15e3).catch(() => null);
-      });
-    }
-    function _resolveEmbed(url, signal = null) {
       return __async(this, null, function* () {
         if (!url)
           return null;

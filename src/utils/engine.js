@@ -83,21 +83,9 @@ async function finalizeStreams(streams, providerName) {
             const hasAbort = typeof AbortController !== 'undefined';
             const controller = hasAbort ? new AbortController() : null;
             let timeoutId;
-            if (hasAbort) {
-              timeoutId = setTimeout(() => controller.abort(), 5000);
-            }
+            if (hasAbort) timeoutId = setTimeout(() => controller.abort(), 5000);
             try {
-              let validated;
-              if (hasAbort) {
-                validated = await validateStream(s, controller.signal);
-              } else {
-                validated = await Promise.race([
-                  validateStream(s, null),
-                  new Promise((_, reject) => {
-                    timeoutId = setTimeout(() => reject(new Error('timeout')), 5000);
-                  }),
-                ]);
-              }
+              const validated = await validateStream(s, hasAbort ? controller.signal : null);
               clearTimeout(timeoutId);
               return validated;
             } catch {

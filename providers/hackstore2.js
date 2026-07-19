@@ -1,6 +1,6 @@
 /**
  * hackstore2 - Built from src/hackstore2/
- * Generated: 2026-07-19T05:20:18.273Z
+ * Generated: 2026-07-19T05:46:31.787Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -569,21 +569,10 @@ var require_engine = __commonJS({
                   const hasAbort = typeof AbortController !== "undefined";
                   const controller = hasAbort ? new AbortController() : null;
                   let timeoutId;
-                  if (hasAbort) {
+                  if (hasAbort)
                     timeoutId = setTimeout(() => controller.abort(), 5e3);
-                  }
                   try {
-                    let validated;
-                    if (hasAbort) {
-                      validated = yield validateStream2(s, controller.signal);
-                    } else {
-                      validated = yield Promise.race([
-                        validateStream2(s, null),
-                        new Promise((_, reject) => {
-                          timeoutId = setTimeout(() => reject(new Error("timeout")), 5e3);
-                        })
-                      ]);
-                    }
+                    const validated = yield validateStream2(s, hasAbort ? controller.signal : null);
                     clearTimeout(timeoutId);
                     return validated;
                   } catch (e) {
