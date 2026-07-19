@@ -50,4 +50,4 @@ async function withTimeout(promise, ms = 10000) {
   }
 }
 
-module.exports = { parallelWithLimit, resolveWithLimit, withTimeout };
+module.exports = { allSettled, parallelWithLimit, resolveWithLimit, withTimeout };

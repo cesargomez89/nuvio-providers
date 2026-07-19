@@ -1,6 +1,6 @@
 /**
  * pelispedia - Built from src/pelispedia/
- * Generated: 2026-07-19T03:00:50.227Z
+ * Generated: 2026-07-19T04:05:33.799Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -2840,7 +2840,7 @@ var require_generic_fuegocine = __commonJS({
 // src/utils/parallel.js
 var require_parallel = __commonJS({
   "src/utils/parallel.js"(exports2, module2) {
-    function allSettled(promises) {
+    function allSettled2(promises) {
       return Promise.all(
         promises.map(
           (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
@@ -2855,7 +2855,7 @@ var require_parallel = __commonJS({
           const batchPromises = batch.map((item) => {
             return handler(item).catch(() => null);
           });
-          const batchResults = yield allSettled(batchPromises);
+          const batchResults = yield allSettled2(batchPromises);
           results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
         }
         return results;
@@ -2867,7 +2867,7 @@ var require_parallel = __commonJS({
         const promises = items.map((item) => __async(this, null, function* () {
           return yield handler(item);
         }));
-        const settled = yield allSettled(promises);
+        const settled = yield allSettled2(promises);
         settled.forEach((r) => {
           if (r.status === "fulfilled" && r.value)
             results.push(r.value);
@@ -2888,7 +2888,7 @@ var require_parallel = __commonJS({
         }
       });
     }
-    module2.exports = { parallelWithLimit, resolveWithLimit, withTimeout };
+    module2.exports = { allSettled: allSettled2, parallelWithLimit, resolveWithLimit, withTimeout };
   }
 });
 
@@ -3531,6 +3531,7 @@ var require_helpers = __commonJS({
 var import_http = __toESM(require_http());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
+var import_parallel = __toESM(require_parallel());
 var import_helpers = __toESM(require_helpers());
 var BASE = "https://pelispedia.mov";
 var UA = (0, import_http.getSessionUA)();
@@ -3650,7 +3651,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       const EMBED_LIMIT = 3;
       for (let i = 0; i < rawEmbeds.length; i += EMBED_LIMIT) {
         const batch = rawEmbeds.slice(i, i + EMBED_LIMIT);
-        const batchResults = yield Promise.allSettled(
+        const batchResults = yield (0, import_parallel.allSettled)(
           batch.map((embed) => __async(this, null, function* () {
             let currentUrl = embed.url;
             let resolved = null;

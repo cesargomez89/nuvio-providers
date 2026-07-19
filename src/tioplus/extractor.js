@@ -2,6 +2,7 @@ import { fetchHtml, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbInfo } from '../utils/tmdb.js';
+import { allSettled } from '../utils/parallel.js';
 import { isMovie, toDoubleBase64 } from '../utils/helpers.js';
 
 const BASE_URL = 'https://tioplus.app';
@@ -162,7 +163,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       }
     });
 
-    const allResolved = await Promise.allSettled(resolutionPromises);
+    const allResolved = await allSettled(resolutionPromises);
     const resolvedStreams = [];
     allResolved.forEach((r) => {
       if (r.status === 'fulfilled' && r.value) {

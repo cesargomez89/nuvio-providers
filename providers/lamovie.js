@@ -1,6 +1,6 @@
 /**
  * lamovie - Built from src/lamovie/
- * Generated: 2026-07-19T03:00:50.216Z
+ * Generated: 2026-07-19T04:05:33.787Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3171,7 +3171,7 @@ var require_generic_fuegocine = __commonJS({
 // src/utils/parallel.js
 var require_parallel = __commonJS({
   "src/utils/parallel.js"(exports2, module2) {
-    function allSettled(promises) {
+    function allSettled2(promises) {
       return Promise.all(
         promises.map(
           (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
@@ -3186,7 +3186,7 @@ var require_parallel = __commonJS({
           const batchPromises = batch.map((item) => {
             return handler(item).catch(() => null);
           });
-          const batchResults = yield allSettled(batchPromises);
+          const batchResults = yield allSettled2(batchPromises);
           results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
         }
         return results;
@@ -3198,7 +3198,7 @@ var require_parallel = __commonJS({
         const promises = items.map((item) => __async(this, null, function* () {
           return yield handler(item);
         }));
-        const settled = yield allSettled(promises);
+        const settled = yield allSettled2(promises);
         settled.forEach((r) => {
           if (r.status === "fulfilled" && r.value)
             results.push(r.value);
@@ -3219,7 +3219,7 @@ var require_parallel = __commonJS({
         }
       });
     }
-    module2.exports = { parallelWithLimit, resolveWithLimit, withTimeout };
+    module2.exports = { allSettled: allSettled2, parallelWithLimit, resolveWithLimit, withTimeout };
   }
 });
 
@@ -3646,6 +3646,7 @@ var require_tmdb = __commonJS({
 var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
+var import_parallel = __toESM(require_parallel());
 var import_tmdb = __toESM(require_tmdb());
 var API_URL = "https://lamovie.org/wp-api/v1";
 function normalizeQuality(quality) {
@@ -3854,7 +3855,7 @@ function extractStreams(tmdbId, mediaType, season, episode) {
         return [];
       }
       const embeds = data.data.embeds;
-      const results = yield Promise.allSettled(embeds.map((e) => processEmbed(e, controller ? controller.signal : void 0)));
+      const results = yield (0, import_parallel.allSettled)(embeds.map((e) => processEmbed(e, controller ? controller.signal : void 0)));
       const streams = results.map((r) => r.status === "fulfilled" ? r.value : null).filter((r) => r);
       const elapsed = ((Date.now() - startTime) / 1e3).toFixed(2);
       console.log(`[LaMovie] \u2713 ${streams.length} streams en ${elapsed}s`);

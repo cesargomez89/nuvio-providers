@@ -1,6 +1,6 @@
 /**
  * fuegocine - Built from src/fuegocine/
- * Generated: 2026-07-19T03:00:50.207Z
+ * Generated: 2026-07-19T04:05:33.775Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -2978,7 +2978,7 @@ var require_generic_fuegocine = __commonJS({
 // src/utils/parallel.js
 var require_parallel = __commonJS({
   "src/utils/parallel.js"(exports2, module2) {
-    function allSettled(promises) {
+    function allSettled2(promises) {
       return Promise.all(
         promises.map(
           (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
@@ -2993,7 +2993,7 @@ var require_parallel = __commonJS({
           const batchPromises = batch.map((item) => {
             return handler(item).catch(() => null);
           });
-          const batchResults = yield allSettled(batchPromises);
+          const batchResults = yield allSettled2(batchPromises);
           results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
         }
         return results;
@@ -3005,7 +3005,7 @@ var require_parallel = __commonJS({
         const promises = items.map((item) => __async(this, null, function* () {
           return yield handler(item);
         }));
-        const settled = yield allSettled(promises);
+        const settled = yield allSettled2(promises);
         settled.forEach((r) => {
           if (r.status === "fulfilled" && r.value)
             results.push(r.value);
@@ -3026,7 +3026,7 @@ var require_parallel = __commonJS({
         }
       });
     }
-    module2.exports = { parallelWithLimit, resolveWithLimit, withTimeout };
+    module2.exports = { allSettled: allSettled2, parallelWithLimit, resolveWithLimit, withTimeout };
   }
 });
 
@@ -3800,6 +3800,7 @@ var import_tmdb = __toESM(require_tmdb());
 var import_resolvers = __toESM(require_resolvers());
 var import_engine = __toESM(require_engine());
 var import_title = __toESM(require_title());
+var import_parallel = __toESM(require_parallel());
 var import_helpers = __toESM(require_helpers());
 var BASE_URL = "https://www.fuegocine.com";
 var SEARCH_BASE = `${BASE_URL}/feeds/posts/summary?alt=json&max-results=8&q=`;
@@ -3976,7 +3977,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         const bIdx = langOrder.indexOf(String(b.lang));
         return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
       });
-      const resolutionResults = yield Promise.allSettled(
+      const resolutionResults = yield (0, import_parallel.allSettled)(
         sortedLinks.map((link) => __async(this, null, function* () {
           var _a2, _b2;
           const result = yield (0, import_resolvers.resolveEmbed)(link.url);

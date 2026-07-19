@@ -1,6 +1,6 @@
 /**
  * tioplus - Built from src/tioplus/
- * Generated: 2026-07-19T03:00:50.252Z
+ * Generated: 2026-07-19T04:05:33.826Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3171,7 +3171,7 @@ var require_generic_fuegocine = __commonJS({
 // src/utils/parallel.js
 var require_parallel = __commonJS({
   "src/utils/parallel.js"(exports2, module2) {
-    function allSettled(promises) {
+    function allSettled2(promises) {
       return Promise.all(
         promises.map(
           (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
@@ -3186,7 +3186,7 @@ var require_parallel = __commonJS({
           const batchPromises = batch.map((item) => {
             return handler(item).catch(() => null);
           });
-          const batchResults = yield allSettled(batchPromises);
+          const batchResults = yield allSettled2(batchPromises);
           results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
         }
         return results;
@@ -3198,7 +3198,7 @@ var require_parallel = __commonJS({
         const promises = items.map((item) => __async(this, null, function* () {
           return yield handler(item);
         }));
-        const settled = yield allSettled(promises);
+        const settled = yield allSettled2(promises);
         settled.forEach((r) => {
           if (r.status === "fulfilled" && r.value)
             results.push(r.value);
@@ -3219,7 +3219,7 @@ var require_parallel = __commonJS({
         }
       });
     }
-    module2.exports = { parallelWithLimit, resolveWithLimit, withTimeout };
+    module2.exports = { allSettled: allSettled2, parallelWithLimit, resolveWithLimit, withTimeout };
   }
 });
 
@@ -3746,6 +3746,7 @@ var import_http = __toESM(require_http());
 var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
+var import_parallel = __toESM(require_parallel());
 var import_helpers = __toESM(require_helpers());
 var BASE_URL = "https://tioplus.app";
 var UA = (0, import_http.getSessionUA)();
@@ -3898,7 +3899,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           clearTimeout(timer);
         }
       }));
-      const allResolved = yield Promise.allSettled(resolutionPromises);
+      const allResolved = yield (0, import_parallel.allSettled)(resolutionPromises);
       const resolvedStreams = [];
       allResolved.forEach((r) => {
         if (r.status === "fulfilled" && r.value) {

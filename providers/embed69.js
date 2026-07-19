@@ -1,6 +1,6 @@
 /**
  * embed69 - Built from src/embed69/
- * Generated: 2026-07-19T03:00:50.199Z
+ * Generated: 2026-07-19T04:05:33.766Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -893,6 +893,61 @@ var require_tmdb = __commonJS({
       });
     }
     module2.exports = { getTmdbTitle, getTmdbInfo, getCorrectImdbId: getCorrectImdbId2, getTmdbAliases, TMDB_API_KEY };
+  }
+});
+
+// src/utils/parallel.js
+var require_parallel = __commonJS({
+  "src/utils/parallel.js"(exports2, module2) {
+    function allSettled2(promises) {
+      return Promise.all(
+        promises.map(
+          (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
+        )
+      );
+    }
+    function parallelWithLimit(items, handler, limit = 5) {
+      return __async(this, null, function* () {
+        const results = [];
+        for (let i = 0; i < items.length; i += limit) {
+          const batch = items.slice(i, i + limit);
+          const batchPromises = batch.map((item) => {
+            return handler(item).catch(() => null);
+          });
+          const batchResults = yield allSettled2(batchPromises);
+          results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
+        }
+        return results;
+      });
+    }
+    function resolveWithLimit(items, handler) {
+      return __async(this, null, function* () {
+        const results = [];
+        const promises = items.map((item) => __async(this, null, function* () {
+          return yield handler(item);
+        }));
+        const settled = yield allSettled2(promises);
+        settled.forEach((r) => {
+          if (r.status === "fulfilled" && r.value)
+            results.push(r.value);
+        });
+        return results;
+      });
+    }
+    function withTimeout(promise, ms = 1e4) {
+      return __async(this, null, function* () {
+        let timer;
+        const timeout = new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms);
+        });
+        try {
+          return yield Promise.race([promise, timeout]);
+        } finally {
+          clearTimeout(timer);
+        }
+      });
+    }
+    module2.exports = { allSettled: allSettled2, parallelWithLimit, resolveWithLimit, withTimeout };
   }
 });
 
@@ -3405,61 +3460,6 @@ var require_generic_fuegocine = __commonJS({
   }
 });
 
-// src/utils/parallel.js
-var require_parallel = __commonJS({
-  "src/utils/parallel.js"(exports2, module2) {
-    function allSettled(promises) {
-      return Promise.all(
-        promises.map(
-          (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
-        )
-      );
-    }
-    function parallelWithLimit(items, handler, limit = 5) {
-      return __async(this, null, function* () {
-        const results = [];
-        for (let i = 0; i < items.length; i += limit) {
-          const batch = items.slice(i, i + limit);
-          const batchPromises = batch.map((item) => {
-            return handler(item).catch(() => null);
-          });
-          const batchResults = yield allSettled(batchPromises);
-          results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
-        }
-        return results;
-      });
-    }
-    function resolveWithLimit(items, handler) {
-      return __async(this, null, function* () {
-        const results = [];
-        const promises = items.map((item) => __async(this, null, function* () {
-          return yield handler(item);
-        }));
-        const settled = yield allSettled(promises);
-        settled.forEach((r) => {
-          if (r.status === "fulfilled" && r.value)
-            results.push(r.value);
-        });
-        return results;
-      });
-    }
-    function withTimeout(promise, ms = 1e4) {
-      return __async(this, null, function* () {
-        let timer;
-        const timeout = new Promise((_, reject) => {
-          timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms);
-        });
-        try {
-          return yield Promise.race([promise, timeout]);
-        } finally {
-          clearTimeout(timer);
-        }
-      });
-    }
-    module2.exports = { parallelWithLimit, resolveWithLimit, withTimeout };
-  }
-});
-
 // src/utils/resolvers.js
 var require_resolvers = __commonJS({
   "src/utils/resolvers.js"(exports2, module2) {
@@ -3746,6 +3746,7 @@ var import_http = __toESM(require_http());
 var import_helpers = __toESM(require_helpers());
 var import_engine = __toESM(require_engine());
 var import_tmdb = __toESM(require_tmdb());
+var import_parallel = __toESM(require_parallel());
 var import_resolvers = __toESM(require_resolvers());
 var BASE_URL = "https://embed69.org";
 var RESOLVER_TIMEOUT = 1e4;
@@ -3911,7 +3912,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
         if (embeds.length === 0)
           continue;
         console.log(`[Embed69] Resolving ${embeds.length} embeds (${lang})...`);
-        const resolvedResults = yield Promise.allSettled(
+        const resolvedResults = yield (0, import_parallel.allSettled)(
           embeds.map((emb) => resolveEmbedLocal(emb.url))
         );
         const resolved = resolvedResults.filter((r) => r.status === "fulfilled" && r.value && r.value.url).map((r) => r.value).map((result) => ({

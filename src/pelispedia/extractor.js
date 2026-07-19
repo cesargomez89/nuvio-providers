@@ -1,6 +1,7 @@
 import { fetchHtml, getSessionUA } from '../utils/http.js';
 import { resolveEmbed, getDirectCdnHeaders } from '../utils/resolvers.js';
 import { getTmdbTitle, getTmdbInfo } from '../utils/tmdb.js';
+import { allSettled } from '../utils/parallel.js';
 import { isMovie } from '../utils/helpers.js';
 
 const BASE = 'https://pelispedia.mov';
@@ -141,7 +142,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     for (let i = 0; i < rawEmbeds.length; i += EMBED_LIMIT) {
       const batch = rawEmbeds.slice(i, i + EMBED_LIMIT);
-      const batchResults = await Promise.allSettled(
+      const batchResults = await allSettled(
         batch.map(async (embed) => {
           let currentUrl = embed.url;
           let resolved = null;

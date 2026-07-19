@@ -1,6 +1,7 @@
 import { fetchJson } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
+import { allSettled } from '../utils/parallel.js';
 import { getTmdbInfo, getTmdbAliases } from '../utils/tmdb.js';
 
 const API_URL = 'https://lamovie.org/wp-api/v1';
@@ -232,7 +233,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
     }
 
     const embeds = data.data.embeds;
-    const results = await Promise.allSettled(embeds.map((e) => processEmbed(e, controller ? controller.signal : undefined)));
+    const results = await allSettled(embeds.map((e) => processEmbed(e, controller ? controller.signal : undefined)));
     const streams = results
       .map((r) => (r.status === 'fulfilled' ? r.value : null))
       .filter((r) => r);

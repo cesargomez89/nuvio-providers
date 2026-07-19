@@ -1,6 +1,6 @@
 /**
  * gnulahd - Built from src/gnulahd/
- * Generated: 2026-07-19T03:00:50.211Z
+ * Generated: 2026-07-19T04:05:33.780Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3219,7 +3219,7 @@ var require_parallel = __commonJS({
         }
       });
     }
-    module2.exports = { parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
+    module2.exports = { allSettled, parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
   }
 });
 

@@ -2,6 +2,7 @@ import { getSessionUA, setSessionUA } from '../utils/http.js';
 import { padEpisode, cleanTmdbId } from '../utils/helpers.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { getCorrectImdbId } from '../utils/tmdb.js';
+import { allSettled } from '../utils/parallel.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 
 const BASE_URL = 'https://embed69.org';
@@ -165,7 +166,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       if (embeds.length === 0) continue;
 
       console.log(`[Embed69] Resolving ${embeds.length} embeds (${lang})...`);
-      const resolvedResults = await Promise.allSettled(
+      const resolvedResults = await allSettled(
         embeds.map((emb) => resolveEmbedLocal(emb.url))
       );
       const resolved = resolvedResults

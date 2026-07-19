@@ -1,6 +1,6 @@
 /**
  * pelisplus - Built from src/pelisplus/
- * Generated: 2026-07-19T03:00:50.229Z
+ * Generated: 2026-07-19T04:05:33.802Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3125,7 +3125,7 @@ var require_parallel = __commonJS({
         }
       });
     }
-    module2.exports = { parallelWithLimit, resolveWithLimit, withTimeout };
+    module2.exports = { allSettled, parallelWithLimit, resolveWithLimit, withTimeout };
   }
 });
 

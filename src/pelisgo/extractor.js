@@ -1,6 +1,7 @@
 import { getStealthHeaders } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
+import { allSettled } from '../utils/parallel.js';
 import { getCorrectImdbId } from '../utils/tmdb.js';
 
 const BASE = 'https://pelisgo.online';
@@ -163,7 +164,7 @@ async function getOnlineStreams(rawHtml) {
     );
   }
 
-  const results = await Promise.allSettled(resolutionPromises);
+  const results = await allSettled(resolutionPromises);
   return results.filter((r) => r.status === 'fulfilled' && r.value !== null).map((r) => r.value);
 }
 

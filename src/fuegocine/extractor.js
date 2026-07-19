@@ -3,6 +3,7 @@ import { getTmdbTitle, getTmdbInfo } from '../utils/tmdb.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { levenshtein } from '../utils/title.js';
+import { allSettled } from '../utils/parallel.js';
 import { b64decode } from '../utils/helpers.js';
 
 const BASE_URL = 'https://www.fuegocine.com';
@@ -202,7 +203,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
     });
 
-    const resolutionResults = await Promise.allSettled(
+    const resolutionResults = await allSettled(
       sortedLinks.map(async (link) => {
         const result = await resolveEmbed(link.url);
         if (result && result.url) {

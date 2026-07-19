@@ -2,6 +2,7 @@ import { request, fetchHtml, getSessionUA } from '../utils/http.js';
 import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbTitle, getTmdbAliases, getTmdbInfo } from '../utils/tmdb.js';
+import { allSettled } from '../utils/parallel.js';
 import { b64decode } from '../utils/helpers.js';
 import { buildSlug } from '../utils/title.js';
 
@@ -78,7 +79,7 @@ async function getEmbedUrls(movieUrl) {
     const intermediateUrls = decodedUrls.filter((u) => !isKnownEmbed(u));
     const embedUrls = new Set(directEmbeds);
     if (intermediateUrls.length > 0) {
-      await Promise.allSettled(
+      await allSettled(
         intermediateUrls.map(async (decoded) => {
           try {
             const midData = await fetchHtml(decoded, { headers: HEADERS });
@@ -216,7 +217,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const embedUrls = await getEmbedUrls(selectedUrl);
     if (embedUrls.length === 0) return [];
     const uniqueEmbeds = [...new Set(embedUrls)];
-    const streams = (await Promise.allSettled(uniqueEmbeds.map(processEmbed)))
+    const streams = (await allSettled(uniqueEmbeds.map(processEmbed)))
       .filter((r) => r.status === 'fulfilled' && r.value)
       .map((r) => r.value);
     return await finalizeStreams(streams, 'CineCalidad', mediaTitle);

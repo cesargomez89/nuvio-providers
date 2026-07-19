@@ -1,6 +1,6 @@
 /**
  * sololatino - Built from src/sololatino/
- * Generated: 2026-07-19T03:00:50.249Z
+ * Generated: 2026-07-19T04:05:33.823Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3219,7 +3219,7 @@ var require_parallel = __commonJS({
         }
       });
     }
-    module2.exports = { parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
+    module2.exports = { allSettled, parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
   }
 });
 
@@ -3815,11 +3815,21 @@ function ensureXsrfToken() {
       headers: { "User-Agent": HEADERS["User-Agent"] }
     });
     const cookieParts = [];
-    for (const c of res.headers.getSetCookie()) {
-      cookieParts.push(c.split(";")[0]);
-      const match = c.match(/XSRF-TOKEN=([^;]+)/);
-      if (match)
-        xsrfToken = decodeURIComponent(match[1]);
+    if (typeof res.headers.getSetCookie === "function") {
+      for (const c of res.headers.getSetCookie()) {
+        cookieParts.push(c.split(";")[0]);
+        const match = c.match(/XSRF-TOKEN=([^;]+)/);
+        if (match)
+          xsrfToken = decodeURIComponent(match[1]);
+      }
+    } else {
+      const setCookie = res.headers.get("set-cookie");
+      if (setCookie) {
+        cookieParts.push(setCookie.split(";")[0]);
+        const match = setCookie.match(/XSRF-TOKEN=([^;]+)/);
+        if (match)
+          xsrfToken = decodeURIComponent(match[1]);
+      }
     }
     cookieJar = cookieParts.join("; ");
   });
