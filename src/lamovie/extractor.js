@@ -1,5 +1,4 @@
 import { fetchJson } from '../utils/http.js';
-import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { allSettled } from '../utils/parallel.js';
 import { getTmdbInfo, getTmdbAliases } from '../utils/tmdb.js';
@@ -33,9 +32,13 @@ function getServerName(url) {
 
 function normalizeTitle(str) {
   return str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replace(/[áàäâ]/g, 'a')
+    .replace(/[éèëê]/g, 'e')
+    .replace(/[íìïî]/g, 'i')
+    .replace(/[óòöô]/g, 'o')
+    .replace(/[úùüû]/g, 'u')
+    .replace(/ñ/g, 'n')
     .replace(/[^a-z0-9\s-]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -245,7 +248,16 @@ export async function extractStreams(tmdbId, mediaType, season, episode) {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`[LaMovie] ✓ ${streams.length} streams en ${elapsed}s`);
 
-    return await finalizeStreams(streams, 'LaMovie', tmdbInfo.title);
+    const qualityScore = { '4K': 5, '2160p': 5, '1080p': 4, '720p': 3, '480p': 2, '360p': 1, SD: 0 };
+    const seen = new Set();
+    return streams
+      .sort((a, b) => (qualityScore[b.quality] || 0) - (qualityScore[a.quality] || 0))
+      .filter((s) => {
+        const key = s.url;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
   } catch (err) {
     if (err.name === 'AbortError') {
       console.log(`[LaMovie] Timeout tras ${OVERALL_TIMEOUT}ms`);
