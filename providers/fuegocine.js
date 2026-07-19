@@ -1,6 +1,6 @@
 /**
  * fuegocine - Built from src/fuegocine/
- * Generated: 2026-07-19T04:05:33.775Z
+ * Generated: 2026-07-19T04:18:31.394Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3230,6 +3230,20 @@ var require_resolvers = __commonJS({
     }
     function resolveEmbed2(url, signal = null) {
       return __async(this, null, function* () {
+        if (!url)
+          return null;
+        const hasAbort = typeof AbortController !== "undefined";
+        if (hasAbort) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15e3);
+          try {
+            return yield _resolveEmbed(url, controller.signal);
+          } catch (e) {
+            return null;
+          } finally {
+            clearTimeout(timeoutId);
+          }
+        }
         return withTimeout(_resolveEmbed(url, signal), 15e3).catch(() => null);
       });
     }

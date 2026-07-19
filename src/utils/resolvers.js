@@ -85,6 +85,19 @@ function applyPiping(result) {
 }
 
 async function resolveEmbed(url, signal = null) {
+  if (!url) return null;
+  const hasAbort = typeof AbortController !== 'undefined';
+  if (hasAbort) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+      return await _resolveEmbed(url, controller.signal);
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
   return withTimeout(_resolveEmbed(url, signal), 15000).catch(() => null);
 }
 
