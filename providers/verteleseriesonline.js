@@ -1,6 +1,6 @@
 /**
  * verteleseriesonline - Built from src/verteleseriesonline/
- * Generated: 2026-07-19T23:13:15.365Z
+ * Generated: 2026-07-19T23:21:17.326Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3775,12 +3775,12 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
             try {
               const result = yield (0, import_resolvers.resolveEmbed)(embedUrl);
               if (result && result.url) {
-                return {
+                return __spreadValues(__spreadValues({
                   langLabel: language,
                   url: result.url,
                   quality: result.quality,
                   headers: result.headers || {}
-                };
+                }, result.verified && { verified: true }), result.isReal && { isReal: true });
               }
             } catch (e) {
               console.warn(`[VerTeleSeries] Error procesando embed: ${e.message}`);

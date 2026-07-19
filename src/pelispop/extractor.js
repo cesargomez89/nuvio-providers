@@ -147,6 +147,8 @@ async function processEmbed(embedUrl, signal) {
       url: result.url,
       quality: result.quality,
       headers: result.headers || {},
+      ...(result.verified && { verified: true }),
+      ...(result.isReal && { isReal: true }),
     };
   } catch (e) {
     if (e.name !== 'AbortError') {

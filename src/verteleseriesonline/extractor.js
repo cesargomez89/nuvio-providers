@@ -229,6 +229,8 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
                 url: result.url,
                 quality: result.quality,
                 headers: result.headers || {},
+                ...(result.verified && { verified: true }),
+                ...(result.isReal && { isReal: true }),
               };
             }
           } catch (e) {

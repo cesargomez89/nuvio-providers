@@ -1,6 +1,6 @@
 /**
  * pelispop - Built from src/pelispop/
- * Generated: 2026-07-19T23:13:15.346Z
+ * Generated: 2026-07-19T23:21:17.305Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3701,12 +3701,12 @@ function processEmbed(embedUrl, signal) {
       const result = yield (0, import_resolvers.resolveEmbed)(embedUrl, signal);
       if (!result || !result.url)
         return null;
-      return {
+      return __spreadValues(__spreadValues({
         langLabel: "Latino",
         url: result.url,
         quality: result.quality,
         headers: result.headers || {}
-      };
+      }, result.verified && { verified: true }), result.isReal && { isReal: true });
     } catch (e) {
       if (e.name !== "AbortError") {
         console.warn(`[PelisPop] Error procesando embed: ${e.message}`);
