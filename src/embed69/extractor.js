@@ -93,18 +93,16 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const powDifficulty = parseInt(powDifficultyMatch[1]);
     const powSalt = powSaltMatch[1];
 
-    async function solvePoW(challenge, difficulty, signal) {
+    function solvePoW(challenge, difficulty) {
       const prefix = '0'.repeat(difficulty);
       let nonce = 0;
       const MAX_ITERATIONS = 50000;
       while (nonce < MAX_ITERATIONS) {
-        if (signal?.aborted) return null;
         for (let i = 0; i < 100; i++) {
           const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
           if (hash.startsWith(prefix)) return nonce;
           nonce++;
         }
-        await new Promise((r) => setTimeout(r, 0));
       }
       console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
       return null;
@@ -127,7 +125,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     }
 
     console.log(`[Embed69] Solving PoW (difficulty: ${powDifficulty})...`);
-    const nonce = await solvePoW(powChallenge, powDifficulty);
+    const nonce = solvePoW(powChallenge, powDifficulty);
     if (nonce === null) {
       console.log(`[Embed69] PoW failed or aborted`);
       return [];
