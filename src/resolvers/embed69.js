@@ -37,15 +37,12 @@ async function resolve(url, signal = null) {
       async function solvePoW(challenge, difficulty, signal) {
         const prefix = '0'.repeat(difficulty);
         let nonce = 0;
-        const MAX_ITERATIONS = 50000;
+        const MAX_ITERATIONS = 500000;
         while (nonce < MAX_ITERATIONS) {
           if (signal?.aborted) return null;
-          for (let i = 0; i < 100; i++) {
-            const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
-            if (hash.startsWith(prefix)) return nonce;
-            nonce++;
-          }
-          await new Promise((r) => setTimeout(r, 0));
+          const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
+          if (hash.startsWith(prefix)) return nonce;
+          nonce++;
         }
         console.log(`[Embed69] PoW exceeded ${MAX_ITERATIONS} iterations`);
         return null;

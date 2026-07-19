@@ -136,20 +136,17 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const ac = hasAbort ? new AbortController() : null;
     const signal = hasAbort ? ac.signal : null;
     let powTimeoutId;
-    if (hasAbort) powTimeoutId = setTimeout(() => ac.abort(), 30000);
+    if (hasAbort) powTimeoutId = setTimeout(() => ac.abort(), 60000);
 
     async function solvePoW(challenge, difficulty, signal) {
       const prefix = '0'.repeat(difficulty);
       let nonce = 0;
-      const MAX_ITERATIONS = 50000;
+      const MAX_ITERATIONS = 500000;
       while (nonce < MAX_ITERATIONS) {
         if (signal?.aborted) return null;
-        for (let i = 0; i < 100; i++) {
-          const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
-          if (hash.startsWith(prefix)) return nonce;
-          nonce++;
-        }
-        await new Promise((r) => setTimeout(r, 0));
+        const hash = CryptoJS.SHA256(challenge + nonce.toString()).toString(CryptoJS.enc.Hex);
+        if (hash.startsWith(prefix)) return nonce;
+        nonce++;
       }
       console.log(`[FlixLatam] PoW exceeded ${MAX_ITERATIONS} iterations`);
       return null;
