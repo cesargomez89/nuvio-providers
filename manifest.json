@@ -1,12 +1,12 @@
 {
   "name": "Latinus Mexico",
-  "version": "1.0.76",
+  "version": "1.0.77",
   "scrapers": [
     {
       "id": "flixlatam-diag",
       "name": "FlixDiag",
       "description": "Diagnostic provider to test flixlatam compatibility",
-      "version": "1.0.76",
+      "version": "1.0.77",
       "author": "cesargomez89",
       "supportedTypes": [
         "movie",

@@ -1,6 +1,6 @@
 /**
  * flixlatam-diag - Built from src/flixlatam-diag/
- * Generated: 2026-07-19T07:03:21.971Z
+ * Generated: 2026-07-19T07:08:05.649Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3400,14 +3400,24 @@ function getStreams(tmdbId, mediaType, season, episode) {
         out.push(diagStream(10, "Resolve-Error"));
       }
       try {
-        var rawStreams = decryptedList.map(function(e) {
-          return { url: e.url, serverLabel: e.serverName || "Server", language: "Latino", quality: "1080p", headers: { "User-Agent": UA, Referer: "https://flixlatam.com/" } };
-        });
-        var finalized = yield (0, import_engine.finalizeStreams)(rawStreams, "FlixLatam");
-        if (finalized && finalized.length > 0)
-          out.push(diagStream(11, "Finalize-" + finalized.length + "ok"));
-        else
-          out.push(diagStream(11, "Finalize-Empty"));
+        var resolvedAll = [];
+        for (var d of decryptedList) {
+          var r = yield (0, import_resolvers.resolveEmbed)(d.url);
+          if (r && r.url)
+            resolvedAll.push(r);
+        }
+        if (resolvedAll.length === 0) {
+          out.push(diagStream(11, "ResolveAll-Null"));
+        } else {
+          var rawStreams = resolvedAll.map(function(rr) {
+            return { url: rr.url, quality: rr.quality || "1080p", serverLabel: rr.serverName || "Server", language: "Latino", headers: rr.headers || { "User-Agent": UA, Referer: "https://flixlatam.com/" } };
+          });
+          var finalized = yield (0, import_engine.finalizeStreams)(rawStreams, "FlixLatam");
+          if (finalized && finalized.length > 0)
+            out.push(diagStream(11, "Finalize-" + finalized.length + "ok"));
+          else
+            out.push(diagStream(11, "Finalize-Empty"));
+        }
       } catch (e) {
         out.push(diagStream(11, "Finalize-Error"));
       }

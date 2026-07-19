@@ -146,14 +146,24 @@ async function getStreams(tmdbId, mediaType, season, episode) {
       out.push(diagStream(10, 'Resolve-Error'));
     }
 
-    // Step 11 — finalizeStreams
+    // Step 11 — finalizeStreams (with resolved m3u8 URLs, matching real provider behavior)
     try {
-      var rawStreams = decryptedList.map(function(e) {
-        return { url: e.url, serverLabel: e.serverName || 'Server', language: 'Latino', quality: '1080p', headers: { 'User-Agent': UA, Referer: 'https://flixlatam.com/' } };
-      });
-      var finalized = await finalizeStreams(rawStreams, 'FlixLatam');
-      if (finalized && finalized.length > 0) out.push(diagStream(11, 'Finalize-' + finalized.length + 'ok'));
-      else out.push(diagStream(11, 'Finalize-Empty'));
+      var resolvedAll = [];
+      for (var d of decryptedList) {
+        var r = await resolveEmbed(d.url);
+        if (r && r.url) resolvedAll.push(r);
+      }
+      if (resolvedAll.length === 0) {
+        out.push(diagStream(11, 'ResolveAll-Null'));
+      } else {
+        // Real flixlatam does NOT forward verified/isReal from resolveEmbed
+        var rawStreams = resolvedAll.map(function(rr) {
+          return { url: rr.url, quality: rr.quality || '1080p', serverLabel: rr.serverName || 'Server', language: 'Latino', headers: rr.headers || { 'User-Agent': UA, Referer: 'https://flixlatam.com/' } };
+        });
+        var finalized = await finalizeStreams(rawStreams, 'FlixLatam');
+        if (finalized && finalized.length > 0) out.push(diagStream(11, 'Finalize-' + finalized.length + 'ok'));
+        else out.push(diagStream(11, 'Finalize-Empty'));
+      }
     } catch (e) {
       out.push(diagStream(11, 'Finalize-Error'));
     }
