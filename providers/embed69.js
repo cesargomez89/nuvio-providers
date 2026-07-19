@@ -1,6 +1,6 @@
 /**
  * embed69 - Built from src/embed69/
- * Generated: 2026-07-19T17:15:22.567Z
+ * Generated: 2026-07-19T17:27:27.726Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3510,7 +3510,6 @@ var import_tmdb = __toESM(require_tmdb());
 var import_parallel = __toESM(require_parallel());
 var import_resolvers = __toESM(require_resolvers());
 var BASE_URL = "https://embed69.org";
-var RESOLVER_TIMEOUT = 1e4;
 function applyPipingLocal(result) {
   var _a, _b, _c;
   if (!result || !result.url)
@@ -3529,27 +3528,16 @@ function applyPipingLocal(result) {
   result.url = url;
   return result;
 }
-function resolveWithTimeout(url) {
-  return __async(this, null, function* () {
-    if (!url)
-      return null;
-    return Promise.race([
-      (0, import_resolvers.resolveEmbed)(url).then(
-        (res) => res ? applyPipingLocal(res) : applyPipingLocal({ url, quality: "HD", verified: false })
-      ),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), RESOLVER_TIMEOUT))
-    ]);
-  });
-}
 function resolveEmbedLocal(url) {
   return __async(this, null, function* () {
     if (!url)
       return null;
     console.log(`[Embed69] Resolving: ${url}`);
     try {
-      return yield resolveWithTimeout(url);
+      const res = yield (0, import_resolvers.resolveEmbed)(url);
+      return res ? applyPipingLocal(res) : applyPipingLocal({ url, quality: "HD", verified: false });
     } catch (e) {
-      console.log(`[Embed69] Timeout/failed: ${url.substring(0, 60)}`);
+      console.log(`[Embed69] Failed: ${url.substring(0, 60)}`);
       return null;
     }
   });

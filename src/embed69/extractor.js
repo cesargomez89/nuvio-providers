@@ -6,8 +6,6 @@ import { allSettled } from '../utils/parallel.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 
 const BASE_URL = 'https://embed69.org';
-const RESOLVER_TIMEOUT = 10000;
-
 function applyPipingLocal(result) {
   if (!result || !result.url) return result;
   let url = result.url;
@@ -25,23 +23,14 @@ function applyPipingLocal(result) {
   return result;
 }
 
-async function resolveWithTimeout(url) {
-  if (!url) return null;
-  return Promise.race([
-    resolveEmbed(url).then((res) =>
-      res ? applyPipingLocal(res) : applyPipingLocal({ url, quality: 'HD', verified: false })
-    ),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), RESOLVER_TIMEOUT)),
-  ]);
-}
-
 async function resolveEmbedLocal(url) {
   if (!url) return null;
   console.log(`[Embed69] Resolving: ${url}`);
   try {
-    return await resolveWithTimeout(url);
-  } catch {
-    console.log(`[Embed69] Timeout/failed: ${url.substring(0, 60)}`);
+    const res = await resolveEmbed(url);
+    return res ? applyPipingLocal(res) : applyPipingLocal({ url, quality: 'HD', verified: false });
+  } catch (e) {
+    console.log(`[Embed69] Failed: ${url.substring(0, 60)}`);
     return null;
   }
 }
