@@ -1,6 +1,6 @@
 /**
  * fuegocine - Built from src/fuegocine/
- * Generated: 2026-07-19T17:06:54.773Z
+ * Generated: 2026-07-19T17:15:22.575Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1639,7 +1639,7 @@ var require_embed69 = __commonJS({
             } catch (e) {
               return null;
             }
-            const items = Array.isArray(rawData) ? rawData : Object.values(rawData);
+            const items = Array.isArray(rawData) ? rawData : Object.keys(rawData).map((k) => rawData[k]);
             const CryptoJS2 = require("crypto-js");
             const powChallengeMatch = html.match(/POW_CHALLENGE\s*=\s*['"]([^'"]+)['"]/);
             const powDifficultyMatch = html.match(/POW_DIFFICULTY\s*=\s*(\d+)/);

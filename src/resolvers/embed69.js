@@ -23,7 +23,7 @@ async function resolve(url, signal = null) {
       } catch {
         return null;
       }
-      const items = Array.isArray(rawData) ? rawData : Object.values(rawData);
+      const items = Array.isArray(rawData) ? rawData : Object.keys(rawData).map(k => rawData[k]);
 
       const CryptoJS = require('crypto-js');
       const powChallengeMatch = html.match(/POW_CHALLENGE\s*=\s*['"]([^'"]+)['"]/);
