@@ -152,10 +152,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
           let currentUrl = embed.url;
           let resolved = null;
 
-          resolved = await resolveEmbed(
-            currentUrl,
-            mainController ? mainController.signal : undefined
-          );
+          resolved = await resolveEmbed(currentUrl);
 
           if (resolved) {
             const results = Array.isArray(resolved) ? resolved : [resolved];
@@ -163,7 +160,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
               if (r.url) {
                 return {
                   name: 'PelisPedia',
-                  title: `${r.quality || '1080p'} · Latino · ${r.servername || embed.servername || 'Server'}`,
+                  title: `${r.quality || '1080p'} · Latino · ${r.serverName || embed.servername || 'Server'}`,
                   url: r.url,
                   headers: r.headers ||
                     getDirectCdnHeaders(r.url) || { 'User-Agent': UA, Referer: currentUrl },

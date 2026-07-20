@@ -1,6 +1,6 @@
 /**
  * pelispedia - Built from src/pelispedia/
- * Generated: 2026-07-19T23:43:54.314Z
+ * Generated: 2026-07-20T00:13:11.143Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3430,17 +3430,14 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           batch.map((embed) => __async(this, null, function* () {
             let currentUrl = embed.url;
             let resolved = null;
-            resolved = yield (0, import_resolvers.resolveEmbed)(
-              currentUrl,
-              mainController ? mainController.signal : void 0
-            );
+            resolved = yield (0, import_resolvers.resolveEmbed)(currentUrl);
             if (resolved) {
               const results = Array.isArray(resolved) ? resolved : [resolved];
               for (const r of results) {
                 if (r.url) {
                   return {
                     name: "PelisPedia",
-                    title: `${r.quality || "1080p"} \xB7 Latino \xB7 ${r.servername || embed.servername || "Server"}`,
+                    title: `${r.quality || "1080p"} \xB7 Latino \xB7 ${r.serverName || embed.servername || "Server"}`,
                     url: r.url,
                     headers: r.headers || (0, import_resolvers.getDirectCdnHeaders)(r.url) || { "User-Agent": UA, Referer: currentUrl }
                   };
