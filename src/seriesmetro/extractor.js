@@ -1,10 +1,8 @@
 import { fetchHtml, request, getStealthHeaders } from '../utils/http.js';
-import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbAliases, getTmdbInfo } from '../utils/tmdb.js';
 import { buildSlug } from '../utils/title.js';
 import { isMovie, cleanTmdbId } from '../utils/helpers.js';
-import { parallelWithLimit } from '../utils/parallel.js';
 
 const BASE = 'https://www3.seriesmetro.net';
 
@@ -38,7 +36,7 @@ function getBaseHeaders(referer) {
   };
 }
 
-async function findContentUrl(tmdbInfo, mediaType, signal) {
+async function findContentUrl(tmdbInfo, mediaType) {
   const { title, originalTitle, aliases = [] } = tmdbInfo;
   const category = isMovie(mediaType) ? 'pelicula' : 'serie';
 
@@ -51,7 +49,7 @@ async function findContentUrl(tmdbInfo, mediaType, signal) {
 
   const validateUrl = async (url) => {
     try {
-      const data = await fetchHtml(url, { headers: getBaseHeaders(url), signal });
+      const data = await fetchHtml(url, { headers: getBaseHeaders(url) });
       if (data && (data.includes('trembed=') || data.includes('data-post='))) {
         return { url, html: data };
       }
@@ -72,7 +70,6 @@ async function findContentUrl(tmdbInfo, mediaType, signal) {
   try {
     const searchHtml = await fetchHtml(`${BASE}/?s=${encodeURIComponent(searchTerms[0])}`, {
       headers: getBaseHeaders(),
-      signal,
     });
     if (searchHtml) {
       const postRegex =
@@ -96,7 +93,7 @@ async function findContentUrl(tmdbInfo, mediaType, signal) {
   return null;
 }
 
-async function getEpisodeUrl(serieUrl, serieHtml, season, episode, signal) {
+async function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
   const dpostMatch = serieHtml.match(/data-post="(\d+)"/);
   if (!dpostMatch) return null;
   const dpost = dpostMatch[1];
@@ -110,7 +107,6 @@ async function getEpisodeUrl(serieUrl, serieHtml, season, episode, signal) {
         season: String(season),
       }),
       headers: { ...getBaseHeaders(serieUrl), 'Content-Type': 'application/x-www-form-urlencoded' },
-      signal,
     });
     const epData = await res.text();
     const epUrls = [...epData.matchAll(/href="([^"]+\/capitulo\/[^"]+)"/g)].map((m) => m[1]);
@@ -125,9 +121,9 @@ async function getEpisodeUrl(serieUrl, serieHtml, season, episode, signal) {
   }
 }
 
-async function extractStreamsFromPage(pageUrl, referer, signal) {
+async function extractStreamsFromPage(pageUrl, referer) {
   try {
-    const data = await fetchHtml(pageUrl, { headers: getBaseHeaders(referer), signal });
+    const data = await fetchHtml(pageUrl, { headers: getBaseHeaders(referer) });
 
     const optionRegex =
       /href="#options-(\d+)"[^>]*>[\s\S]*?<span class="server">([\s\S]*?)<\/span>/g;
@@ -170,13 +166,13 @@ async function extractStreamsFromPage(pageUrl, referer, signal) {
 
         const embedPage = await fetchHtml(
           `${BASE}/?trembed=${option.id}&trid=${trid}&trtype=${trtype}`,
-          { headers: getBaseHeaders(pageUrl), signal }
+          { headers: getBaseHeaders(pageUrl) }
         );
 
         const iframeMatch = embedPage.match(/<iframe[^>]*src="([^"]+)"/i);
         if (!iframeMatch) return null;
 
-        const result = await resolveEmbed(iframeMatch[1], signal);
+        const result = await resolveEmbed(iframeMatch[1]);
         if (result) {
           return {
             langLabel: lang,
@@ -192,8 +188,8 @@ async function extractStreamsFromPage(pageUrl, referer, signal) {
     };
 
     const batch = options.slice(0, 6);
-    const results = await parallelWithLimit(batch, resolveTask, 5);
-    return results.filter(Boolean);
+    const results = (await Promise.all(batch.map((o) => resolveTask(o)))).filter(Boolean);
+    return results;
   } catch {
     return [];
   }
@@ -201,13 +197,6 @@ async function extractStreamsFromPage(pageUrl, referer, signal) {
 
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
   if (!tmdbId || !mediaType) return [];
-
-  const OVERALL_TIMEOUT = 30000;
-  const hasAbort = typeof AbortController !== 'undefined';
-  const mainController = hasAbort ? new AbortController() : null;
-  const mainTimer = mainController
-    ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT)
-    : null;
 
   try {
     const realId = cleanTmdbId(tmdbId);
@@ -228,11 +217,7 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
 
     if (!tmdbInfo.title) return [];
 
-    const found = await findContentUrl(
-      tmdbInfo,
-      mediaType,
-      mainController ? mainController.signal : undefined
-    );
+    const found = await findContentUrl(tmdbInfo, mediaType);
     if (!found) {
       console.log(`[SeriesMetro] ✗ No se encontró contenido para: ${tmdbInfo.title}`);
       return [];
@@ -244,27 +229,33 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         found.url,
         found.html,
         parseInt(season),
-        parseInt(episode),
-        mainController ? mainController.signal : undefined
+        parseInt(episode)
       );
       if (!epUrl) return [];
       targetUrl = epUrl;
     }
 
-    const streams = await extractStreamsFromPage(
-      targetUrl,
-      found.url,
-      mainController ? mainController.signal : undefined
-    );
-    return await finalizeStreams(streams, 'SeriesMetro', tmdbInfo.title);
+    const streams = await extractStreamsFromPage(targetUrl, found.url);
+
+    const qualityScore = { '4K': 5, '2160p': 5, '1080p': 4, '720p': 3, '480p': 2, '360p': 1, SD: 0 };
+    const seen = new Set();
+    return streams
+      .sort((a, b) => (qualityScore[b.quality] || 0) - (qualityScore[a.quality] || 0))
+      .filter((s) => {
+        const key = s.url;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((s) => ({
+        name: 'SeriesMetro',
+        title: `${s.langLabel || 'Latino'} - ${s.serverLabel || 'Servidor'}`,
+        url: s.url,
+        quality: s.quality || 'HD',
+        headers: s.headers || {},
+      }));
   } catch (e) {
-    if (e.name === 'AbortError') {
-      console.log(`[SeriesMetro] Timeout tras ${OVERALL_TIMEOUT}ms`);
-    } else {
-      console.log(`[SeriesMetro] Error: ${e.message}`);
-    }
+    console.log(`[SeriesMetro] Error: ${e.message}`);
     return [];
-  } finally {
-    clearTimeout(mainTimer);
   }
 }

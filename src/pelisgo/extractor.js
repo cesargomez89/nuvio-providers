@@ -1,5 +1,4 @@
 import { getStealthHeaders } from '../utils/http.js';
-import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { allSettled } from '../utils/parallel.js';
 import { getCorrectImdbId } from '../utils/tmdb.js';
@@ -102,6 +101,26 @@ function calculateSimilarity(title1, title2) {
     return score * 0.5;
   }
   return score;
+}
+
+function dedupAndSort(streams) {
+  const qualityScore = { '4K': 5, '2160p': 5, '1080p': 4, '720p': 3, '480p': 2, '360p': 1, SD: 0 };
+  const seen = new Set();
+  return streams
+    .sort((a, b) => (qualityScore[b.quality] || 0) - (qualityScore[a.quality] || 0))
+    .filter((s) => {
+      const key = s.url;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map((s) => ({
+      name: 'PelisGo',
+      title: `${s.langLabel || 'Latino'} - ${s.serverLabel || 'Servidor'}`,
+      url: s.url,
+      quality: s.quality || 'HD',
+      headers: s.headers || {},
+    }));
 }
 
 async function getOnlineStreams(rawHtml) {
@@ -216,14 +235,15 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
           const resRetry = await fetchWithTimeout(`${BASE}${m[1].replace(/\\/g, '')}`);
           const htmlRetry = await resRetry.text();
           const streams2 = await getOnlineStreams(htmlRetry);
-          return await finalizeStreams(streams2, 'PelisGo', mediaTitle);
+          return dedupAndSort(streams2);
         }
       }
       return [];
     }
 
     const streams = await getOnlineStreams(html);
-    return await finalizeStreams(streams, 'PelisGo', mediaTitle);
+    return dedupAndSort(streams);
+
   } catch (e) {
     console.error(`[PelisGo] Error: ${e.message}`);
     return [];

@@ -1,10 +1,8 @@
 import { fetchHtml, getStealthHeaders } from '../utils/http.js';
-import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbTitle, getTmdbAliases, getTmdbInfo } from '../utils/tmdb.js';
 import { isMovie, cleanTmdbId, sleep, b64decode } from '../utils/helpers.js';
 import { normalizeTitle, buildSlug } from '../utils/title.js';
-import { parallelWithLimit } from '../utils/parallel.js';
 
 const BASE_URL = 'https://pelispop.mov';
 const HEADERS = {
@@ -138,9 +136,9 @@ async function getEmbedUrls(movieUrl) {
   }
 }
 
-async function processEmbed(embedUrl, signal) {
+async function processEmbed(embedUrl) {
   try {
-    const result = await resolveEmbed(embedUrl, signal);
+    const result = await resolveEmbed(embedUrl);
     if (!result || !result.url) return null;
     return {
       langLabel: 'Latino',
@@ -179,13 +177,6 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
   if (!tmdbId || !mediaType) return [];
   const isMovieType = isMovie(mediaType);
   console.log(`[PelisPop] Buscando: TMDB ${tmdbId} (${mediaType})`);
-
-  const OVERALL_TIMEOUT = 30000;
-  const hasMainAbort = typeof AbortController !== 'undefined';
-  const mainController = hasMainAbort ? new AbortController() : null;
-  const mainTimer = mainController
-    ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT)
-    : null;
 
   try {
     const realId = cleanTmdbId(tmdbId);
@@ -310,21 +301,33 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       embedUrls = await getSeriesEmbedUrls(selectedUrl, season, episode);
     }
     if (embedUrls.length === 0) return [];
-    const resolvedEmbeds = await parallelWithLimit(
-      embedUrls,
-      (url) => processEmbed(url, mainController ? mainController.signal : undefined),
-      5
-    );
-    const streams = resolvedEmbeds.filter(Boolean);
-    return await finalizeStreams(streams, 'PelisPop', mediaTitle);
+
+    const embedPromises = embedUrls.map((url) => processEmbed(url));
+    const resolvedEmbeds = (await Promise.all(embedPromises)).filter(Boolean);
+
+    const qualityScore = { '4K': 5, '2160p': 5, '1080p': 4, '720p': 3, '480p': 2, '360p': 1, SD: 0 };
+    const seen = new Set();
+    return resolvedEmbeds
+      .sort((a, b) => (qualityScore[b.quality] || 0) - (qualityScore[a.quality] || 0))
+      .filter((s) => {
+        const key = s.url;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((s) => ({
+        name: 'PelisPop',
+        title: `${s.langLabel || 'Latino'} - ${s.headers?.Referer ? new URL(s.headers.Referer).hostname : 'Servidor'}`,
+        url: s.url,
+        quality: s.quality || 'HD',
+        headers: s.headers || {},
+      }));
   } catch (e) {
     if (e.name === 'AbortError') {
-      console.log(`[PelisPop] Timeout tras ${OVERALL_TIMEOUT}ms`);
+      console.log(`[PelisPop] Timeout tras 30s`);
     } else {
       console.error(`[PelisPop] Error: ${e.message}`);
     }
     return [];
-  } finally {
-    clearTimeout(mainTimer);
   }
 }

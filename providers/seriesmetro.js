@@ -1,6 +1,6 @@
 /**
  * seriesmetro - Built from src/seriesmetro/
- * Generated: 2026-07-20T00:13:11.159Z
+ * Generated: 2026-07-20T00:28:05.829Z
  */
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -313,326 +313,6 @@ var require_m3u8 = __commonJS({
       });
     }
     module2.exports = { validateStream, getQualityFromHeight };
-  }
-});
-
-// src/utils/sorting.js
-var require_sorting = __commonJS({
-  "src/utils/sorting.js"(exports2, module2) {
-    var QUALITY_SCORE = {
-      "4K": 100,
-      "1440p": 90,
-      "1080p": 80,
-      "720p": 70,
-      "480p": 60,
-      "360p": 50,
-      "240p": 40,
-      Auto: 30,
-      Unknown: 0
-    };
-    var SERVER_SCORE = {
-      VOE: 10,
-      Filemoon: 10,
-      Tplayer: 10,
-      Vimeos: 10,
-      Netu: 5,
-      GoodStream: 10,
-      StreamWish: -5,
-      VidHide: -5,
-      Supervideo: 10
-    };
-    function sortStreamsByQuality(streams) {
-      if (!Array.isArray(streams))
-        return [];
-      return [...streams].sort((a, b) => {
-        const scoreA = QUALITY_SCORE[a.quality] || 0;
-        const scoreB = QUALITY_SCORE[b.quality] || 0;
-        if (scoreA !== scoreB) {
-          return scoreB - scoreA;
-        }
-        const serverA = (a.serverLabel || "").split(" ")[0];
-        const serverB = (b.serverLabel || "").split(" ")[0];
-        const speedA = SERVER_SCORE[serverA] || 0;
-        const speedB = SERVER_SCORE[serverB] || 0;
-        if (speedA !== speedB) {
-          return speedB - speedA;
-        }
-        if (a.verified && !b.verified)
-          return -1;
-        if (!a.verified && b.verified)
-          return 1;
-        return 0;
-      });
-    }
-    module2.exports = { sortStreamsByQuality };
-  }
-});
-
-// src/utils/mirrors.js
-var require_mirrors = __commonJS({
-  "src/utils/mirrors.js"(exports2, module2) {
-    var MIRRORS = {
-      VIDHIDE: [
-        "vidhide",
-        "minochinos",
-        "vadisov",
-        "vaiditv",
-        "amusemre",
-        "callistanise",
-        "vhaudm",
-        "mdfury",
-        "dintezuvio",
-        "acek-cdn",
-        "vedonm",
-        "vidhidepro",
-        "vidhidevip",
-        "supervideo",
-        "masukestin",
-        "vidoza"
-      ],
-      STREAMWISH: [
-        "hlswish",
-        "streamwish",
-        "hglink",
-        "hglamioz",
-        "hglink.to",
-        "audinifer",
-        "embedwish",
-        "awish",
-        "dwish",
-        "strwish",
-        "filelions",
-        "wishembed",
-        "wishfast",
-        "hanerix"
-      ],
-      FILEMOON: [
-        "filemoon",
-        "moonalu",
-        "moonembed",
-        "bysedikamoum",
-        "r66nv9ed",
-        "398fitus",
-        "filemoon.sx",
-        "filemoon.to",
-        "filemoon.lat",
-        "filemoon.live",
-        "filemoon.online",
-        "filemoon.me",
-        "bysedikamoum.com",
-        "r66nv9ed.com",
-        "398fitus.com",
-        "fmoon.top"
-      ],
-      VOE: ["voe.sx", "voe-sx", "voex.sx", "marissashare", "cloudwindow", "marissasharecareer"],
-      FASTREAM: ["fastream", "fastplay", "fembed"],
-      OKRU: ["ok.ru", "okru"],
-      PIXELDRAIN: ["pixeldrain"],
-      BUZZHEAVIER: ["buzzheavier", "bzh.sh"],
-      GOODSTREAM: ["goodstream", "gs.one"],
-      LULUSTREAM: ["lulustream", "luluvdo", "luluvids", "pondy", "lulupuv", "luluvid"],
-      SEEKSTREAMING: ["seekplays", "seekstreaming", "embedseek"],
-      DROPCDN: ["dropcdn.io", "dropload.io", "dropcdn", "dropload", "dr0pstream"],
-      DOODSTREAM: [
-        "dood.li",
-        "dood.la",
-        "ds2video.com",
-        "ds2play.com",
-        "dood.yt",
-        "dood.ws",
-        "dood.so",
-        "dood.to",
-        "dood.pm",
-        "dood.watch",
-        "dood.sh",
-        "dood.cx",
-        "dood.wf",
-        "dood.re",
-        "dood.one",
-        "dood.tech",
-        "dood.work",
-        "dooods.pro",
-        "dooood.com",
-        "doodstream.com",
-        "doodstream.co",
-        "d000d.com",
-        "d0000d.com",
-        "doodapi.com",
-        "d0o0d.com",
-        "do0od.com",
-        "dooodster.com",
-        "vidply.com",
-        "do7go.com",
-        "all3do.com",
-        "doply.net",
-        "dsvplay.com"
-      ],
-      VIDNEST: ["vidnest.io", "vidnest.live"],
-      VIDSONIC: ["vidsonic.net"],
-      BARMONREY: ["barmonrey.com"],
-      VIDMOLY: ["vidmoly.biz", "vidmoly.to"],
-      UNLIMPLAY: ["unlimplay.com"],
-      KRAKENFILES: ["krakenfiles.com"],
-      UPNS: ["upns.online", "upns.pro", "pelisplus.upns.pro"]
-    };
-    function isMirror(url, groupName) {
-      if (!url || !MIRRORS[groupName])
-        return false;
-      const s = url.toLowerCase();
-      return MIRRORS[groupName].some((m) => s.includes(m));
-    }
-    module2.exports = { MIRRORS, isMirror };
-  }
-});
-
-// src/utils/engine.js
-var require_engine = __commonJS({
-  "src/utils/engine.js"(exports2, module2) {
-    var { validateStream } = require_m3u8();
-    var { sortStreamsByQuality } = require_sorting();
-    var { isMirror } = require_mirrors();
-    function normalizeLanguage(lang) {
-      const l = (lang || "").toLowerCase();
-      if (l === "latino" || l === "espa\xF1ol" || l === "lat" || l === "auto") {
-        return "Latino";
-      }
-      if (l.includes("lat") || l.includes("mex") || l.includes("col") || l.includes("arg") || l.includes("chi") || l.includes("per") || l.includes("dub") || l.includes("dual")) {
-        return "Latino";
-      }
-      if (l.includes("esp") || l.includes("cas") || l.includes("spa") || l.includes("cast") || l === "esp") {
-        return "Castellano";
-      }
-      if (l.includes("sub") || l.includes("vose") || l === "sub") {
-        return "Subtitulado";
-      }
-      if (l.includes("eng") || l.includes("en-us") || l === "en") {
-        return "Ingl\xE9s";
-      }
-      return lang || "Latino";
-    }
-    function normalizeServer(server, url = "", resolvedServerName = null) {
-      if (resolvedServerName)
-        return resolvedServerName;
-      const u = (url || "").toLowerCase();
-      const s = (server || "").toLowerCase();
-      if (u.includes("goodstream") || s.includes("goodstream"))
-        return "GoodStream";
-      if (isMirror(u, "FASTREAM") || isMirror(s, "FASTREAM"))
-        return "Fastream";
-      if (isMirror(u, "DROPCDN") || isMirror(s, "DROPCDN"))
-        return "DropCDN";
-      if (u.includes("vimeos") || u.includes("vms.sh") || s.includes("vimeos"))
-        return "Vimeos";
-      if (isMirror(u, "VIDHIDE") || isMirror(s, "VIDHIDE"))
-        return "VidHide";
-      if (isMirror(u, "STREAMWISH") || isMirror(s, "STREAMWISH"))
-        return "StreamWish";
-      if (isMirror(u, "VOE") || isMirror(s, "VOE"))
-        return "VOE";
-      if (isMirror(u, "FILEMOON") || isMirror(s, "FILEMOON"))
-        return "Filemoon";
-      if (url && url.includes("supervideo"))
-        return "Supervideo";
-      if (isMirror(u, "DOODSTREAM") || isMirror(s, "DOODSTREAM"))
-        return "DoodStream";
-      if (url) {
-        try {
-          const domainParts = new URL(url).hostname.replace("www.", "").split(".");
-          const mainName = domainParts.length > 1 ? domainParts[domainParts.length - 2] : domainParts[0];
-          return mainName.charAt(0).toUpperCase() + mainName.slice(1);
-        } catch (e) {
-        }
-      }
-      return server || "Servidor";
-    }
-    function finalizeStreams2(streams, providerName) {
-      return __async(this, null, function* () {
-        if (!Array.isArray(streams) || streams.length === 0)
-          return [];
-        console.log(`[Engine] PROCESANDO STREAMS - Bitrate Global v7.6.0`);
-        const sorted = sortStreamsByQuality(streams);
-        const CONCURRENCY_LIMIT = 5;
-        const MAX_VALIDATIONS = 3;
-        const validatedStreams = [];
-        for (let i = 0; i < sorted.length; i += CONCURRENCY_LIMIT) {
-          if (i >= MAX_VALIDATIONS) {
-            validatedStreams.push(...sorted.slice(i));
-            break;
-          }
-          const batch = sorted.slice(i, i + CONCURRENCY_LIMIT);
-          const batchResults = yield Promise.all(
-            batch.map((s) => __async(this, null, function* () {
-              try {
-                if (s.isReal === true || s.verified === true)
-                  return s;
-                if (s.url && (s.url.includes(".m3u8") || s.url.includes(".mp4"))) {
-                  const hasAbort = typeof AbortController !== "undefined";
-                  const controller = hasAbort ? new AbortController() : null;
-                  let timeoutId;
-                  if (hasAbort)
-                    timeoutId = setTimeout(() => controller.abort(), 5e3);
-                  try {
-                    const validated = yield validateStream(s, hasAbort ? controller.signal : null);
-                    clearTimeout(timeoutId);
-                    return validated;
-                  } catch (e) {
-                    clearTimeout(timeoutId);
-                    return __spreadProps(__spreadValues({}, s), { verified: false, isReal: false });
-                  }
-                }
-              } catch (e) {
-              }
-              return s;
-            }))
-          );
-          validatedStreams.push(...batchResults);
-        }
-        const processed = [];
-        const seenTitles = /* @__PURE__ */ new Set();
-        for (const s of validatedStreams) {
-          if (!s)
-            continue;
-          if (s.verified === false)
-            continue;
-          const rawLang = normalizeLanguage(
-            s.lang || s.Audio || s.langLabel || s.language || s.audio || "Latino"
-          );
-          const l = rawLang.toLowerCase();
-          const isLatino = l.includes("latino") || l.includes("castellano");
-          if (!isLatino && providerName !== "FuegoCine")
-            continue;
-          const server = normalizeServer(
-            s.serverLabel || s.serverName || s.servername,
-            s.url,
-            s.serverName
-          );
-          const quality = s.quality || "HD";
-          const isReal = s.isReal === true;
-          const isVerified = s.verified === true;
-          const checkMark = isReal ? " \u2705" : "";
-          const streamName = `${providerName} - ${quality}${checkMark}`;
-          const streamTitle = `${rawLang} - ${server}`;
-          if (seenTitles.has(streamName + streamTitle + s.url))
-            continue;
-          seenTitles.add(streamName + streamTitle + s.url);
-          processed.push({
-            name: streamName,
-            title: streamTitle,
-            url: s.url,
-            quality,
-            verified: isVerified,
-            isReal,
-            provider: server,
-            language: rawLang,
-            headers: s.headers || {
-              "User-Agent": "Mozilla/5.0 (Linux; Android 10; TV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            }
-          });
-        }
-        return processed;
-      });
-    }
-    module2.exports = { finalizeStreams: finalizeStreams2, normalizeLanguage };
   }
 });
 
@@ -2953,6 +2633,123 @@ var require_generic_fuegocine = __commonJS({
   }
 });
 
+// src/utils/mirrors.js
+var require_mirrors = __commonJS({
+  "src/utils/mirrors.js"(exports2, module2) {
+    var MIRRORS = {
+      VIDHIDE: [
+        "vidhide",
+        "minochinos",
+        "vadisov",
+        "vaiditv",
+        "amusemre",
+        "callistanise",
+        "vhaudm",
+        "mdfury",
+        "dintezuvio",
+        "acek-cdn",
+        "vedonm",
+        "vidhidepro",
+        "vidhidevip",
+        "supervideo",
+        "masukestin",
+        "vidoza"
+      ],
+      STREAMWISH: [
+        "hlswish",
+        "streamwish",
+        "hglink",
+        "hglamioz",
+        "hglink.to",
+        "audinifer",
+        "embedwish",
+        "awish",
+        "dwish",
+        "strwish",
+        "filelions",
+        "wishembed",
+        "wishfast",
+        "hanerix"
+      ],
+      FILEMOON: [
+        "filemoon",
+        "moonalu",
+        "moonembed",
+        "bysedikamoum",
+        "r66nv9ed",
+        "398fitus",
+        "filemoon.sx",
+        "filemoon.to",
+        "filemoon.lat",
+        "filemoon.live",
+        "filemoon.online",
+        "filemoon.me",
+        "bysedikamoum.com",
+        "r66nv9ed.com",
+        "398fitus.com",
+        "fmoon.top"
+      ],
+      VOE: ["voe.sx", "voe-sx", "voex.sx", "marissashare", "cloudwindow", "marissasharecareer"],
+      FASTREAM: ["fastream", "fastplay", "fembed"],
+      OKRU: ["ok.ru", "okru"],
+      PIXELDRAIN: ["pixeldrain"],
+      BUZZHEAVIER: ["buzzheavier", "bzh.sh"],
+      GOODSTREAM: ["goodstream", "gs.one"],
+      LULUSTREAM: ["lulustream", "luluvdo", "luluvids", "pondy", "lulupuv", "luluvid"],
+      SEEKSTREAMING: ["seekplays", "seekstreaming", "embedseek"],
+      DROPCDN: ["dropcdn.io", "dropload.io", "dropcdn", "dropload", "dr0pstream"],
+      DOODSTREAM: [
+        "dood.li",
+        "dood.la",
+        "ds2video.com",
+        "ds2play.com",
+        "dood.yt",
+        "dood.ws",
+        "dood.so",
+        "dood.to",
+        "dood.pm",
+        "dood.watch",
+        "dood.sh",
+        "dood.cx",
+        "dood.wf",
+        "dood.re",
+        "dood.one",
+        "dood.tech",
+        "dood.work",
+        "dooods.pro",
+        "dooood.com",
+        "doodstream.com",
+        "doodstream.co",
+        "d000d.com",
+        "d0000d.com",
+        "doodapi.com",
+        "d0o0d.com",
+        "do0od.com",
+        "dooodster.com",
+        "vidply.com",
+        "do7go.com",
+        "all3do.com",
+        "doply.net",
+        "dsvplay.com"
+      ],
+      VIDNEST: ["vidnest.io", "vidnest.live"],
+      VIDSONIC: ["vidsonic.net"],
+      BARMONREY: ["barmonrey.com"],
+      VIDMOLY: ["vidmoly.biz", "vidmoly.to"],
+      UNLIMPLAY: ["unlimplay.com"],
+      KRAKENFILES: ["krakenfiles.com"],
+      UPNS: ["upns.online", "upns.pro", "pelisplus.upns.pro"]
+    };
+    function isMirror(url, groupName) {
+      if (!url || !MIRRORS[groupName])
+        return false;
+      const s = url.toLowerCase();
+      return MIRRORS[groupName].some((m) => s.includes(m));
+    }
+    module2.exports = { MIRRORS, isMirror };
+  }
+});
+
 // src/utils/resolvers.js
 var require_resolvers = __commonJS({
   "src/utils/resolvers.js"(exports2, module2) {
@@ -3500,69 +3297,12 @@ var require_helpers = __commonJS({
   }
 });
 
-// src/utils/parallel.js
-var require_parallel = __commonJS({
-  "src/utils/parallel.js"(exports2, module2) {
-    function allSettled(promises) {
-      return Promise.all(
-        promises.map(
-          (p) => p.then((value) => ({ status: "fulfilled", value })).catch((reason) => ({ status: "rejected", reason }))
-        )
-      );
-    }
-    function parallelWithLimit2(items, handler, limit = 5) {
-      return __async(this, null, function* () {
-        const results = [];
-        for (let i = 0; i < items.length; i += limit) {
-          const batch = items.slice(i, i + limit);
-          const batchPromises = batch.map((item) => {
-            return handler(item).catch(() => null);
-          });
-          const batchResults = yield allSettled(batchPromises);
-          results.push(...batchResults.map((r) => r.status === "fulfilled" ? r.value : null));
-        }
-        return results;
-      });
-    }
-    function resolveWithLimit(items, handler) {
-      return __async(this, null, function* () {
-        const results = [];
-        const promises = items.map((item) => __async(this, null, function* () {
-          return yield handler(item);
-        }));
-        const settled = yield allSettled(promises);
-        settled.forEach((r) => {
-          if (r.status === "fulfilled" && r.value)
-            results.push(r.value);
-        });
-        return results;
-      });
-    }
-    function withTimeout(promise, ms = 1e4) {
-      return __async(this, null, function* () {
-        let timer;
-        const timeout = new Promise((_, reject) => {
-          timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms);
-        });
-        try {
-          return yield Promise.race([promise, timeout]);
-        } finally {
-          clearTimeout(timer);
-        }
-      });
-    }
-    module2.exports = { allSettled, parallelWithLimit: parallelWithLimit2, resolveWithLimit, withTimeout };
-  }
-});
-
 // src/seriesmetro/extractor.js
 var import_http = __toESM(require_http());
-var import_engine = __toESM(require_engine());
 var import_resolvers = __toESM(require_resolvers());
 var import_tmdb = __toESM(require_tmdb());
 var import_title = __toESM(require_title());
 var import_helpers = __toESM(require_helpers());
-var import_parallel = __toESM(require_parallel());
 var BASE = "https://www3.seriesmetro.net";
 var LANG_PRIORITY = [
   "latino",
@@ -3590,7 +3330,7 @@ function getBaseHeaders(referer) {
     Referer: referer || BASE
   });
 }
-function findContentUrl(tmdbInfo, mediaType, signal) {
+function findContentUrl(tmdbInfo, mediaType) {
   return __async(this, null, function* () {
     const { title, originalTitle, aliases = [] } = tmdbInfo;
     const category = (0, import_helpers.isMovie)(mediaType) ? "pelicula" : "serie";
@@ -3600,7 +3340,7 @@ function findContentUrl(tmdbInfo, mediaType, signal) {
     console.log(`[SeriesMetro] Probando Discovery paralelo para: ${searchTerms[0]}`);
     const validateUrl = (url) => __async(this, null, function* () {
       try {
-        const data = yield (0, import_http.fetchHtml)(url, { headers: getBaseHeaders(url), signal });
+        const data = yield (0, import_http.fetchHtml)(url, { headers: getBaseHeaders(url) });
         if (data && (data.includes("trembed=") || data.includes("data-post="))) {
           return { url, html: data };
         }
@@ -3619,8 +3359,7 @@ function findContentUrl(tmdbInfo, mediaType, signal) {
     }
     try {
       const searchHtml = yield (0, import_http.fetchHtml)(`${BASE}/?s=${encodeURIComponent(searchTerms[0])}`, {
-        headers: getBaseHeaders(),
-        signal
+        headers: getBaseHeaders()
       });
       if (searchHtml) {
         const postRegex = /<article[^>]*class="[^"]*post[^"]*"[^>]*>[\s\S]*?<a[^>]*href="([^"]+\/(?:serie|pelicula)\/([^/]+)\/)"[^>]*class="lnk-blk"/g;
@@ -3645,7 +3384,7 @@ function findContentUrl(tmdbInfo, mediaType, signal) {
     return null;
   });
 }
-function getEpisodeUrl(serieUrl, serieHtml, season, episode, signal) {
+function getEpisodeUrl(serieUrl, serieHtml, season, episode) {
   return __async(this, null, function* () {
     const dpostMatch = serieHtml.match(/data-post="(\d+)"/);
     if (!dpostMatch)
@@ -3659,8 +3398,7 @@ function getEpisodeUrl(serieUrl, serieHtml, season, episode, signal) {
           post: dpost,
           season: String(season)
         }),
-        headers: __spreadProps(__spreadValues({}, getBaseHeaders(serieUrl)), { "Content-Type": "application/x-www-form-urlencoded" }),
-        signal
+        headers: __spreadProps(__spreadValues({}, getBaseHeaders(serieUrl)), { "Content-Type": "application/x-www-form-urlencoded" })
       });
       const epData = yield res.text();
       const epUrls = [...epData.matchAll(/href="([^"]+\/capitulo\/[^"]+)"/g)].map((m) => m[1]);
@@ -3673,10 +3411,10 @@ function getEpisodeUrl(serieUrl, serieHtml, season, episode, signal) {
     }
   });
 }
-function extractStreamsFromPage(pageUrl, referer, signal) {
+function extractStreamsFromPage(pageUrl, referer) {
   return __async(this, null, function* () {
     try {
-      const data = yield (0, import_http.fetchHtml)(pageUrl, { headers: getBaseHeaders(referer), signal });
+      const data = yield (0, import_http.fetchHtml)(pageUrl, { headers: getBaseHeaders(referer) });
       const optionRegex = /href="#options-(\d+)"[^>]*>[\s\S]*?<span class="server">([\s\S]*?)<\/span>/g;
       const options = [];
       let m;
@@ -3703,12 +3441,12 @@ function extractStreamsFromPage(pageUrl, referer, signal) {
           const lang = LANG_MAP[langRaw] || langRaw;
           const embedPage = yield (0, import_http.fetchHtml)(
             `${BASE}/?trembed=${option.id}&trid=${trid}&trtype=${trtype}`,
-            { headers: getBaseHeaders(pageUrl), signal }
+            { headers: getBaseHeaders(pageUrl) }
           );
           const iframeMatch = embedPage.match(/<iframe[^>]*src="([^"]+)"/i);
           if (!iframeMatch)
             return null;
-          const result = yield (0, import_resolvers.resolveEmbed)(iframeMatch[1], signal);
+          const result = yield (0, import_resolvers.resolveEmbed)(iframeMatch[1]);
           if (result) {
             return {
               langLabel: lang,
@@ -3724,8 +3462,8 @@ function extractStreamsFromPage(pageUrl, referer, signal) {
         return null;
       });
       const batch = options.slice(0, 6);
-      const results = yield (0, import_parallel.parallelWithLimit)(batch, resolveTask, 5);
-      return results.filter(Boolean);
+      const results = (yield Promise.all(batch.map((o) => resolveTask(o)))).filter(Boolean);
+      return results;
     } catch (e) {
       return [];
     }
@@ -3735,10 +3473,6 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
   return __async(this, null, function* () {
     if (!tmdbId || !mediaType)
       return [];
-    const OVERALL_TIMEOUT = 3e4;
-    const hasAbort = typeof AbortController !== "undefined";
-    const mainController = hasAbort ? new AbortController() : null;
-    const mainTimer = mainController ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT) : null;
     try {
       const realId = (0, import_helpers.cleanTmdbId)(tmdbId);
       let tmdbInfo = { title, originalTitle: title, aliases: [], year: "" };
@@ -3756,11 +3490,7 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
       }
       if (!tmdbInfo.title)
         return [];
-      const found = yield findContentUrl(
-        tmdbInfo,
-        mediaType,
-        mainController ? mainController.signal : void 0
-      );
+      const found = yield findContentUrl(tmdbInfo, mediaType);
       if (!found) {
         console.log(`[SeriesMetro] \u2717 No se encontr\xF3 contenido para: ${tmdbInfo.title}`);
         return [];
@@ -3771,28 +3501,31 @@ function extractStreams(tmdbId, mediaType, season, episode, title) {
           found.url,
           found.html,
           parseInt(season),
-          parseInt(episode),
-          mainController ? mainController.signal : void 0
+          parseInt(episode)
         );
         if (!epUrl)
           return [];
         targetUrl = epUrl;
       }
-      const streams = yield extractStreamsFromPage(
-        targetUrl,
-        found.url,
-        mainController ? mainController.signal : void 0
-      );
-      return yield (0, import_engine.finalizeStreams)(streams, "SeriesMetro", tmdbInfo.title);
+      const streams = yield extractStreamsFromPage(targetUrl, found.url);
+      const qualityScore = { "4K": 5, "2160p": 5, "1080p": 4, "720p": 3, "480p": 2, "360p": 1, SD: 0 };
+      const seen = /* @__PURE__ */ new Set();
+      return streams.sort((a, b) => (qualityScore[b.quality] || 0) - (qualityScore[a.quality] || 0)).filter((s) => {
+        const key = s.url;
+        if (seen.has(key))
+          return false;
+        seen.add(key);
+        return true;
+      }).map((s) => ({
+        name: "SeriesMetro",
+        title: `${s.langLabel || "Latino"} - ${s.serverLabel || "Servidor"}`,
+        url: s.url,
+        quality: s.quality || "HD",
+        headers: s.headers || {}
+      }));
     } catch (e) {
-      if (e.name === "AbortError") {
-        console.log(`[SeriesMetro] Timeout tras ${OVERALL_TIMEOUT}ms`);
-      } else {
-        console.log(`[SeriesMetro] Error: ${e.message}`);
-      }
+      console.log(`[SeriesMetro] Error: ${e.message}`);
       return [];
-    } finally {
-      clearTimeout(mainTimer);
     }
   });
 }

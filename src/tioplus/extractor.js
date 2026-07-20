@@ -1,5 +1,4 @@
 import { fetchHtml, getSessionUA } from '../utils/http.js';
-import { finalizeStreams } from '../utils/engine.js';
 import { resolveEmbed } from '../utils/resolvers.js';
 import { getTmdbInfo } from '../utils/tmdb.js';
 import { allSettled } from '../utils/parallel.js';
@@ -8,13 +7,12 @@ import { isMovie, toDoubleBase64 } from '../utils/helpers.js';
 const BASE_URL = 'https://tioplus.app';
 const UA = getSessionUA();
 
-async function getRedirectUrl(serverEncoded, referer, signal) {
+async function getRedirectUrl(serverEncoded, referer) {
   try {
     const doubleB64 = toDoubleBase64(serverEncoded);
     const playerUrl = `${BASE_URL}/player/${doubleB64}`;
     const html = await fetchHtml(playerUrl, {
       headers: { 'User-Agent': UA, Referer: referer },
-      signal,
     });
     if (!html || html.length < 50) return null;
     const match = html.match(/(?:window\.)?location\.href\s*=\s*['"]([^'"]+)['"]/i);
@@ -32,12 +30,6 @@ async function getRedirectUrl(serverEncoded, referer, signal) {
 export async function extractStreams(tmdbId, mediaType, season, episode, title) {
   if (!tmdbId || !mediaType) return [];
   console.log(`[TioPlus] Looking for content: ${tmdbId} (${mediaType})`);
-  const OVERALL_TIMEOUT = 25000;
-  const hasAbort = typeof AbortController !== 'undefined';
-  const mainController = hasAbort ? new AbortController() : null;
-  const mainTimer = mainController
-    ? setTimeout(() => mainController.abort(), OVERALL_TIMEOUT)
-    : null;
 
   try {
     const tmdbInfo = await getTmdbInfo(tmdbId, mediaType, 'es-ES');
@@ -59,7 +51,6 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     const directUrl = `${BASE_URL}/${typePrefix}/${searchQuery}`;
     const directHtml = await fetchHtml(directUrl, {
       headers: { 'User-Agent': UA },
-      signal: mainController ? mainController.signal : undefined,
     });
     if (
       directHtml &&
@@ -74,7 +65,6 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       const searchUrl = `${BASE_URL}/api/search/${encodeURIComponent(searchQuery)}`;
       const html = await fetchHtml(searchUrl, {
         headers: { 'User-Agent': UA },
-        signal: mainController ? mainController.signal : undefined,
       });
       if (html) {
         const itemRegex =
@@ -118,7 +108,6 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     }
     const mediaHtml = await fetchHtml(finalMediaUrl, {
       headers: { 'User-Agent': UA, Referer: BASE_URL },
-      signal: mainController ? mainController.signal : undefined,
     });
     if (!mediaHtml) return [];
     const serverRegex = /data-server=['"]([^'"]+)['"][^>]*>[\s\S]*?<span>([^<]+)<\/span>/gi;
@@ -141,18 +130,10 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
     if (encodes.length === 0) return [];
 
     const resolutionPromises = encodes.map(async (item) => {
-      const ac = hasAbort ? new AbortController() : null;
-      const timer = ac ? setTimeout(() => ac.abort(), 10000) : null;
-      if (mainController && ac) mainController.signal.addEventListener('abort', () => ac.abort());
       try {
-        const realEmbedUrl = await getRedirectUrl(
-          item.enc,
-          finalMediaUrl,
-          ac ? ac.signal : undefined
-        );
+        const realEmbedUrl = await getRedirectUrl(item.enc, finalMediaUrl);
         if (!realEmbedUrl || !realEmbedUrl.startsWith('http')) return [];
-        clearTimeout(timer);
-        const resolved = await resolveEmbed(realEmbedUrl, ac ? ac.signal : undefined);
+        const resolved = await resolveEmbed(realEmbedUrl);
         if (resolved && (resolved.url || (Array.isArray(resolved) && resolved.length > 0))) {
           const streamsArray = Array.isArray(resolved) ? resolved : [resolved];
           return streamsArray.map((s) => ({
@@ -164,8 +145,6 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
         }
       } catch {
         return [];
-      } finally {
-        clearTimeout(timer);
       }
     });
 
@@ -177,15 +156,25 @@ export async function extractStreams(tmdbId, mediaType, season, episode, title) 
       }
     });
 
-    return await finalizeStreams(resolvedStreams, 'TioPlus', mediaTitle);
+    const qualityScore = { '4K': 5, '2160p': 5, '1080p': 4, '720p': 3, '480p': 2, '360p': 1, SD: 0 };
+    const seen = new Set();
+    return resolvedStreams
+      .sort((a, b) => (qualityScore[b.quality] || 0) - (qualityScore[a.quality] || 0))
+      .filter((s) => {
+        const key = s.url;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((s) => ({
+        name: 'TioPlus',
+        title: `${s.langLabel || 'Latino'} - ${s.serverLabel || 'Servidor'}`,
+        url: s.url,
+        quality: s.quality || 'HD',
+        headers: s.headers || {},
+      }));
   } catch (error) {
-    if (error.name === 'AbortError') {
-      console.log(`[TioPlus] Timeout tras ${OVERALL_TIMEOUT}ms`);
-    } else {
-      console.error(`[TioPlus] Error: ${error.message}`);
-    }
+    console.error(`[TioPlus] Error: ${error.message}`);
     return [];
-  } finally {
-    clearTimeout(mainTimer);
   }
 }
